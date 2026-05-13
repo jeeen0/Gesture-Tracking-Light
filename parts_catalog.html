@@ -133,6 +133,17 @@
     border: 1px solid var(--hairline);
   }
 
+  .nav-link-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: var(--r-md);
+    transition: all 0.15s;
+  }
+  .nav-link-text:hover { color: var(--ink); background: var(--surface-card); }
+
   /* BUTTONS */
   .btn {
     font-family: var(--font-body);
@@ -1165,7 +1176,8 @@
     .nav-inner { padding: 0 20px; }
     main { padding-left: 20px; padding-right: 20px; }
     .hero { padding-left: 20px; padding-right: 20px; }
-    .nav-actions .btn-text { display: none; }
+    .nav-actions .btn-text,
+    .nav-actions .nav-link-text { display: none; }
     .modal-body, .modal-header, .modal-footer { padding-left: 20px; padding-right: 20px; }
     .field-row { grid-template-columns: 1fr; }
     .grid { grid-template-columns: 1fr; }
@@ -1181,11 +1193,13 @@
 
 <nav class="top-nav">
   <div class="nav-inner">
-    <div class="brand">
+    <a href="index.html" class="brand" style="text-decoration: none; color: inherit;">
       <div class="brand-mark"></div>
-      <span>Gaegle · Parts</span>
-    </div>
+      <span>Gaegle</span>
+    </a>
     <div class="nav-actions">
+      <a href="index.html" class="nav-link-text">홈</a>
+      <a href="build_plan.html" class="nav-link-text">회로 빌드</a>
       <span class="count-pill" id="countBadge">0 items</span>
       <button class="btn btn-secondary btn-sm btn-text" id="exportBtn">백업</button>
       <button class="btn btn-secondary btn-sm btn-text" id="importBtn">복원</button>

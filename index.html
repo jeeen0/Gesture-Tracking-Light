@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaegle · Vision-AI Based Gesture Tracking Lighting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Recoleta:wght@500;600&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0a0a0a;
+    --brand-pink: #ff4d8b;
+    --brand-teal: #1a3a3a;
+    --brand-lavender: #b8a4ed;
+    --brand-peach: #ffb084;
+    --brand-ochre: #e8b94a;
+    --brand-mint: #a4d4c5;
+    --brand-coral: #ff6b5a;
+
+    --canvas: #fffaf0;
+    --surface-soft: #faf5e8;
+    --surface-card: #f5f0e0;
+    --surface-strong: #ebe6d6;
+    --hairline: #e5e5e5;
+
+    --ink: #0a0a0a;
+    --body: #3a3a3a;
+    --muted: #6a6a6a;
+    --muted-soft: #9a9a9a;
+    --on-primary: #ffffff;
+
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 24px;
+    --r-pill: 9999px;
+
+    --font-display: 'Recoleta', 'Inter', -apple-system, sans-serif;
+    --font-body: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .top-nav {
+    height: 72px;
+    border-bottom: 1px solid var(--hairline);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 250, 240, 0.88);
+  }
+
+  .nav-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--brand-ochre);
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-mark::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: var(--brand-pink);
+    border-radius: 50%;
+    top: -2px;
+    right: -2px;
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--brand-teal);
+    border-radius: 4px;
+    bottom: 4px;
+    left: 4px;
+    transform: rotate(15deg);
+  }
+
+  .nav-meta {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* HERO */
+  .hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 80px 32px 64px;
+    text-align: center;
+  }
+
+  .hero-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  .hero-label::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--brand-coral);
+    border-radius: 50%;
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(44px, 7vw, 88px);
+    line-height: 0.98;
+    letter-spacing: -3px;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+  .hero h1 .accent {
+    color: var(--brand-coral);
+    font-style: italic;
+  }
+
+  .hero p.lead {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--body);
+    max-width: 640px;
+    margin: 0 auto 8px;
+  }
+
+  .hero .team {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 20px;
+  }
+
+  /* CARDS */
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px 96px;
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .section-label::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--brand-ochre);
+    border-radius: 50%;
+  }
+
+  .pages-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+
+  .page-card {
+    border-radius: var(--r-xl);
+    padding: 40px 36px 36px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: transform 0.25s ease;
+    position: relative;
+    min-height: 380px;
+  }
+
+  .page-card:hover {
+    transform: translateY(-6px);
+  }
+
+  .page-card.build {
+    background: var(--brand-lavender);
+    color: var(--ink);
+  }
+  .page-card.catalog {
+    background: var(--brand-peach);
+    color: var(--ink);
+  }
+
+  .page-card-no {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  .page-card h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 1.05;
+    letter-spacing: -1.2px;
+    margin-top: 8px;
+  }
+
+  .page-card .desc {
+    font-size: 15px;
+    line-height: 1.6;
+    opacity: 0.78;
+    flex: 1;
+  }
+
+  .page-card .arrow {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .page-card .arrow-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--canvas);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    transition: transform 0.25s ease;
+  }
+
+  .page-card:hover .arrow-icon {
+    transform: translate(4px, -4px);
+  }
+
+  .page-card .preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .preview-pill {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 5px 10px;
+    border-radius: var(--r-pill);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* PROJECT INFO STRIP */
+  .project-info {
+    margin-top: 64px;
+    background: var(--surface-card);
+    border-radius: var(--r-xl);
+    padding: 40px 36px;
+  }
+
+  .project-info h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+  }
+
+  .project-info p {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--body);
+    max-width: 720px;
+    margin-bottom: 24px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+  }
+
+  .info-item .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .info-item .value {
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--surface-soft);
+    border-top: 1px solid var(--hairline);
+    padding: 56px 32px 40px;
+    text-align: center;
+  }
+
+  .footer-mountains {
+    width: 100%;
+    max-width: 1280px;
+    height: 80px;
+    margin: 0 auto 24px;
+    display: block;
+  }
+
+  footer p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 800px) {
+    .pages-grid { grid-template-columns: 1fr; }
+    .hero { padding: 56px 20px 48px; }
+    main { padding: 0 20px 64px; }
+    .nav-inner { padding: 0 20px; }
+    .page-card { padding: 32px 28px; min-height: auto; }
+    .page-card h2 { font-size: 32px; }
+    .project-info { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <div class="brand-mark"></div>
+      <span>Gaegle</span>
+    </a>
+    <div class="nav-meta">2026-1 캡스톤디자인</div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-label">Gaegle · AI소프트웨어학부</div>
+  <h1>Vision-AI Based<br>Gesture <span class="accent">Tracking Lighting</span></h1>
+  <p class="lead">손가락 하나로 빛을 보내고, 손동작으로 밝기를 조절하는 비전 AI 기반 지향성 조명 로봇.</p>
+  <div class="team">구한슬 · 박수현 · 변진영 · 서민경</div>
+</section>
+
+<main>
+  <div class="section-label">Workspaces</div>
+  <div class="pages-grid">
+    <a href="build_plan.html" class="page-card build">
+      <span class="page-card-no">№ 01 · Build plan</span>
+      <h2>회로 빌드<br>작업 페이지</h2>
+      <p class="desc">전원부 검증부터 시스템 통합까지, 회로를 단계별로 만들어가는 4단계 빌드 가이드. 각 단계에서 할 일, 필요한 부품, 검증 기준이 정리되어 있어요.</p>
+      <div class="preview">
+        <span class="preview-pill">Phase 1 · 전원부</span>
+        <span class="preview-pill">Phase 2 · 액추에이터</span>
+        <span class="preview-pill">Phase 3 · 조명</span>
+        <span class="preview-pill">Phase 4 · 통합</span>
+      </div>
+      <div class="arrow">
+        <span>작업 단계 보기</span>
+        <span class="arrow-icon">→</span>
+      </div>
+    </a>
+
+    <a href="parts_catalog.html" class="page-card catalog">
+      <span class="page-card-no">№ 02 · Parts</span>
+      <h2>부품 카탈로그<br>페이지</h2>
+      <p class="desc">디바이스마트·브이씨텍·제노몰에서 구매한 부품 36종의 라벨 사진과 실물 사진 카탈로그. 사진을 드래그앤드롭으로 추가하고, 검색·일괄 편집·백업이 가능해요.</p>
+      <div class="preview">
+        <span class="preview-pill">디바이스마트 26</span>
+        <span class="preview-pill">브이씨텍 6</span>
+        <span class="preview-pill">제노몰 4</span>
+      </div>
+      <div class="arrow">
+        <span>부품 보기</span>
+        <span class="arrow-icon">→</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="project-info">
+    <h3>프로젝트 한 줄 요약</h3>
+    <p>분위기는 유지하면서 필요한 곳만 밝게 비추는 조명이 시장에 없다는 문제 인식에서 출발. MediaPipe Hands로 손가락 포인팅을 추적해 LED 스팟의 방향을 자동으로 맞추고, Wave·Point·Pinch·Shaka·Fist 다섯 가지 제스처로 모드 전환·밝기 조절·전원을 제어합니다.</p>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="label">컴퓨팅</div>
+        <div class="value">Raspberry Pi 5</div>
+      </div>
+      <div class="info-item">
+        <div class="label">비전 모델</div>
+        <div class="value">MediaPipe Hands</div>
+      </div>
+      <div class="info-item">
+        <div class="label">액추에이터</div>
+        <div class="value">Pan-Tilt 서보 짐벌</div>
+      </div>
+      <div class="info-item">
+        <div class="label">조명</div>
+        <div class="value">10W 스팟 + 3W 무드</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <svg class="footer-mountains" viewBox="0 0 1200 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M 0 80 L 0 50 L 100 20 L 200 45 L 320 15 L 440 40 L 560 10 L 680 38 L 800 18 L 920 42 L 1040 22 L 1200 48 L 1200 80 Z" fill="#b8a4ed" opacity="0.6"/>
+    <path d="M 0 80 L 0 60 L 120 35 L 240 55 L 380 30 L 500 50 L 620 28 L 760 48 L 880 32 L 1020 52 L 1200 38 L 1200 80 Z" fill="#e8b94a" opacity="0.8"/>
+    <path d="M 0 80 L 0 70 L 140 50 L 280 65 L 420 48 L 560 62 L 720 50 L 880 64 L 1040 52 L 1200 60 L 1200 80 Z" fill="#1a3a3a"/>
+  </svg>
+  <p>Gaegle · 2026-1 캡스톤디자인 · 숭실대학교 AI소프트웨어학부</p>
+</footer>
+
+</body>
+</html>
