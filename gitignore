@@ -1,0 +1,56 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 가상환경
+venv/
+env/
+ENV/
+.venv/
+
+# 환경변수 / 비밀
+.env
+.env.local
+*.key
+
+# ===== IDE / 에디터 =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== 라즈베리파이 =====
+*.log
+
+# ===== Jupyter =====
+.ipynb_checkpoints/
+
+# ===== 카탈로그 백업 (사진 포함 시 큰 용량) =====
+# 백업 JSON을 레포에 안 넣고 싶으면 아래 주석 해제
+# parts_catalog_*.json
+
+# ===== 빌드 결과물 =====
+*.docx~$*
+~$*
