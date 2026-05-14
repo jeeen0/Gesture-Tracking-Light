@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
+<title>코드 에디터 · Gaegle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Recoleta:wght@500;600&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- CodeMirror 6 (via CDN ESM-shim) -->
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/material-darker.min.css">
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/search/search.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/search/searchcursor.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/dialog/dialog.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/dialog/dialog.min.css">
+
+<style>
+  :root {
+    --primary: #0a0a0a;
+    --brand-pink: #ff4d8b;
+    --brand-teal: #1a3a3a;
+    --brand-lavender: #b8a4ed;
+    --brand-peach: #ffb084;
+    --brand-ochre: #e8b94a;
+    --brand-mint: #a4d4c5;
+    --brand-coral: #ff6b5a;
+
+    --canvas: #fffaf0;
+    --surface-soft: #faf5e8;
+    --surface-card: #f5f0e0;
+    --surface-strong: #ebe6d6;
+    --hairline: #e5e5e5;
+
+    --ink: #0a0a0a;
+    --body: #3a3a3a;
+    --muted: #6a6a6a;
+    --muted-soft: #9a9a9a;
+    --on-primary: #ffffff;
+
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 24px;
+    --r-pill: 9999px;
+
+    --font-display: 'Recoleta', 'Inter', -apple-system, sans-serif;
+    --font-body: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  .top-nav {
+    height: 64px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--canvas);
+    flex-shrink: 0;
+  }
+  .nav-inner {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .brand-mark {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--brand-ochre);
+    position: relative; overflow: hidden;
+  }
+  .brand-mark::before {
+    content: ""; position: absolute;
+    width: 15px; height: 15px;
+    background: var(--brand-pink);
+    border-radius: 50%;
+    top: -2px; right: -2px;
+  }
+  .brand-mark::after {
+    content: ""; position: absolute;
+    width: 10px; height: 10px;
+    background: var(--brand-teal);
+    border-radius: 3px;
+    bottom: 3px; left: 3px;
+    transform: rotate(15deg);
+  }
+
+  .nav-links { display: flex; gap: 12px; align-items: center; }
+  .nav-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: var(--r-md);
+    transition: all 0.15s;
+  }
+  .nav-link:hover { color: var(--ink); background: var(--surface-card); }
+  .nav-link.active { color: var(--ink); background: var(--surface-card); }
+
+  .nav-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--r-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--primary); color: var(--on-primary); }
+  .btn-primary:hover { background: #2a2a2a; }
+  .btn-secondary {
+    background: var(--canvas);
+    color: var(--ink);
+    border-color: var(--hairline);
+  }
+  .btn-secondary:hover { border-color: var(--ink); }
+  .btn-danger {
+    background: transparent;
+    color: var(--brand-coral);
+  }
+  .btn-danger:hover { background: var(--brand-coral); color: #fff; }
+
+  /* LAYOUT */
+  .workspace {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    height: calc(100vh - 64px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface-soft);
+    border-right: 1px solid var(--hairline);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .sidebar-header h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-header p {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .sidebar-toolbar {
+    display: flex;
+    gap: 6px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+    flex-wrap: wrap;
+  }
+
+  .sidebar-toolbar .btn {
+    height: 30px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+
+  .file-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .phase-group {
+    margin-bottom: 8px;
+  }
+
+  .phase-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 20px 6px;
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.1s;
+    user-select: none;
+  }
+
+  .file-item:hover {
+    background: var(--surface-card);
+  }
+
+  .file-item.active {
+    background: var(--surface-card);
+    border-left-color: var(--brand-coral);
+  }
+
+  .file-icon {
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+    color: var(--muted);
+  }
+
+  .file-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-item.modified .file-name::after {
+    content: " ●";
+    color: var(--brand-coral);
+  }
+
+  /* EDITOR AREA */
+  .editor-area {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .editor-header {
+    height: 48px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--canvas);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .editor-tab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .editor-tab .phase-pill {
+    background: var(--surface-card);
+    color: var(--muted);
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .editor-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .editor-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .CodeMirror {
+    height: 100% !important;
+    font-family: var(--font-mono) !important;
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+  }
+
+  .empty-state {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    padding: 40px;
+    text-align: center;
+  }
+
+  .empty-state svg {
+    width: 80px; height: 80px;
+    opacity: 0.3;
+    margin-bottom: 20px;
+  }
+
+  .empty-state h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+
+  .empty-state p {
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 480px;
+    margin-bottom: 20px;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--primary);
+    color: var(--on-primary);
+    padding: 10px 20px;
+    border-radius: var(--r-pill);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 100;
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    max-width: calc(100vw - 48px);
+    text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* MODAL */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.5);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 24px;
+  }
+  .modal-backdrop.open { display: flex; }
+
+  .modal {
+    background: var(--canvas);
+    border-radius: var(--r-xl);
+    padding: 28px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  }
+
+  .modal h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 22px;
+    margin-bottom: 16px;
+    letter-spacing: -0.3px;
+  }
+
+  .modal-field {
+    margin-bottom: 14px;
+  }
+  .modal-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--body);
+    margin-bottom: 6px;
+  }
+  .modal-field input, .modal-field select {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--hairline);
+    background: var(--canvas);
+    border-radius: var(--r-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .modal-field input:focus, .modal-field select:focus {
+    outline: none; border-color: var(--ink);
+  }
+  .modal-actions {
+    display: flex; justify-content: flex-end; gap: 8px;
+    margin-top: 20px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: 200px 1fr;
+    }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--hairline); }
+    .nav-link[data-collapsible] { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <div class="brand-mark"></div>
+      <span>Gaegle</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link" data-collapsible>홈</a>
+      <a href="build_plan.html" class="nav-link" data-collapsible>회로 빌드</a>
+      <a href="circuit.html" class="nav-link" data-collapsible>회로 결선도</a>
+      <a href="code_editor.html" class="nav-link active">코드 에디터</a>
+      <a href="parts_catalog.html" class="nav-link" data-collapsible>부품 카탈로그</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-secondary" id="seedBtn" title="초기 코드 일괄 불러오기 (10+개)">초기 코드 불러오기</button>
+      <button class="btn btn-secondary" id="exportAllBtn">백업</button>
+      <button class="btn btn-secondary" id="importBtn">복원</button>
+      <input type="file" id="importFile" accept=".json" style="display:none">
+    </div>
+  </div>
+</nav>
+
+<div class="workspace">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>코드 파일</h2>
+      <p id="fileCount">0개 파일</p>
+    </div>
+    <div class="sidebar-toolbar">
+      <button class="btn btn-primary" id="newFileBtn">＋ 새 파일</button>
+      <button class="btn btn-secondary" id="downloadZipBtn" title="모든 파일을 .py 개별 파일로 다운로드">전체 다운로드</button>
+    </div>
+    <div class="file-list" id="fileList"></div>
+  </aside>
+
+  <main class="editor-area">
+    <div class="editor-header" id="editorHeader" style="display:none">
+      <div class="editor-tab">
+        <span id="currentFileName">—</span>
+        <span class="phase-pill" id="currentFilePhase">—</span>
+      </div>
+      <div class="editor-actions">
+        <button class="btn btn-secondary" id="saveBtn" title="현재 파일 저장 (Ctrl+S)">저장</button>
+        <button class="btn btn-secondary" id="downloadBtn" title="이 파일만 다운로드">⬇</button>
+        <button class="btn btn-secondary" id="renameBtn" title="이름 변경">이름</button>
+        <button class="btn btn-danger" id="deleteBtn" title="파일 삭제">삭제</button>
+      </div>
+    </div>
+    <div class="editor-container" id="editorContainer">
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/>
+          <line x1="9" y1="17" x2="15" y2="17"/>
+        </svg>
+        <h3>코드 파일을 선택하거나 새로 만드세요</h3>
+        <p>처음이라면 좌측 상단 <strong>"초기 코드 불러오기"</strong> 버튼을 눌러보세요. Phase별로 정리된 11개 파일이 한 번에 들어와요. Python 문법 강조와 자동 저장이 적용됩니다.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('seedBtn').click()">초기 코드 불러오기</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 새 파일 모달 -->
+<div class="modal-backdrop" id="newFileModal">
+  <div class="modal">
+    <h3>새 파일 만들기</h3>
+    <div class="modal-field">
+      <label>파일명</label>
+      <input type="text" id="newFileName" placeholder="예: my_test.py">
+    </div>
+    <div class="modal-field">
+      <label>Phase 그룹</label>
+      <select id="newFilePhase">
+        <option value="공통">공통</option>
+        <option value="Phase 2">Phase 2 — 서보</option>
+        <option value="Phase 3">Phase 3 — 조명</option>
+        <option value="Phase 4">Phase 4 — 통합</option>
+        <option value="Vision">Vision — 비전</option>
+        <option value="통합">통합</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>설명 (선택)</label>
+      <input type="text" id="newFileDesc" placeholder="이 파일이 어떤 역할인지...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeNewFileModal()">취소</button>
+      <button class="btn btn-primary" id="createFileBtn">만들기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename 모달 -->
+<div class="modal-backdrop" id="renameModal">
+  <div class="modal">
+    <h3>파일명 변경</h3>
+    <div class="modal-field">
+      <label>새 파일명</label>
+      <input type="text" id="renameInput">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeRenameModal()">취소</button>
+      <button class="btn btn-primary" id="confirmRenameBtn">변경</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ 초기 시드 데이터 (페이지에 임베드) ============
+const INITIAL_CODE_DATA = `[{"id": "file_1778763251086_000", "name": "config.py", "phase": "공통", "description": "핀 번호, 상수, 제스처 임계값 등 모든 설정", "content": "\\"\\"\\"\\nGaegle 캡스톤 · 공통 설정 파일\\n회로 결선도(circuit.html)와 일치해야 함. 핀 변경 시 여기만 수정.\\n\\"\\"\\"\\n\\n# ============ I2C ============\\nI2C_BUS = 1                  # Raspberry Pi 5 기본 I2C 버스\\nPCA9685_ADDRESS = 0x40       # PCA9685 기본 주소\\nPCA9685_FREQ = 50            # 서보 PWM 50Hz\\n\\n# ============ PCA9685 채널 ============\\nSERVO_PAN_CH = 0             # MG946R - 수평 회전 (하단)\\nSERVO_TILT_CH = 1            # MG90S  - 수직 회전 (상단)\\n\\n# ============ 서보 캘리브레이션 ============\\n# PCA9685는 12-bit (0~4095) PWM\\n# 50Hz 기준 1ms = 약 205, 2ms = 약 410\\nSERVO_MIN_PULSE = 150        # 0도 위치 (약 0.73ms)\\nSERVO_MAX_PULSE = 600        # 180도 위치 (약 2.93ms)\\n\\n# Pan/Tilt 안전 각도 제한 (기구적 한계)\\nPAN_MIN_DEG = 0\\nPAN_MAX_DEG = 180\\nTILT_MIN_DEG = 30            # 너무 위로 꺾이면 LED가 천장 향함\\nTILT_MAX_DEG = 150           # 너무 아래로 꺾이면 짐벌 부딪힘\\n\\n# 부드러운 이동을 위한 속도 제한 (deg/step)\\nSERVO_MAX_STEP_DEG = 3       # 한 번에 최대 3도씩만 이동\\nSERVO_STEP_DELAY_S = 0.02    # 스텝 간 20ms 대기\\n\\n# ============ GPIO 핀 (BCM 번호) ============\\nPIN_PIR = 23                 # PIR HC-SR501 OUT → GPIO 23 (Pin 16)\\nPIN_LED_SPOT_PWM = 12        # 10W LED MOSFET 게이트 → GPIO 12 (Pin 32)\\nPIN_LED_MOOD_PWM = 13        # 3W LED HAM3005 DIM → GPIO 13 (Pin 33)\\n\\n# LED PWM 주파수\\nLED_PWM_FREQ = 1000          # 1kHz - 깜박임 안 보이고 LED 드라이버 호환 좋음\\n\\n# ============ 카메라 ============\\nCAMERA_WIDTH_FULL = 640\\nCAMERA_HEIGHT_FULL = 480\\nCAMERA_FPS_FULL = 30\\n\\n# 저전력 모드 (Standby에서 motion 감지용)\\nCAMERA_WIDTH_LOW = 160\\nCAMERA_HEIGHT_LOW = 120\\nCAMERA_FPS_LOW = 10\\n\\n# 사용자 손 실제 길이 (mediapipe 0번 손목 ~ 5번 검지 MCP)\\n# 캘리브레이션 시 사용자 입력\\nHAND_REAL_LENGTH_M = 0.085   # 평균 8.5cm 기본값\\n\\n# ============ 상태 머신 ============\\nclass State:\\n    \\"\\"\\"시스템 상태 enum\\"\\"\\"\\n    STANDBY = \\"STANDBY\\"          # PIR 대기, 카메라 저전력\\n    GESTURE_MODE = \\"GESTURE\\"     # MediaPipe 풀 가동\\n    LOCKED = \\"LOCKED\\"            # 마지막 위치 유지, 인식 OFF\\n\\n# 상태 전환 시간\\nHAND_HOLD_SEC = 3.0              # 3초간 손 정지 → Locked\\nSTANDBY_TIMEOUT_SEC = 60.0       # 1분간 입력 없으면 → Standby\\n\\n# Wave 감지 (좌우 반복 움직임)\\nWAVE_FRAMES = 12                 # 약 0.4초 분량의 프레임으로 wave 판정\\nWAVE_MIN_AMPLITUDE = 80          # 픽셀 단위, 좌우 진폭\\n\\n# ============ 제스처 임계값 ============\\n# Pinch (엄지+검지 거리 비율, 손 크기 기준)\\nPINCH_ENTRY_RATIO = 0.18         # 진입 조건: 거리/손크기 < 0.18\\nPINCH_EXIT_RATIO = 0.30          # 유지 종료: 거리/손크기 > 0.30\\nPINCH_BRIGHT_MIN_RATIO = 0.05    # 0% 밝기\\nPINCH_BRIGHT_MAX_RATIO = 0.50    # 100% 밝기\\n\\n# ============ 로깅 ============\\nLOG_LEVEL = \\"INFO\\"               # DEBUG / INFO / WARNING / ERROR\\nLOG_FORMAT = \\"%(asctime)s [%(levelname)s] %(name)s: %(message)s\\"\\n", "language": "python", "createdAt": 1778763251086, "updatedAt": 1778763251086}, {"id": "file_1778763251086_001", "name": "servo_controller.py", "phase": "Phase 2", "description": "PCA9685 + Pan/Tilt 서보 제어 클래스", "content": "\\"\\"\\"\\n서보 컨트롤러 - PCA9685 I2C PWM 드라이버를 통해 Pan/Tilt 짐벌을 제어\\n회로: Raspberry Pi → I2C → PCA9685 → MG946R/MG90S\\n\\"\\"\\"\\nimport logging\\nimport time\\nfrom typing import Optional\\n\\ntry:\\n    from adafruit_servokit import ServoKit\\nexcept ImportError:\\n    ServoKit = None  # 실제 라즈베리파이가 아닐 때 (테스트용)\\n\\nfrom config import (\\n    PCA9685_ADDRESS, PCA9685_FREQ,\\n    SERVO_PAN_CH, SERVO_TILT_CH,\\n    PAN_MIN_DEG, PAN_MAX_DEG, TILT_MIN_DEG, TILT_MAX_DEG,\\n    SERVO_MAX_STEP_DEG, SERVO_STEP_DELAY_S,\\n)\\n\\nlog = logging.getLogger(__name__)\\n\\n\\nclass ServoController:\\n    \\"\\"\\"Pan-Tilt 짐벌 제어 클래스.\\n    \\n    PCA9685를 통해 두 서보의 각도를 부드럽게 제어.\\n    급격한 이동 시 발생하는 지터를 방지하기 위해 단계적 이동(step) 사용.\\n    \\"\\"\\"\\n    \\n    def __init__(self):\\n        if ServoKit is None:\\n            log.warning(\\"adafruit_servokit not available - running in DRY mode\\")\\n            self.kit = None\\n        else:\\n            self.kit = ServoKit(channels=16, address=PCA9685_ADDRESS, frequency=PCA9685_FREQ)\\n            log.info(f\\"PCA9685 initialized at 0x{PCA9685_ADDRESS:02X}, {PCA9685_FREQ}Hz\\")\\n        \\n        # 현재 각도 추적 (부드러운 이동용)\\n        self._current_pan = 90.0\\n        self._current_tilt = 90.0\\n        \\n        # 초기 위치로 이동 (중앙)\\n        self.move_to(90, 90, smooth=False)\\n    \\n    def _clamp_pan(self, deg: float) -> float:\\n        return max(PAN_MIN_DEG, min(PAN_MAX_DEG, deg))\\n    \\n    def _clamp_tilt(self, deg: float) -> float:\\n        return max(TILT_MIN_DEG, min(TILT_MAX_DEG, deg))\\n    \\n    def _set_raw(self, channel: int, angle: float):\\n        \\"\\"\\"PCA9685 채널에 직접 각도 명령 전송.\\"\\"\\"\\n        if self.kit is None:\\n            log.debug(f\\"[DRY] CH{channel} → {angle:.1f}°\\")\\n            return\\n        try:\\n            self.kit.servo[channel].angle = angle\\n        except Exception as e:\\n            log.error(f\\"Failed to set CH{channel} to {angle}°: {e}\\")\\n    \\n    def move_to(self, pan_deg: float, tilt_deg: float, smooth: bool = True):\\n        \\"\\"\\"Pan/Tilt를 목표 각도로 이동.\\n        \\n        smooth=True: 단계적으로 이동 (기본). 지터 방지.\\n        smooth=False: 즉시 이동. 초기화 시에만 사용.\\n        \\"\\"\\"\\n        pan_target = self._clamp_pan(pan_deg)\\n        tilt_target = self._clamp_tilt(tilt_deg)\\n        \\n        if not smooth:\\n            self._set_raw(SERVO_PAN_CH, pan_target)\\n            self._set_raw(SERVO_TILT_CH, tilt_target)\\n            self._current_pan = pan_target\\n            self._current_tilt = tilt_target\\n            return\\n        \\n        # 단계별 이동\\n        steps = max(\\n            int(abs(pan_target - self._current_pan) / SERVO_MAX_STEP_DEG),\\n            int(abs(tilt_target - self._current_tilt) / SERVO_MAX_STEP_DEG),\\n            1,\\n        )\\n        \\n        for i in range(1, steps + 1):\\n            ratio = i / steps\\n            pan_now = self._current_pan + (pan_target - self._current_pan) * ratio\\n            tilt_now = self._current_tilt + (tilt_target - self._current_tilt) * ratio\\n            self._set_raw(SERVO_PAN_CH, pan_now)\\n            self._set_raw(SERVO_TILT_CH, tilt_now)\\n            time.sleep(SERVO_STEP_DELAY_S)\\n        \\n        self._current_pan = pan_target\\n        self._current_tilt = tilt_target\\n        log.debug(f\\"Moved to Pan={pan_target:.1f}°, Tilt={tilt_target:.1f}°\\")\\n    \\n    def get_position(self) -> tuple[float, float]:\\n        \\"\\"\\"현재 (pan, tilt) 각도 반환.\\"\\"\\"\\n        return self._current_pan, self._current_tilt\\n    \\n    def home(self):\\n        \\"\\"\\"중앙 위치로 복귀 (서보 보호용).\\"\\"\\"\\n        log.info(\\"Homing to center\\")\\n        self.move_to(90, 90, smooth=True)\\n    \\n    def shutdown(self):\\n        \\"\\"\\"서보 PWM 끄기 (idle 상태 진입 시 사용).\\"\\"\\"\\n        if self.kit is None:\\n            return\\n        try:\\n            # PCA9685 채널에 None 할당하면 PWM 출력 정지\\n            self.kit.servo[SERVO_PAN_CH].angle = None\\n            self.kit.servo[SERVO_TILT_CH].angle = None\\n            log.info(\\"Servo PWM disabled\\")\\n        except Exception as e:\\n            log.error(f\\"Shutdown error: {e}\\")\\n    \\n    def __enter__(self):\\n        return self\\n    \\n    def __exit__(self, *args):\\n        self.shutdown()\\n", "language": "python", "createdAt": 1778763252086, "updatedAt": 1778763252086}, {"id": "file_1778763251086_002", "name": "servo_test.py", "phase": "Phase 2", "description": "모터 단독 테스트 (실행 가능 스크립트)", "content": "\\"\\"\\"\\n서보 단독 테스트 - Phase 2 검증용\\n회로 결선 후 가장 먼저 실행해서 짐벌 동작 확인.\\n\\n실행:\\n    sudo python3 servo_test.py\\n\\n테스트 시나리오:\\n1. 두 축이 0°, 45°, 90°, 135°, 180°로 차례로 이동\\n2. Pan만 좌우 스윕 (Tilt 고정)\\n3. Tilt만 위아래 스윕 (Pan 고정)\\n4. 대각선 이동\\n\\"\\"\\"\\nimport logging\\nimport time\\nimport sys\\n\\nfrom config import LOG_FORMAT, LOG_LEVEL, TILT_MIN_DEG, TILT_MAX_DEG\\nfrom servo_controller import ServoController\\n\\nlogging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)\\nlog = logging.getLogger(\\"servo_test\\")\\n\\n\\ndef test_basic_angles(servo: ServoController):\\n    \\"\\"\\"1단계: 기본 각도 5개 위치 확인.\\"\\"\\"\\n    log.info(\\"=== Test 1: Basic angles ===\\")\\n    angles = [0, 45, 90, 135, 180]\\n    for ang in angles:\\n        log.info(f\\"Moving both axes to {ang}°\\")\\n        # tilt은 기구 제한 안에서\\n        tilt_ang = max(TILT_MIN_DEG, min(TILT_MAX_DEG, ang))\\n        servo.move_to(ang, tilt_ang)\\n        time.sleep(1.0)\\n\\n\\ndef test_pan_sweep(servo: ServoController):\\n    \\"\\"\\"2단계: Pan 축만 좌우 스윕.\\"\\"\\"\\n    log.info(\\"=== Test 2: Pan sweep ===\\")\\n    servo.move_to(0, 90)\\n    time.sleep(0.5)\\n    for ang in range(0, 181, 10):\\n        servo.move_to(ang, 90, smooth=False)\\n        time.sleep(0.1)\\n    for ang in range(180, -1, -10):\\n        servo.move_to(ang, 90, smooth=False)\\n        time.sleep(0.1)\\n\\n\\ndef test_tilt_sweep(servo: ServoController):\\n    \\"\\"\\"3단계: Tilt 축만 위아래 스윕.\\"\\"\\"\\n    log.info(\\"=== Test 3: Tilt sweep ===\\")\\n    servo.move_to(90, TILT_MIN_DEG)\\n    time.sleep(0.5)\\n    for ang in range(TILT_MIN_DEG, TILT_MAX_DEG + 1, 10):\\n        servo.move_to(90, ang, smooth=False)\\n        time.sleep(0.1)\\n    for ang in range(TILT_MAX_DEG, TILT_MIN_DEG - 1, -10):\\n        servo.move_to(90, ang, smooth=False)\\n        time.sleep(0.1)\\n\\n\\ndef test_diagonal(servo: ServoController):\\n    \\"\\"\\"4단계: 대각선 이동 (두 축 동시 구동).\\"\\"\\"\\n    log.info(\\"=== Test 4: Diagonal movement ===\\")\\n    waypoints = [\\n        (0, TILT_MIN_DEG),\\n        (180, TILT_MAX_DEG),\\n        (180, TILT_MIN_DEG),\\n        (0, TILT_MAX_DEG),\\n        (90, 90),  # 마지막 중앙\\n    ]\\n    for pan, tilt in waypoints:\\n        log.info(f\\"→ Pan={pan}°, Tilt={tilt}°\\")\\n        servo.move_to(pan, tilt)\\n        time.sleep(0.8)\\n\\n\\ndef main():\\n    log.info(\\"Servo test starting. Press Ctrl+C to abort.\\")\\n    try:\\n        with ServoController() as servo:\\n            test_basic_angles(servo)\\n            time.sleep(1.0)\\n            test_pan_sweep(servo)\\n            time.sleep(1.0)\\n            test_tilt_sweep(servo)\\n            time.sleep(1.0)\\n            test_diagonal(servo)\\n            \\n            log.info(\\"✓ All tests complete. Homing.\\")\\n            servo.home()\\n            time.sleep(1.0)\\n    except KeyboardInterrupt:\\n        log.warning(\\"Interrupted by user\\")\\n        sys.exit(1)\\n    except Exception as e:\\n        log.error(f\\"Test failed: {e}\\", exc_info=True)\\n        sys.exit(2)\\n\\n\\nif __name__ == \\"__main__\\":\\n    main()\\n", "language": "python", "createdAt": 1778763253086, "updatedAt": 1778763253086}, {"id": "file_1778763251086_003", "name": "led_controller.py", "phase": "Phase 3", "description": "10W 스팟 + 3W 무드 LED 디밍", "content": "\\"\\"\\"\\nLED 컨트롤러 - 10W 스팟 + 3W 무드 LED 디밍 제어\\n\\n회로:\\n- 10W 라인: Pi GPIO 12 → MOSFET 모듈 SIG → HAM2121 → 10W COB LED\\n- 3W 라인:  Pi GPIO 13 → HAM3005 DIM → 3W LED × 8 (병렬)\\n\\nPWM 1kHz 고정. duty 0~100% 입력.\\n\\"\\"\\"\\nimport logging\\nfrom typing import Optional\\n\\ntry:\\n    import lgpio  # Raspberry Pi 5 권장 GPIO 라이브러리\\nexcept ImportError:\\n    lgpio = None\\n\\nfrom config import (\\n    PIN_LED_SPOT_PWM, PIN_LED_MOOD_PWM, LED_PWM_FREQ,\\n)\\n\\nlog = logging.getLogger(__name__)\\n\\n\\nclass LEDController:\\n    \\"\\"\\"10W 스팟 + 3W 무드 두 채널 LED 디밍 컨트롤러.\\n    \\n    내부적으로 lgpio의 하드웨어 PWM 사용.\\n    duty는 0~100 범위 입력, 내부에서 0~1 변환.\\n    \\"\\"\\"\\n    \\n    def __init__(self):\\n        self._spot_duty = 0.0\\n        self._mood_duty = 0.0\\n        \\n        if lgpio is None:\\n            log.warning(\\"lgpio not available - running in DRY mode\\")\\n            self.h = None\\n            return\\n        \\n        self.h = lgpio.gpiochip_open(0)\\n        # 출력 모드 설정\\n        lgpio.gpio_claim_output(self.h, PIN_LED_SPOT_PWM, 0)\\n        lgpio.gpio_claim_output(self.h, PIN_LED_MOOD_PWM, 0)\\n        log.info(f\\"LED PWM ready (Spot=GPIO{PIN_LED_SPOT_PWM}, Mood=GPIO{PIN_LED_MOOD_PWM}, {LED_PWM_FREQ}Hz)\\")\\n    \\n    def _set_pwm(self, pin: int, duty_percent: float):\\n        \\"\\"\\"0~100 → 0~100 duty cycle PWM 설정.\\"\\"\\"\\n        duty = max(0.0, min(100.0, duty_percent))\\n        if self.h is None:\\n            log.debug(f\\"[DRY] PWM pin {pin} duty={duty:.1f}%\\")\\n            return\\n        try:\\n            # lgpio.tx_pwm(handle, gpio, freq, duty_cycle 0~100)\\n            lgpio.tx_pwm(self.h, pin, LED_PWM_FREQ, duty)\\n        except Exception as e:\\n            log.error(f\\"PWM error on pin {pin}: {e}\\")\\n    \\n    # ---------- Spot (10W) ----------\\n    \\n    def spot_set(self, duty_percent: float):\\n        \\"\\"\\"10W 스팟 조명 밝기 설정 (0~100%).\\"\\"\\"\\n        self._spot_duty = max(0.0, min(100.0, duty_percent))\\n        self._set_pwm(PIN_LED_SPOT_PWM, self._spot_duty)\\n        log.debug(f\\"Spot LED → {self._spot_duty:.1f}%\\")\\n    \\n    def spot_on(self, duty_percent: float = 80.0):\\n        self.spot_set(duty_percent)\\n    \\n    def spot_off(self):\\n        self.spot_set(0)\\n    \\n    # ---------- Mood (3W × 8) ----------\\n    \\n    def mood_set(self, duty_percent: float):\\n        \\"\\"\\"3W 무드 LED 밝기 설정 (0~100%).\\"\\"\\"\\n        self._mood_duty = max(0.0, min(100.0, duty_percent))\\n        self._set_pwm(PIN_LED_MOOD_PWM, self._mood_duty)\\n        log.debug(f\\"Mood LED → {self._mood_duty:.1f}%\\")\\n    \\n    def mood_on(self, duty_percent: float = 40.0):\\n        self.mood_set(duty_percent)\\n    \\n    def mood_off(self):\\n        self.mood_set(0)\\n    \\n    # ---------- 통합 제어 ----------\\n    \\n    def all_off(self):\\n        \\"\\"\\"모든 LED 끄기.\\"\\"\\"\\n        self.spot_off()\\n        self.mood_off()\\n        log.info(\\"All LEDs off\\")\\n    \\n    def get_state(self) -> dict:\\n        return {\\n            \\"spot_duty\\": self._spot_duty,\\n            \\"mood_duty\\": self._mood_duty,\\n        }\\n    \\n    def shutdown(self):\\n        \\"\\"\\"GPIO 해제.\\"\\"\\"\\n        self.all_off()\\n        if self.h is not None:\\n            try:\\n                lgpio.gpiochip_close(self.h)\\n            except Exception as e:\\n                log.error(f\\"Close error: {e}\\")\\n        log.info(\\"LED controller shutdown\\")\\n    \\n    def __enter__(self):\\n        return self\\n    \\n    def __exit__(self, *args):\\n        self.shutdown()\\n", "language": "python", "createdAt": 1778763254086, "updatedAt": 1778763254086}, {"id": "file_1778763251086_004", "name": "led_test.py", "phase": "Phase 3", "description": "LED 디밍 테스트 (실행 가능 스크립트)", "content": "\\"\\"\\"\\nLED 단독 테스트 - Phase 3 검증용\\n\\n실행:\\n    sudo python3 led_test.py\\n\\n테스트:\\n1. Spot/Mood 각각 ON/OFF\\n2. 0~100% 디밍 스윕\\n3. 양쪽 동시 페이드\\n\\"\\"\\"\\nimport logging\\nimport time\\nimport sys\\n\\nfrom config import LOG_FORMAT, LOG_LEVEL\\nfrom led_controller import LEDController\\n\\nlogging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)\\nlog = logging.getLogger(\\"led_test\\")\\n\\n\\ndef test_basic_onoff(led: LEDController):\\n    \\"\\"\\"1단계: ON/OFF 기본 확인.\\"\\"\\"\\n    log.info(\\"=== Test 1: Basic ON/OFF ===\\")\\n    log.info(\\"Spot ON (50%)\\")\\n    led.spot_set(50)\\n    time.sleep(2)\\n    led.spot_off()\\n    time.sleep(0.5)\\n    \\n    log.info(\\"Mood ON (50%)\\")\\n    led.mood_set(50)\\n    time.sleep(2)\\n    led.mood_off()\\n    time.sleep(0.5)\\n\\n\\ndef test_dimming_sweep(led: LEDController):\\n    \\"\\"\\"2단계: 0~100% 부드러운 스윕.\\"\\"\\"\\n    log.info(\\"=== Test 2: Spot dimming sweep ===\\")\\n    for duty in range(0, 101, 5):\\n        led.spot_set(duty)\\n        time.sleep(0.05)\\n    for duty in range(100, -1, -5):\\n        led.spot_set(duty)\\n        time.sleep(0.05)\\n    \\n    log.info(\\"=== Test 3: Mood dimming sweep ===\\")\\n    for duty in range(0, 101, 5):\\n        led.mood_set(duty)\\n        time.sleep(0.05)\\n    for duty in range(100, -1, -5):\\n        led.mood_set(duty)\\n        time.sleep(0.05)\\n\\n\\ndef test_simultaneous(led: LEDController):\\n    \\"\\"\\"4단계: 양쪽 동시 페이드 (한쪽이 켜질 때 다른 쪽 꺼짐).\\"\\"\\"\\n    log.info(\\"=== Test 4: Cross-fade ===\\")\\n    for i in range(0, 101, 2):\\n        led.spot_set(i)\\n        led.mood_set(100 - i)\\n        time.sleep(0.03)\\n    for i in range(100, -1, -2):\\n        led.spot_set(i)\\n        led.mood_set(100 - i)\\n        time.sleep(0.03)\\n    led.all_off()\\n\\n\\ndef main():\\n    log.info(\\"LED test starting. Watch heat sink temperature!\\")\\n    log.info(\\"⚠ Do NOT look directly at 10W LED. Check via reflection.\\")\\n    \\n    try:\\n        with LEDController() as led:\\n            test_basic_onoff(led)\\n            test_dimming_sweep(led)\\n            test_simultaneous(led)\\n            log.info(\\"✓ All tests complete\\")\\n    except KeyboardInterrupt:\\n        log.warning(\\"Interrupted\\")\\n        sys.exit(1)\\n    except Exception as e:\\n        log.error(f\\"Test failed: {e}\\", exc_info=True)\\n        sys.exit(2)\\n\\n\\nif __name__ == \\"__main__\\":\\n    main()\\n", "language": "python", "createdAt": 1778763255086, "updatedAt": 1778763255086}, {"id": "file_1778763251086_005", "name": "pir_sensor.py", "phase": "Phase 4", "description": "PIR 인터럽트 핸들러", "content": "\\"\\"\\"\\nPIR 센서 - 재실 감지용 모션 센서 (HC-SR501)\\n회로: PIR OUT → GPIO 23 → 인터럽트\\n\\nOUT 핀이 LOW → HIGH 변할 때 사람 감지.\\nHIGH 유지 시간은 PIR 모듈의 TX 가변저항으로 조절 (기본 3초~5분).\\n\\"\\"\\"\\nimport logging\\nfrom typing import Callable, Optional\\n\\ntry:\\n    import lgpio\\nexcept ImportError:\\n    lgpio = None\\n\\nfrom config import PIN_PIR\\n\\nlog = logging.getLogger(__name__)\\n\\n\\nclass PIRSensor:\\n    \\"\\"\\"PIR 센서 인터럽트 핸들러.\\n    \\n    사용 예:\\n        def on_motion():\\n            print(\\"Motion detected!\\")\\n        \\n        pir = PIRSensor(on_motion=on_motion)\\n        # 콜백이 별도 스레드에서 실행됨\\n    \\"\\"\\"\\n    \\n    def __init__(self, on_motion: Optional[Callable[[], None]] = None,\\n                 on_no_motion: Optional[Callable[[], None]] = None):\\n        self.on_motion = on_motion\\n        self.on_no_motion = on_no_motion\\n        self._cb = None\\n        \\n        if lgpio is None:\\n            log.warning(\\"lgpio not available - PIR running in DRY mode\\")\\n            self.h = None\\n            return\\n        \\n        self.h = lgpio.gpiochip_open(0)\\n        lgpio.gpio_claim_input(self.h, PIN_PIR)\\n        \\n        # 양 edge 모두 콜백 (HIGH → 감지, LOW → 종료)\\n        self._cb = lgpio.callback(self.h, PIN_PIR, lgpio.BOTH_EDGES, self._handle_edge)\\n        log.info(f\\"PIR sensor ready on GPIO{PIN_PIR}\\")\\n    \\n    def _handle_edge(self, chip, gpio, level, tick):\\n        \\"\\"\\"엣지 검출 콜백. level: 1=HIGH(감지), 0=LOW(종료).\\"\\"\\"\\n        if level == 1:\\n            log.debug(\\"PIR: motion detected\\")\\n            if self.on_motion:\\n                try:\\n                    self.on_motion()\\n                except Exception as e:\\n                    log.error(f\\"on_motion callback error: {e}\\")\\n        elif level == 0:\\n            log.debug(\\"PIR: motion ended\\")\\n            if self.on_no_motion:\\n                try:\\n                    self.on_no_motion()\\n                except Exception as e:\\n                    log.error(f\\"on_no_motion callback error: {e}\\")\\n    \\n    def read(self) -> bool:\\n        \\"\\"\\"현재 PIR 상태 (True=감지 중).\\"\\"\\"\\n        if self.h is None:\\n            return False\\n        return bool(lgpio.gpio_read(self.h, PIN_PIR))\\n    \\n    def shutdown(self):\\n        if self._cb is not None:\\n            try:\\n                self._cb.cancel()\\n            except Exception:\\n                pass\\n        if self.h is not None:\\n            try:\\n                lgpio.gpiochip_close(self.h)\\n            except Exception as e:\\n                log.error(f\\"Close error: {e}\\")\\n        log.info(\\"PIR sensor shutdown\\")\\n    \\n    def __enter__(self):\\n        return self\\n    \\n    def __exit__(self, *args):\\n        self.shutdown()\\n", "language": "python", "createdAt": 1778763256086, "updatedAt": 1778763256086}, {"id": "file_1778763251086_006", "name": "state_machine.py", "phase": "Phase 4", "description": "Standby/Gesture/Locked 상태 머신", "content": "\\"\\"\\"\\n상태 머신 - Standby ↔ Gesture Mode ↔ Locked 전환 관리\\n\\n상태 다이어그램 (중간보고서):\\n    [STANDBY]  --Wave-->         [GESTURE_MODE]\\n    [STANDBY]  <--Fist--         [GESTURE_MODE]\\n    [GESTURE_MODE] --3초 정지--> [LOCKED]\\n    [LOCKED]   --Wave-->         [GESTURE_MODE]\\n\\n각 상태별 동작:\\n- STANDBY: 카메라 저전력, MediaPipe 미가동, 조명 OFF\\n- GESTURE_MODE: 카메라 풀 가동, 모든 제스처 인식\\n- LOCKED: 마지막 위치 유지, 제스처 인식 OFF, 조명 ON 유지\\n\\"\\"\\"\\nimport logging\\nimport time\\nfrom typing import Callable, Optional\\n\\nfrom config import State, HAND_HOLD_SEC, STANDBY_TIMEOUT_SEC\\n\\nlog = logging.getLogger(__name__)\\n\\n\\nclass StateMachine:\\n    \\"\\"\\"시스템 상태 관리 + 자동 타임아웃 처리.\\"\\"\\"\\n    \\n    def __init__(self,\\n                 on_state_change: Optional[Callable[[str, str], None]] = None):\\n        \\"\\"\\"on_state_change(old_state, new_state) 콜백을 받음.\\"\\"\\"\\n        self._state = State.STANDBY\\n        self._on_state_change = on_state_change\\n        \\n        # 손 정지 감지를 위한 타임스탬프\\n        self._last_motion_time = time.time()\\n        self._hand_hold_start: Optional[float] = None\\n    \\n    @property\\n    def state(self) -> str:\\n        return self._state\\n    \\n    def _transition(self, new_state: str, reason: str = \\"\\"):\\n        \\"\\"\\"상태 전이 + 콜백 호출.\\"\\"\\"\\n        if new_state == self._state:\\n            return\\n        \\n        old = self._state\\n        self._state = new_state\\n        log.info(f\\"State: {old} → {new_state}  ({reason})\\")\\n        \\n        # 타이머 리셋\\n        self._last_motion_time = time.time()\\n        self._hand_hold_start = None\\n        \\n        if self._on_state_change:\\n            try:\\n                self._on_state_change(old, new_state)\\n            except Exception as e:\\n                log.error(f\\"State change callback error: {e}\\")\\n    \\n    # ============ 이벤트 핸들러 ============\\n    \\n    def on_wave(self):\\n        \\"\\"\\"Wave 제스처 감지 시 호출.\\"\\"\\"\\n        if self._state == State.STANDBY:\\n            self._transition(State.GESTURE_MODE, \\"Wave detected (wake)\\")\\n        elif self._state == State.LOCKED:\\n            self._transition(State.GESTURE_MODE, \\"Wave detected (unlock)\\")\\n        else:\\n            log.debug(\\"Wave ignored (already in GESTURE_MODE)\\")\\n    \\n    def on_fist(self):\\n        \\"\\"\\"Fist 제스처 감지 시 호출 - 조명 OFF + Standby 복귀.\\"\\"\\"\\n        if self._state == State.GESTURE_MODE:\\n            self._transition(State.STANDBY, \\"Fist detected (shutdown)\\")\\n    \\n    def on_pir_motion(self):\\n        \\"\\"\\"PIR이 사람 감지. Standby 상태에서만 의미 있음.\\"\\"\\"\\n        if self._state == State.STANDBY:\\n            log.debug(\\"PIR motion in STANDBY - camera wakeup ready\\")\\n            # 카메라 풀 가동 트리거는 vision pipeline에서 처리\\n        self._last_motion_time = time.time()\\n    \\n    def on_hand_present(self, is_holding_still: bool):\\n        \\"\\"\\"매 프레임 손 존재 여부 보고.\\n        \\n        is_holding_still: 손이 일정 위치에 정지해있는지.\\n                          True가 HAND_HOLD_SEC 이상 지속되면 → LOCKED 전환.\\n        \\"\\"\\"\\n        if self._state != State.GESTURE_MODE:\\n            self._hand_hold_start = None\\n            return\\n        \\n        now = time.time()\\n        self._last_motion_time = now\\n        \\n        if is_holding_still:\\n            if self._hand_hold_start is None:\\n                self._hand_hold_start = now\\n            elif now - self._hand_hold_start >= HAND_HOLD_SEC:\\n                self._transition(State.LOCKED, f\\"Hand held for {HAND_HOLD_SEC}s\\")\\n        else:\\n            self._hand_hold_start = None\\n    \\n    def tick(self):\\n        \\"\\"\\"매 메인 루프마다 호출. 타임아웃 체크.\\n        \\n        GESTURE_MODE에서 일정 시간 입력 없으면 자동 Standby.\\n        \\"\\"\\"\\n        if self._state == State.GESTURE_MODE:\\n            if time.time() - self._last_motion_time > STANDBY_TIMEOUT_SEC:\\n                self._transition(State.STANDBY, f\\"No input for {STANDBY_TIMEOUT_SEC}s\\")\\n    \\n    def force_state(self, new_state: str, reason: str = \\"manual\\"):\\n        \\"\\"\\"디버깅용 강제 상태 전환.\\"\\"\\"\\n        self._transition(new_state, reason)\\n", "language": "python", "createdAt": 1778763257086, "updatedAt": 1778763257086}, {"id": "file_1778763251086_007", "name": "vector_calc.py", "phase": "Vision", "description": "손 랜드마크 → Pan/Tilt 각도 변환", "content": "\\"\\"\\"\\n벡터 계산 - MediaPipe 손 랜드마크에서 포인팅 방향 벡터 추출\\n+ 카메라 좌표계 → 짐벌(Pan/Tilt) 각도 변환\\n\\n중간보고서의 Solution(A) 비율 기반 추정 방식 구현:\\n    Z = (실제 손 길이 × 카메라 초점거리) / 픽셀 상 손 길이\\n\\"\\"\\"\\nimport logging\\nimport math\\nfrom typing import Optional\\n\\nimport numpy as np\\n\\nfrom config import (\\n    HAND_REAL_LENGTH_M,\\n    PAN_MIN_DEG, PAN_MAX_DEG,\\n    TILT_MIN_DEG, TILT_MAX_DEG,\\n)\\n\\nlog = logging.getLogger(__name__)\\n\\n\\n# 카메라 내부 파라미터 (캘리브레이션으로 정확한 값 구해야 함)\\n# Pi Camera Module 3 Wide 기준 임시값\\nCAMERA_FOCAL_PX = 500.0       # 픽셀 단위 초점거리\\nCAMERA_CX = 320.0             # 광학 중심 x (640 해상도 기준)\\nCAMERA_CY = 240.0             # 광학 중심 y\\n\\n# MediaPipe 랜드마크 인덱스\\nLM_WRIST = 0\\nLM_INDEX_MCP = 5\\nLM_INDEX_TIP = 8\\n\\n\\ndef estimate_depth(hand_landmarks_px, hand_real_length_m: float = HAND_REAL_LENGTH_M) -> float:\\n    \\"\\"\\"카메라-손 사이 거리 Z (미터) 추정.\\n    \\n    삼각 유사성:\\n        실제 손 길이 / 실제 거리 = 픽셀 손 길이 / 초점거리\\n        → Z = (실제 길이 × 초점거리) / 픽셀 길이\\n    \\n    hand_landmarks_px: 픽셀 좌표 (N, 3) numpy 배열. [x, y, z_rel]\\n    \\"\\"\\"\\n    wrist = hand_landmarks_px[LM_WRIST][:2]\\n    index_mcp = hand_landmarks_px[LM_INDEX_MCP][:2]\\n    pixel_length = np.linalg.norm(index_mcp - wrist)\\n    \\n    if pixel_length < 1:\\n        return 1.0  # fallback\\n    \\n    z = (hand_real_length_m * CAMERA_FOCAL_PX) / pixel_length\\n    return float(z)\\n\\n\\ndef calc_pointing_vector(hand_landmarks_px, z_estimated: float) -> np.ndarray:\\n    \\"\\"\\"검지 끝 - 손목 벡터를 카메라 좌표계의 3D 방향으로 변환.\\n    \\n    Returns: (vx, vy, vz) 정규화된 3D 방향 벡터 (카메라 좌표계)\\n    \\"\\"\\"\\n    # 픽셀 좌표 → 카메라 좌표 변환\\n    def px_to_cam(px, py, z):\\n        x_cam = (px - CAMERA_CX) * z / CAMERA_FOCAL_PX\\n        y_cam = (py - CAMERA_CY) * z / CAMERA_FOCAL_PX\\n        z_cam = z\\n        return np.array([x_cam, y_cam, z_cam])\\n    \\n    wrist_3d = px_to_cam(hand_landmarks_px[LM_WRIST][0],\\n                         hand_landmarks_px[LM_WRIST][1],\\n                         z_estimated)\\n    tip_3d = px_to_cam(hand_landmarks_px[LM_INDEX_TIP][0],\\n                       hand_landmarks_px[LM_INDEX_TIP][1],\\n                       z_estimated)\\n    \\n    direction = tip_3d - wrist_3d\\n    norm = np.linalg.norm(direction)\\n    if norm < 1e-6:\\n        return np.array([0.0, 0.0, 1.0])\\n    return direction / norm\\n\\n\\ndef vector_to_pan_tilt(direction: np.ndarray) -> tuple[float, float]:\\n    \\"\\"\\"3D 방향 벡터 → 짐벌 Pan/Tilt 각도 변환.\\n    \\n    Pan(yaw)   = atan2(x, z)   - 좌우 회전 (수평)\\n    Tilt(pitch) = atan2(-y, sqrt(x²+z²))  - 상하 회전 (수직)\\n    \\n    카메라 좌표계: +x=오른쪽, +y=아래, +z=앞.\\n    짐벌 0° = 정면, Pan +방향 = 오른쪽, Tilt +방향 = 위.\\n    \\n    Returns: (pan_deg, tilt_deg) 짐벌 안전 범위로 클램핑됨.\\n    \\"\\"\\"\\n    x, y, z = direction\\n    \\n    # Pan: 90° = 정면. 오른쪽 보면 90+α, 왼쪽 보면 90-α\\n    pan_rad = math.atan2(x, z) if z > 0.01 else 0.0\\n    pan_deg = 90.0 + math.degrees(pan_rad)\\n    \\n    # Tilt: 90° = 수평. 위 보면 90-α, 아래 보면 90+α \\n    horizontal = math.sqrt(x * x + z * z)\\n    tilt_rad = math.atan2(-y, horizontal) if horizontal > 0.01 else 0.0\\n    tilt_deg = 90.0 - math.degrees(tilt_rad)\\n    \\n    # 안전 범위로 클램핑\\n    pan_deg = max(PAN_MIN_DEG, min(PAN_MAX_DEG, pan_deg))\\n    tilt_deg = max(TILT_MIN_DEG, min(TILT_MAX_DEG, tilt_deg))\\n    \\n    return pan_deg, tilt_deg\\n\\n\\ndef hand_landmarks_to_pixels(landmarks, img_width: int, img_height: int) -> np.ndarray:\\n    \\"\\"\\"MediaPipe 정규화 좌표 (0~1) → 픽셀 좌표 (N, 3) 변환.\\n    \\n    landmarks: mediapipe HandLandmarkerResult.hand_landmarks[i] 형태\\n               각 랜드마크는 .x, .y, .z 속성 가짐.\\n    \\"\\"\\"\\n    pts = np.zeros((21, 3))\\n    for i, lm in enumerate(landmarks):\\n        pts[i, 0] = lm.x * img_width\\n        pts[i, 1] = lm.y * img_height\\n        pts[i, 2] = lm.z  # 상대 깊이 (정규화됨)\\n    return pts\\n\\n\\ndef hand_pixel_size(landmarks_px: np.ndarray) -> float:\\n    \\"\\"\\"손목 - 검지 MCP 픽셀 거리 (손 크기 추정용).\\"\\"\\"\\n    wrist = landmarks_px[LM_WRIST][:2]\\n    mcp = landmarks_px[LM_INDEX_MCP][:2]\\n    return float(np.linalg.norm(mcp - wrist))\\n", "language": "python", "createdAt": 1778763258086, "updatedAt": 1778763258086}, {"id": "file_1778763251086_008", "name": "vision_pipeline.py", "phase": "Vision", "description": "MediaPipe Hands + 제스처 분류", "content": "\\"\\"\\"\\n비전 파이프라인 - MediaPipe Hands 기반 손 랜드마크 추출 + 제스처 분류\\n\\n지원 제스처 (중간보고서 9페이지 기준):\\n- WAVE: 손바닥 좌우 흔들기 (대기 ↔ 활성 전환)\\n- POINT: 검지만 핀 상태 (조명 방향 제어)\\n- PINCH: 엄지 + 검지 (밝기 조절)\\n- SHAKA: 엄지 + 새끼손가락 (모드 전환 spot ↔ mood)\\n- FIST: 주먹 (조명 OFF)\\n\\"\\"\\"\\nimport logging\\nimport time\\nfrom collections import deque\\nfrom dataclasses import dataclass\\nfrom typing import Optional\\n\\nimport numpy as np\\n\\ntry:\\n    import mediapipe as mp\\n    import cv2\\nexcept ImportError:\\n    mp = None\\n    cv2 = None\\n\\nfrom config import (\\n    WAVE_FRAMES, WAVE_MIN_AMPLITUDE,\\n    PINCH_ENTRY_RATIO, PINCH_EXIT_RATIO,\\n    PINCH_BRIGHT_MIN_RATIO, PINCH_BRIGHT_MAX_RATIO,\\n)\\nfrom vector_calc import (\\n    hand_landmarks_to_pixels, hand_pixel_size,\\n    estimate_depth, calc_pointing_vector, vector_to_pan_tilt,\\n    LM_WRIST, LM_INDEX_MCP, LM_INDEX_TIP,\\n)\\n\\nlog = logging.getLogger(__name__)\\n\\n\\n# MediaPipe 손 랜드마크 인덱스\\nLM_THUMB_TIP = 4\\nLM_MIDDLE_TIP = 12\\nLM_RING_TIP = 16\\nLM_PINKY_TIP = 20\\nFINGER_TIPS = [LM_INDEX_TIP, LM_MIDDLE_TIP, LM_RING_TIP, LM_PINKY_TIP]\\nFINGER_MCPS = [LM_INDEX_MCP, 9, 13, 17]\\n\\n\\n@dataclass\\nclass GestureResult:\\n    \\"\\"\\"비전 파이프라인 결과.\\"\\"\\"\\n    gesture: str                       # \\"WAVE\\" | \\"POINT\\" | \\"PINCH\\" | \\"SHAKA\\" | \\"FIST\\" | \\"NONE\\"\\n    pan_deg: Optional[float] = None    # POINT 시 짐벌 목표 Pan\\n    tilt_deg: Optional[float] = None   # POINT 시 짐벌 목표 Tilt\\n    brightness: Optional[float] = None # PINCH 시 0~100 밝기\\n    confidence: float = 0.0\\n\\n\\ndef is_finger_extended(landmarks_px: np.ndarray, tip_idx: int, mcp_idx: int) -> bool:\\n    \\"\\"\\"손가락이 펴졌는지 (tip이 mcp보다 손목에서 멀면 펴진 것).\\"\\"\\"\\n    wrist = landmarks_px[LM_WRIST][:2]\\n    tip_dist = np.linalg.norm(landmarks_px[tip_idx][:2] - wrist)\\n    mcp_dist = np.linalg.norm(landmarks_px[mcp_idx][:2] - wrist)\\n    return tip_dist > mcp_dist * 1.15  # 15% 이상 멀어야 펴진 걸로\\n\\n\\ndef is_thumb_extended(landmarks_px: np.ndarray) -> bool:\\n    \\"\\"\\"엄지는 다른 손가락과 방향이 달라서 별도 처리.\\"\\"\\"\\n    wrist = landmarks_px[LM_WRIST][:2]\\n    thumb_tip = landmarks_px[LM_THUMB_TIP][:2]\\n    thumb_mcp = landmarks_px[2][:2]  # THUMB_MCP\\n    return np.linalg.norm(thumb_tip - wrist) > np.linalg.norm(thumb_mcp - wrist) * 1.1\\n\\n\\nclass VisionPipeline:\\n    \\"\\"\\"카메라 입력 → MediaPipe → 제스처 분류.\\"\\"\\"\\n    \\n    def __init__(self):\\n        if mp is None:\\n            log.warning(\\"mediapipe not available - vision in DRY mode\\")\\n            self.hands = None\\n        else:\\n            self.hands = mp.solutions.hands.Hands(\\n                static_image_mode=False,\\n                max_num_hands=1,\\n                min_detection_confidence=0.7,\\n                min_tracking_confidence=0.5,\\n            )\\n            log.info(\\"MediaPipe Hands initialized\\")\\n        \\n        # Wave 감지용 히스토리 (손목 x좌표)\\n        self._wrist_x_history = deque(maxlen=WAVE_FRAMES)\\n        # Pinch 상태 (히스테리시스)\\n        self._in_pinch = False\\n        # 손 정지 감지용 (위치 변화량)\\n        self._prev_wrist_pos: Optional[np.ndarray] = None\\n        self._still_threshold = 15.0  # 픽셀\\n    \\n    def _classify_gesture(self, landmarks_px: np.ndarray) -> str:\\n        \\"\\"\\"랜드마크 → 제스처 분류 (규칙 기반).\\"\\"\\"\\n        # 손가락 펴짐 상태 (검지, 중지, 약지, 새끼)\\n        fingers = [is_finger_extended(landmarks_px, tip, mcp)\\n                   for tip, mcp in zip(FINGER_TIPS, FINGER_MCPS)]\\n        thumb = is_thumb_extended(landmarks_px)\\n        \\n        # FIST: 모두 접힘\\n        if not any(fingers) and not thumb:\\n            return \\"FIST\\"\\n        \\n        # SHAKA: 엄지 + 새끼만 펴짐\\n        if thumb and not fingers[0] and not fingers[1] and not fingers[2] and fingers[3]:\\n            return \\"SHAKA\\"\\n        \\n        # POINT: 검지만 펴짐 (다른 손가락 접힘)\\n        if fingers[0] and not fingers[1] and not fingers[2] and not fingers[3]:\\n            return \\"POINT\\"\\n        \\n        # PINCH 판정 (엄지-검지 거리)\\n        hand_size = hand_pixel_size(landmarks_px)\\n        if hand_size > 5:\\n            thumb_tip = landmarks_px[LM_THUMB_TIP][:2]\\n            index_tip = landmarks_px[LM_INDEX_TIP][:2]\\n            pinch_dist = np.linalg.norm(thumb_tip - index_tip)\\n            ratio = pinch_dist / hand_size\\n            # 히스테리시스\\n            if not self._in_pinch and ratio < PINCH_ENTRY_RATIO:\\n                self._in_pinch = True\\n            elif self._in_pinch and ratio > PINCH_EXIT_RATIO:\\n                self._in_pinch = False\\n            if self._in_pinch:\\n                return \\"PINCH\\"\\n        \\n        # 모두 펴짐: 손바닥 (Wave 후보)\\n        if all(fingers):\\n            return \\"PALM\\"\\n        \\n        return \\"NONE\\"\\n    \\n    def _check_wave(self, wrist_x_px: float) -> bool:\\n        \\"\\"\\"좌우 흔들기 패턴 검출.\\"\\"\\"\\n        self._wrist_x_history.append(wrist_x_px)\\n        if len(self._wrist_x_history) < WAVE_FRAMES:\\n            return False\\n        \\n        xs = np.array(self._wrist_x_history)\\n        amplitude = xs.max() - xs.min()\\n        if amplitude < WAVE_MIN_AMPLITUDE:\\n            return False\\n        \\n        # 방향 변화 횟수 (zero-crossing)\\n        diffs = np.diff(xs)\\n        sign_changes = np.sum(np.diff(np.sign(diffs)) != 0)\\n        return sign_changes >= 3\\n    \\n    def _check_hand_still(self, wrist_pos: np.ndarray) -> bool:\\n        \\"\\"\\"손목 위치가 거의 정지인지.\\"\\"\\"\\n        if self._prev_wrist_pos is None:\\n            self._prev_wrist_pos = wrist_pos\\n            return False\\n        moved = np.linalg.norm(wrist_pos - self._prev_wrist_pos)\\n        self._prev_wrist_pos = wrist_pos\\n        return moved < self._still_threshold\\n    \\n    def process_frame(self, frame_bgr) -> GestureResult:\\n        \\"\\"\\"카메라 프레임 한 장 처리 → 제스처 + 부가 정보 반환.\\n        \\n        frame_bgr: OpenCV BGR 이미지 (H, W, 3)\\n        \\"\\"\\"\\n        if self.hands is None or cv2 is None or frame_bgr is None:\\n            return GestureResult(gesture=\\"NONE\\")\\n        \\n        h, w = frame_bgr.shape[:2]\\n        rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)\\n        result = self.hands.process(rgb)\\n        \\n        if not result.multi_hand_landmarks:\\n            self._wrist_x_history.clear()\\n            self._prev_wrist_pos = None\\n            return GestureResult(gesture=\\"NONE\\")\\n        \\n        landmarks = result.multi_hand_landmarks[0].landmark\\n        pts_px = hand_landmarks_to_pixels(landmarks, w, h)\\n        \\n        # Wave 우선 체크 (손바닥 흔들기)\\n        if self._check_wave(pts_px[LM_WRIST][0]):\\n            self._wrist_x_history.clear()\\n            return GestureResult(gesture=\\"WAVE\\", confidence=0.9)\\n        \\n        # 일반 제스처 분류\\n        gesture = self._classify_gesture(pts_px)\\n        \\n        out = GestureResult(gesture=gesture, confidence=0.8)\\n        \\n        # POINT → 짐벌 각도 계산\\n        if gesture == \\"POINT\\":\\n            z = estimate_depth(pts_px)\\n            direction = calc_pointing_vector(pts_px, z)\\n            pan, tilt = vector_to_pan_tilt(direction)\\n            out.pan_deg = pan\\n            out.tilt_deg = tilt\\n        \\n        # PINCH → 밝기 계산\\n        elif gesture == \\"PINCH\\":\\n            hand_size = hand_pixel_size(pts_px)\\n            if hand_size > 5:\\n                pinch_dist = np.linalg.norm(\\n                    pts_px[LM_THUMB_TIP][:2] - pts_px[LM_INDEX_TIP][:2]\\n                )\\n                ratio = pinch_dist / hand_size\\n                # 정규화: PINCH_BRIGHT_MIN ~ PINCH_BRIGHT_MAX_RATIO → 0~100%\\n                ratio_clamped = max(PINCH_BRIGHT_MIN_RATIO,\\n                                    min(PINCH_BRIGHT_MAX_RATIO, ratio))\\n                t = (ratio_clamped - PINCH_BRIGHT_MIN_RATIO) / \\\\\\n                    (PINCH_BRIGHT_MAX_RATIO - PINCH_BRIGHT_MIN_RATIO)\\n                out.brightness = t * 100.0\\n        \\n        # 손 정지 감지 (Lock 전환용)\\n        out.confidence = 0.95 if self._check_hand_still(pts_px[LM_WRIST][:2]) else 0.7\\n        \\n        return out\\n    \\n    def shutdown(self):\\n        if self.hands is not None:\\n            self.hands.close()\\n        log.info(\\"Vision pipeline shutdown\\")\\n    \\n    def __enter__(self):\\n        return self\\n    \\n    def __exit__(self, *args):\\n        self.shutdown()\\n", "language": "python", "createdAt": 1778763259086, "updatedAt": 1778763259086}, {"id": "file_1778763251086_009", "name": "main.py", "phase": "통합", "description": "전체 시스템 엔트리포인트 (실행 가능)", "content": "\\"\\"\\"\\n메인 엔트리포인트 - 전체 시스템 통합\\n\\n실행:\\n    sudo python3 main.py\\n\\n흐름:\\n1. 모든 컴포넌트 초기화 (servo, led, pir, vision, state)\\n2. PIR 인터럽트 등록\\n3. 메인 루프: 상태에 따라 다른 동작\\n   - STANDBY: PIR 대기, 카메라 저전력 motion check\\n   - GESTURE_MODE: 카메라 풀가동, 제스처 인식 → 제어\\n   - LOCKED: 마지막 위치 유지, Wave/Fist만 감지\\n\\"\\"\\"\\nimport logging\\nimport signal\\nimport sys\\nimport time\\nfrom typing import Optional\\n\\ntry:\\n    import cv2\\nexcept ImportError:\\n    cv2 = None\\n\\nfrom config import (\\n    LOG_FORMAT, LOG_LEVEL, State,\\n    CAMERA_WIDTH_FULL, CAMERA_HEIGHT_FULL, CAMERA_FPS_FULL,\\n)\\nfrom servo_controller import ServoController\\nfrom led_controller import LEDController\\nfrom pir_sensor import PIRSensor\\nfrom state_machine import StateMachine\\nfrom vision_pipeline import VisionPipeline\\n\\nlogging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)\\nlog = logging.getLogger(\\"main\\")\\n\\n\\nclass GaegleApp:\\n    \\"\\"\\"전체 애플리케이션 라이프사이클.\\"\\"\\"\\n    \\n    def __init__(self):\\n        log.info(\\"Initializing Gaegle system...\\")\\n        self.servo = ServoController()\\n        self.led = LEDController()\\n        self.vision = VisionPipeline()\\n        self.state = StateMachine(on_state_change=self._on_state_change)\\n        self.pir = PIRSensor(on_motion=self._on_pir_motion)\\n        \\n        # 카메라\\n        self.cap: Optional[\\"cv2.VideoCapture\\"] = None\\n        self._init_camera()\\n        \\n        # 현재 모드: spot ↔ mood\\n        self._light_mode = \\"spot\\"\\n        \\n        self._running = True\\n        # Ctrl+C 핸들러\\n        signal.signal(signal.SIGINT, self._on_signal)\\n        signal.signal(signal.SIGTERM, self._on_signal)\\n    \\n    def _init_camera(self):\\n        if cv2 is None:\\n            log.warning(\\"OpenCV not available - camera disabled\\")\\n            return\\n        self.cap = cv2.VideoCapture(0)\\n        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, CAMERA_WIDTH_FULL)\\n        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT_FULL)\\n        self.cap.set(cv2.CAP_PROP_FPS, CAMERA_FPS_FULL)\\n        log.info(f\\"Camera: {CAMERA_WIDTH_FULL}x{CAMERA_HEIGHT_FULL} @ {CAMERA_FPS_FULL}fps\\")\\n    \\n    # ============ 이벤트 핸들러 ============\\n    \\n    def _on_signal(self, signum, frame):\\n        log.warning(f\\"Signal {signum} received\\")\\n        self._running = False\\n    \\n    def _on_pir_motion(self):\\n        \\"\\"\\"PIR 감지 콜백 (인터럽트). STANDBY일 때만 의미 있음.\\"\\"\\"\\n        self.state.on_pir_motion()\\n    \\n    def _on_state_change(self, old: str, new: str):\\n        \\"\\"\\"상태 전환 시 동작.\\"\\"\\"\\n        if new == State.STANDBY:\\n            self.led.all_off()\\n            self.servo.home()\\n        elif new == State.GESTURE_MODE:\\n            # 진입 시 약한 무드등으로 시작\\n            self.led.mood_on(30)\\n        elif new == State.LOCKED:\\n            # 위치/조명 그대로 유지, vision만 안 함\\n            log.info(\\"Position locked\\")\\n    \\n    # ============ 액션 실행 ============\\n    \\n    def _apply_gesture(self, result):\\n        \\"\\"\\"제스처 → 실제 제어 명령.\\"\\"\\"\\n        if result.gesture == \\"WAVE\\":\\n            self.state.on_wave()\\n        elif result.gesture == \\"FIST\\":\\n            self.state.on_fist()\\n        elif result.gesture == \\"POINT\\" and self.state.state == State.GESTURE_MODE:\\n            if result.pan_deg is not None and result.tilt_deg is not None:\\n                self.servo.move_to(result.pan_deg, result.tilt_deg)\\n                # 포인트한 곳에 스팟 조명\\n                if self._light_mode == \\"spot\\":\\n                    self.led.spot_on(70)\\n        elif result.gesture == \\"PINCH\\" and self.state.state == State.GESTURE_MODE:\\n            if result.brightness is not None:\\n                if self._light_mode == \\"spot\\":\\n                    self.led.spot_set(result.brightness)\\n                else:\\n                    self.led.mood_set(result.brightness)\\n        elif result.gesture == \\"SHAKA\\" and self.state.state == State.GESTURE_MODE:\\n            # 모드 토글\\n            self._light_mode = \\"mood\\" if self._light_mode == \\"spot\\" else \\"spot\\"\\n            log.info(f\\"Light mode → {self._light_mode}\\")\\n            if self._light_mode == \\"spot\\":\\n                self.led.mood_off()\\n                self.led.spot_on(70)\\n            else:\\n                self.led.spot_off()\\n                self.led.mood_on(40)\\n        \\n        # 손 정지 → Lock 전환 체크\\n        if result.gesture in (\\"POINT\\", \\"PALM\\"):\\n            self.state.on_hand_present(result.confidence > 0.9)\\n        else:\\n            self.state.on_hand_present(False)\\n    \\n    # ============ 메인 루프 ============\\n    \\n    def run(self):\\n        log.info(\\"System ready. Starting main loop.\\")\\n        try:\\n            while self._running:\\n                self.state.tick()\\n                \\n                # 카메라 프레임 처리 (STANDBY가 아닐 때만)\\n                if self.state.state != State.STANDBY and self.cap is not None:\\n                    ret, frame = self.cap.read()\\n                    if not ret:\\n                        time.sleep(0.01)\\n                        continue\\n                    \\n                    # LOCKED 상태에서는 wake용 Wave/Fist만 감지\\n                    if self.state.state == State.LOCKED:\\n                        result = self.vision.process_frame(frame)\\n                        if result.gesture in (\\"WAVE\\", \\"FIST\\"):\\n                            self._apply_gesture(result)\\n                    else:\\n                        # GESTURE_MODE: 모든 제스처 처리\\n                        result = self.vision.process_frame(frame)\\n                        self._apply_gesture(result)\\n                else:\\n                    # STANDBY: 카메라 안 돌리고 PIR만 기다림\\n                    time.sleep(0.1)\\n        \\n        except Exception as e:\\n            log.error(f\\"Main loop error: {e}\\", exc_info=True)\\n        finally:\\n            self.shutdown()\\n    \\n    def shutdown(self):\\n        log.info(\\"Shutting down...\\")\\n        if self.cap is not None:\\n            self.cap.release()\\n        self.led.shutdown()\\n        self.servo.shutdown()\\n        self.pir.shutdown()\\n        self.vision.shutdown()\\n        log.info(\\"Bye!\\")\\n\\n\\ndef main():\\n    app = GaegleApp()\\n    app.run()\\n\\n\\nif __name__ == \\"__main__\\":\\n    main()\\n", "language": "python", "createdAt": 1778763260086, "updatedAt": 1778763260086}, {"id": "file_1778763251086_010", "name": "requirements.txt", "phase": "공통", "description": "Python 패키지 의존성", "content": "# Gaegle 캡스톤 - Python 의존성\\n# Raspberry Pi 5 (64bit OS) 기준\\n\\n# === 하드웨어 제어 ===\\nadafruit-circuitpython-servokit>=1.3.0   # PCA9685 + 서보\\nadafruit-blinka>=8.0.0                    # CircuitPython 호환 레이어\\nlgpio>=0.2.2                              # Pi 5 GPIO (RPi.GPIO 대체)\\n\\n# === 비전 ===\\nmediapipe>=0.10.0                         # 손 랜드마크\\nopencv-python>=4.8.0                      # 카메라 + 이미지 처리\\nnumpy>=1.24.0\\n\\n# === 유틸 ===\\n# (표준 라이브러리만 사용)\\n\\n# 설치:\\n#   pip install -r requirements.txt\\n# \\n# I2C 활성화 필요:\\n#   sudo raspi-config → Interface Options → I2C → Enable\\n# \\n# 권한 (lgpio용):\\n#   sudo usermod -aG gpio $USER\\n", "language": "text", "createdAt": 1778763261086, "updatedAt": 1778763261086}]`;
+
+// ============ INDEXEDDB ============
+const DB_NAME = 'gaegle_code_db';
+const STORE = 'files';
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) {
+        d.createObjectStore(STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbGetAll() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbPut(item) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).put(item);
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbDelete(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e);
+  });
+}
+
+// ============ STATE ============
+let files = [];
+let currentFileId = null;
+let editor = null;
+let isDirty = false;
+let autoSaveTimer = null;
+
+const PHASE_ORDER = ["공통", "Phase 2", "Phase 3", "Phase 4", "Vision", "통합", "기타"];
+
+// ============ TOAST ============
+let toastTimer;
+function showToast(msg, duration) {
+  duration = duration || 2200;
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+// ============ FILE LIST RENDER ============
+function renderFileList() {
+  const listEl = document.getElementById('fileList');
+  document.getElementById('fileCount').textContent = `${files.length}개 파일`;
+
+  if (files.length === 0) {
+    listEl.innerHTML = '<div style="padding: 40px 20px; text-align: center; color: var(--muted-soft); font-size: 13px;">파일이 없어요.<br>"초기 코드 불러오기"를 시도해보세요.</div>';
+    return;
+  }
+
+  // Phase별 그룹화
+  const byPhase = {};
+  for (const f of files) {
+    const phase = f.phase || "기타";
+    if (!byPhase[phase]) byPhase[phase] = [];
+    byPhase[phase].push(f);
+  }
+
+  let html = '';
+  for (const phase of PHASE_ORDER) {
+    if (!byPhase[phase]) continue;
+    html += `<div class="phase-group"><div class="phase-label">${escapeHtml(phase)}</div>`;
+    // 이름순 정렬
+    byPhase[phase].sort((a, b) => a.name.localeCompare(b.name));
+    for (const f of byPhase[phase]) {
+      const active = f.id === currentFileId ? 'active' : '';
+      const dirty = (f.id === currentFileId && isDirty) ? 'modified' : '';
+      html += `
+        <div class="file-item ${active} ${dirty}" data-id="${f.id}" onclick="selectFile('${f.id}')">
+          <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <div class="file-info">
+            <div class="file-name">${escapeHtml(f.name)}</div>
+            <div class="file-desc">${escapeHtml(f.description || '')}</div>
+          </div>
+        </div>
+      `;
+    }
+    html += `</div>`;
+  }
+  listEl.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============ EDITOR ============
+function ensureEditor(initialValue, language) {
+  if (editor) {
+    return editor;
+  }
+  const container = document.getElementById('editorContainer');
+  // empty-state 제거
+  const empty = document.getElementById('emptyState');
+  if (empty) empty.remove();
+
+  const textarea = document.createElement('textarea');
+  container.appendChild(textarea);
+  textarea.value = initialValue || '';
+
+  editor = CodeMirror.fromTextArea(textarea, {
+    mode: language === 'python' ? 'python' : 'text/plain',
+    theme: 'material-darker',
+    lineNumbers: true,
+    indentUnit: 4,
+    smartIndent: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    lineWrapping: false,
+    extraKeys: {
+      "Ctrl-S": () => saveCurrentFile(),
+      "Cmd-S": () => saveCurrentFile(),
+      "Tab": (cm) => {
+        if (cm.somethingSelected()) {
+          cm.indentSelection("add");
+        } else {
+          cm.replaceSelection("    ", "end");
+        }
+      },
+    },
+  });
+
+  editor.on('change', () => {
+    isDirty = true;
+    renderFileList();
+    // 자동 저장 (1.5초 디바운스)
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => saveCurrentFile(true), 1500);
+  });
+
+  return editor;
+}
+
+function selectFile(id) {
+  // 현재 파일 자동 저장
+  if (currentFileId && isDirty) {
+    saveCurrentFile(true);
+  }
+
+  const file = files.find(f => f.id === id);
+  if (!file) return;
+
+  currentFileId = id;
+  isDirty = false;
+
+  // 헤더 업데이트
+  document.getElementById('editorHeader').style.display = 'flex';
+  document.getElementById('currentFileName').textContent = file.name;
+  document.getElementById('currentFilePhase').textContent = file.phase || '기타';
+
+  // 에디터에 내용 로드
+  const lang = file.language === 'python' ? 'python' : 'text/plain';
+  ensureEditor(file.content, file.language);
+  editor.setOption('mode', lang);
+  editor.setValue(file.content || '');
+  editor.clearHistory();
+
+  renderFileList();
+  editor.focus();
+}
+
+async function saveCurrentFile(silent) {
+  if (!currentFileId || !editor) return;
+  const file = files.find(f => f.id === currentFileId);
+  if (!file) return;
+  file.content = editor.getValue();
+  file.updatedAt = Date.now();
+  try {
+    await dbPut(file);
+    isDirty = false;
+    renderFileList();
+    if (!silent) showToast(`${file.name} 저장됨`);
+  } catch (err) {
+    showToast('저장 실패');
+    console.error(err);
+  }
+}
+
+// ============ NEW FILE MODAL ============
+function openNewFileModal() {
+  document.getElementById('newFileName').value = '';
+  document.getElementById('newFileDesc').value = '';
+  document.getElementById('newFilePhase').value = '공통';
+  document.getElementById('newFileModal').classList.add('open');
+  setTimeout(() => document.getElementById('newFileName').focus(), 100);
+}
+function closeNewFileModal() {
+  document.getElementById('newFileModal').classList.remove('open');
+}
+
+document.getElementById('newFileBtn').addEventListener('click', openNewFileModal);
+document.getElementById('newFileModal').addEventListener('click', (e) => {
+  if (e.target.id === 'newFileModal') closeNewFileModal();
+});
+
+document.getElementById('createFileBtn').addEventListener('click', async () => {
+  const name = document.getElementById('newFileName').value.trim();
+  const phase = document.getElementById('newFilePhase').value;
+  const desc = document.getElementById('newFileDesc').value.trim();
+  if (!name) {
+    showToast('파일명을 입력하세요');
+    return;
+  }
+  if (files.some(f => f.name === name)) {
+    showToast('같은 이름의 파일이 이미 있어요');
+    return;
+  }
+  const ext = name.split('.').pop().toLowerCase();
+  const lang = (ext === 'py') ? 'python' : 'text';
+  const newFile = {
+    id: `file_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    name,
+    phase,
+    description: desc,
+    content: '',
+    language: lang,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+  try {
+    await dbPut(newFile);
+    files.push(newFile);
+    closeNewFileModal();
+    selectFile(newFile.id);
+    showToast(`${name} 생성됨`);
+  } catch (err) {
+    showToast('생성 실패');
+  }
+});
+
+// ============ RENAME ============
+function openRenameModal() {
+  if (!currentFileId) return;
+  const file = files.find(f => f.id === currentFileId);
+  if (!file) return;
+  document.getElementById('renameInput').value = file.name;
+  document.getElementById('renameModal').classList.add('open');
+  setTimeout(() => document.getElementById('renameInput').focus(), 100);
+}
+function closeRenameModal() {
+  document.getElementById('renameModal').classList.remove('open');
+}
+
+document.getElementById('renameBtn').addEventListener('click', openRenameModal);
+document.getElementById('renameModal').addEventListener('click', (e) => {
+  if (e.target.id === 'renameModal') closeRenameModal();
+});
+
+document.getElementById('confirmRenameBtn').addEventListener('click', async () => {
+  const newName = document.getElementById('renameInput').value.trim();
+  if (!newName || !currentFileId) return;
+  const file = files.find(f => f.id === currentFileId);
+  if (!file) return;
+  if (files.some(f => f.id !== currentFileId && f.name === newName)) {
+    showToast('같은 이름의 파일이 있어요');
+    return;
+  }
+  file.name = newName;
+  file.updatedAt = Date.now();
+  // 확장자로 언어 자동 갱신
+  const ext = newName.split('.').pop().toLowerCase();
+  file.language = (ext === 'py') ? 'python' : 'text';
+  try {
+    await dbPut(file);
+    closeRenameModal();
+    document.getElementById('currentFileName').textContent = file.name;
+    if (editor) editor.setOption('mode', file.language === 'python' ? 'python' : 'text/plain');
+    renderFileList();
+    showToast('이름 변경됨');
+  } catch (err) {
+    showToast('변경 실패');
+  }
+});
+
+// ============ DELETE ============
+document.getElementById('deleteBtn').addEventListener('click', async () => {
+  if (!currentFileId) return;
+  const file = files.find(f => f.id === currentFileId);
+  if (!file) return;
+  if (!confirm(`"${file.name}"을 삭제할까요? 되돌릴 수 없어요.`)) return;
+  try {
+    await dbDelete(currentFileId);
+    files = files.filter(f => f.id !== currentFileId);
+    currentFileId = null;
+    if (editor) {
+      editor.toTextArea();
+      editor = null;
+    }
+    document.getElementById('editorHeader').style.display = 'none';
+    // empty state 복구
+    const container = document.getElementById('editorContainer');
+    container.innerHTML = `
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <h3>파일이 삭제됐어요</h3>
+        <p>다른 파일을 선택하거나 새로 만드세요.</p>
+      </div>
+    `;
+    renderFileList();
+    showToast('삭제됨');
+  } catch (err) {
+    showToast('삭제 실패');
+  }
+});
+
+// ============ DOWNLOAD ============
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  if (!currentFileId) return;
+  const file = files.find(f => f.id === currentFileId);
+  if (!file) return;
+  // 저장 후 다운로드
+  if (editor) file.content = editor.getValue();
+  downloadFile(file);
+});
+
+function downloadFile(file) {
+  const blob = new Blob([file.content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('downloadZipBtn').addEventListener('click', async () => {
+  if (files.length === 0) {
+    showToast('다운로드할 파일이 없어요');
+    return;
+  }
+  // 현재 파일 자동 저장
+  if (currentFileId && isDirty) await saveCurrentFile(true);
+  // 각 파일을 순서대로 다운로드 (브라우저가 한꺼번에 처리)
+  for (const file of files) {
+    downloadFile(file);
+    await new Promise(r => setTimeout(r, 200));
+  }
+  showToast(`${files.length}개 파일 다운로드 시작`);
+});
+
+// ============ BACKUP / RESTORE ============
+document.getElementById('exportAllBtn').addEventListener('click', async () => {
+  if (currentFileId && isDirty) await saveCurrentFile(true);
+  const blob = new Blob([JSON.stringify(files, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `gaegle_code_${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`${files.length}개 파일 백업 완료`);
+});
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+});
+
+document.getElementById('importFile').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error('Invalid format');
+    if (!confirm(`${data.length}개 파일을 가져올까요? (기존 데이터는 유지됩니다)`)) return;
+    let count = 0;
+    for (const item of data) {
+      if (item.id && item.name) {
+        await dbPut(item);
+        count++;
+      }
+    }
+    await loadFiles();
+    showToast(`${count}개 파일 복원 완료`);
+  } catch (err) {
+    showToast('파일을 읽을 수 없어요');
+    console.error(err);
+  }
+  e.target.value = '';
+});
+
+// ============ INITIAL SEED ============
+document.getElementById('seedBtn').addEventListener('click', async () => {
+  let seedData;
+  try {
+    seedData = JSON.parse(INITIAL_CODE_DATA);
+  } catch (err) {
+    showToast('초기 데이터 파싱 실패');
+    return;
+  }
+  // 이미 존재하는 파일은 건너뜀
+  const existingNames = new Set(files.map(f => f.name));
+  const toAdd = seedData.filter(s => !existingNames.has(s.name));
+  if (toAdd.length === 0) {
+    showToast('이미 모든 초기 파일이 있어요');
+    return;
+  }
+  if (!confirm(`${toAdd.length}개 파일을 추가할까요?`)) return;
+  for (const item of toAdd) {
+    // 새 ID 발급 (충돌 방지)
+    item.id = `file_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    await dbPut(item);
+  }
+  await loadFiles();
+  showToast(`${toAdd.length}개 파일 추가됨`);
+  // 첫 파일 자동 선택
+  if (!currentFileId && files.length > 0) {
+    // config.py가 있으면 그것부터, 없으면 첫 파일
+    const config = files.find(f => f.name === 'config.py');
+    selectFile(config ? config.id : files[0].id);
+  }
+});
+
+// ============ SAVE BUTTON ============
+document.getElementById('saveBtn').addEventListener('click', () => saveCurrentFile(false));
+
+// ============ INIT ============
+async function loadFiles() {
+  files = await dbGetAll();
+  renderFileList();
+}
+
+(async () => {
+  try {
+    await openDB();
+    await loadFiles();
+    if (files.length === 0) {
+      // 빈 상태 - empty state가 자동으로 보임
+    }
+  } catch (err) {
+    console.error('DB error', err);
+    showToast('저장소를 열 수 없어요');
+  }
+})();
+
+// 페이지 떠나기 전 자동 저장
+window.addEventListener('beforeunload', () => {
+  if (currentFileId && isDirty && editor) {
+    const file = files.find(f => f.id === currentFileId);
+    if (file) {
+      file.content = editor.getValue();
+      file.updatedAt = Date.now();
+      // 동기적으로 저장 시도 (best effort)
+      dbPut(file);
+    }
+  }
+});
+</script>
+
+</body>
+</html>
+

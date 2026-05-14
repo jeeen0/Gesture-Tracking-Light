@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
 <title>Gaegle · Vision-AI Based Gesture Tracking Lighting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -200,18 +202,18 @@
 
   .pages-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
   }
 
   .page-card {
     border-radius: var(--r-xl);
-    padding: 40px 36px 36px;
+    padding: 32px 28px 28px;
     text-decoration: none;
     color: inherit;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     transition: transform 0.25s ease;
     position: relative;
     min-height: 380px;
@@ -225,8 +227,16 @@
     background: var(--brand-lavender);
     color: var(--ink);
   }
+  .page-card.circuit {
+    background: var(--brand-mint);
+    color: var(--ink);
+  }
   .page-card.catalog {
     background: var(--brand-peach);
+    color: var(--ink);
+  }
+  .page-card.code {
+    background: var(--brand-ochre);
     color: var(--ink);
   }
 
@@ -241,9 +251,9 @@
   .page-card h2 {
     font-family: var(--font-display);
     font-weight: 500;
-    font-size: 40px;
+    font-size: 32px;
     line-height: 1.05;
-    letter-spacing: -1.2px;
+    letter-spacing: -1px;
     margin-top: 8px;
   }
 
@@ -360,13 +370,17 @@
     color: var(--muted);
   }
 
-  @media (max-width: 800px) {
+  @media (max-width: 1100px) {
+    .pages-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 700px) {
     .pages-grid { grid-template-columns: 1fr; }
     .hero { padding: 56px 20px 48px; }
     main { padding: 0 20px 64px; }
     .nav-inner { padding: 0 20px; }
     .page-card { padding: 32px 28px; min-height: auto; }
-    .page-card h2 { font-size: 32px; }
+    .page-card h2 { font-size: 28px; }
     .project-info { padding: 32px 24px; }
   }
 </style>
@@ -409,8 +423,23 @@
       </div>
     </a>
 
+    <a href="circuit.html" class="page-card circuit">
+      <span class="page-card-no">№ 02 · Circuit</span>
+      <h2>회로 결선도<br>상세 페이지</h2>
+      <p class="desc">실제 조립 시 참고용 상세 결선도. 라즈베리파이 GPIO 핀 번호, I2C 주소, PCA9685 채널, MOSFET 게이트 핀까지 모두 표기된 시각화 자료예요.</p>
+      <div class="preview">
+        <span class="preview-pill">전체 시스템</span>
+        <span class="preview-pill">Phase별 4종</span>
+        <span class="preview-pill">핀 매핑 표</span>
+      </div>
+      <div class="arrow">
+        <span>결선도 보기</span>
+        <span class="arrow-icon">→</span>
+      </div>
+    </a>
+
     <a href="parts_catalog.html" class="page-card catalog">
-      <span class="page-card-no">№ 02 · Parts</span>
+      <span class="page-card-no">№ 03 · Parts</span>
       <h2>부품 카탈로그<br>페이지</h2>
       <p class="desc">디바이스마트·브이씨텍·제노몰에서 구매한 부품 36종의 라벨 사진과 실물 사진 카탈로그. 사진을 드래그앤드롭으로 추가하고, 검색·일괄 편집·백업이 가능해요.</p>
       <div class="preview">
@@ -420,6 +449,22 @@
       </div>
       <div class="arrow">
         <span>부품 보기</span>
+        <span class="arrow-icon">→</span>
+      </div>
+    </a>
+
+    <a href="code_editor.html" class="page-card code">
+      <span class="page-card-no">№ 04 · Code</span>
+      <h2>코드 에디터<br>작업 페이지</h2>
+      <p class="desc">Phase별로 정리된 11개의 Python 모듈을 작성·편집할 수 있는 코드 에디터. 모터 제어부터 MediaPipe 비전, 상태 머신까지. IndexedDB에 자동 저장돼요.</p>
+      <div class="preview">
+        <span class="preview-pill">servo_controller</span>
+        <span class="preview-pill">led_controller</span>
+        <span class="preview-pill">vision_pipeline</span>
+        <span class="preview-pill">main.py</span>
+      </div>
+      <div class="arrow">
+        <span>코드 편집</span>
         <span class="arrow-icon">→</span>
       </div>
     </a>

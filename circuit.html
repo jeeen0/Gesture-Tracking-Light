@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
+<title>회로 결선도 · Gaegle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Recoleta:wght@500;600&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0a0a0a;
+    --brand-pink: #ff4d8b;
+    --brand-teal: #1a3a3a;
+    --brand-lavender: #b8a4ed;
+    --brand-peach: #ffb084;
+    --brand-ochre: #e8b94a;
+    --brand-mint: #a4d4c5;
+    --brand-coral: #ff6b5a;
+
+    --canvas: #fffaf0;
+    --surface-soft: #faf5e8;
+    --surface-card: #f5f0e0;
+    --surface-strong: #ebe6d6;
+    --hairline: #e5e5e5;
+
+    --ink: #0a0a0a;
+    --body: #3a3a3a;
+    --muted: #6a6a6a;
+    --muted-soft: #9a9a9a;
+    --on-primary: #ffffff;
+
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 24px;
+    --r-pill: 9999px;
+
+    /* Signal colors */
+    --wire-power: #d4361c;
+    --wire-gnd: #1a1a1a;
+    --wire-pwm: #e8b94a;
+    --wire-i2c: #1a5fc4;
+    --wire-data: #6a6a6a;
+
+    --font-display: 'Recoleta', 'Inter', -apple-system, sans-serif;
+    --font-body: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  html, body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  .top-nav {
+    height: 72px;
+    border-bottom: 1px solid var(--hairline);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 250, 240, 0.88);
+  }
+  .nav-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .brand-mark {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: var(--brand-ochre);
+    position: relative; overflow: hidden;
+  }
+  .brand-mark::before {
+    content: ""; position: absolute;
+    width: 18px; height: 18px;
+    background: var(--brand-pink);
+    border-radius: 50%;
+    top: -2px; right: -2px;
+  }
+  .brand-mark::after {
+    content: ""; position: absolute;
+    width: 12px; height: 12px;
+    background: var(--brand-teal);
+    border-radius: 4px;
+    bottom: 4px; left: 4px;
+    transform: rotate(15deg);
+  }
+  .nav-links { display: flex; gap: 16px; align-items: center; }
+  .nav-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: var(--r-md);
+    transition: all 0.15s;
+  }
+  .nav-link:hover { color: var(--ink); background: var(--surface-card); }
+  .nav-link.active { color: var(--ink); background: var(--surface-card); }
+
+  /* HERO */
+  .hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 64px 32px 40px;
+  }
+  .hero-label {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+  }
+  .hero-label::before {
+    content: ""; width: 8px; height: 8px;
+    background: var(--brand-coral); border-radius: 50%;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+    max-width: 800px;
+  }
+  .hero h1 .accent { color: var(--brand-coral); font-style: italic; }
+  .hero p.lead {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--body);
+    max-width: 680px;
+  }
+
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px 64px;
+  }
+
+  /* LEGEND */
+  .legend {
+    background: var(--surface-card);
+    border-radius: var(--r-xl);
+    padding: 24px 28px;
+    margin-bottom: 56px;
+  }
+  .legend h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.3px;
+    margin-bottom: 16px;
+  }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--body);
+  }
+  .legend-line {
+    width: 28px; height: 3px;
+    border-radius: 2px;
+  }
+  .legend-line.power { background: #d4361c; }
+  .legend-line.gnd { background: #1a1a1a; }
+  .legend-line.pwm { background: #e8b94a; }
+  .legend-line.i2c { background: #1a5fc4; }
+  .legend-line.data { background: #6a6a6a; }
+  .legend-item .label { font-weight: 600; color: var(--ink); }
+  .legend-item .desc { color: var(--muted); font-size: 12px; }
+
+  /* TOC */
+  .toc {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 56px;
+  }
+  .toc-item {
+    background: var(--surface-soft);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    padding: 14px 18px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: all 0.15s;
+  }
+  .toc-item:hover {
+    border-color: var(--ink);
+    transform: translateY(-2px);
+  }
+  .toc-item .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .toc-item .title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 16px;
+    margin-top: 4px;
+    letter-spacing: -0.2px;
+  }
+
+  /* CIRCUIT BLOCK */
+  .circuit {
+    margin-bottom: 80px;
+    scroll-margin-top: 96px;
+  }
+
+  .circuit-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .circuit-num {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+  }
+
+  .circuit h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 36px;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  .circuit-sub {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--body);
+    margin-bottom: 24px;
+    max-width: 760px;
+  }
+
+  .circuit-canvas {
+    background: var(--surface-soft);
+    border-radius: var(--r-xl);
+    padding: 32px 24px;
+    overflow-x: auto;
+  }
+
+  .circuit-canvas svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    min-width: 700px;
+  }
+
+  .pin-table {
+    margin-top: 24px;
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+  .pin-table-header {
+    background: var(--surface-strong);
+    padding: 12px 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pin-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .pin-table th, .pin-table td {
+    padding: 10px 20px;
+    text-align: left;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .pin-table th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: transparent;
+  }
+  .pin-table tr:last-child td { border-bottom: none; }
+  .pin-table .pin-col {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--ink);
+    width: 110px;
+  }
+  .pin-table .target-col {
+    color: var(--body);
+  }
+  .pin-table .signal-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #fff;
+  }
+  .sig-power { background: #d4361c; }
+  .sig-gnd { background: #1a1a1a; }
+  .sig-pwm { background: #c89a30; }
+  .sig-i2c { background: #1a5fc4; }
+  .sig-data { background: #6a6a6a; }
+
+  .notes-box {
+    background: var(--brand-mint);
+    border-radius: var(--r-lg);
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .notes-box strong { font-weight: 600; }
+  .notes-box ul {
+    list-style: none;
+    padding: 0;
+  }
+  .notes-box ul li {
+    padding-left: 18px;
+    position: relative;
+    margin-top: 6px;
+  }
+  .notes-box ul li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    font-weight: 700;
+  }
+  .notes-box ul li:first-child { margin-top: 0; }
+
+  /* FOOTER */
+  footer {
+    background: var(--surface-soft);
+    border-top: 1px solid var(--hairline);
+    padding: 56px 32px 40px;
+    text-align: center;
+    margin-top: 64px;
+  }
+  .footer-mountains {
+    width: 100%;
+    max-width: 1280px;
+    height: 80px;
+    margin: 0 auto 24px;
+    display: block;
+  }
+  footer p { font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .nav-inner { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero, main { padding-left: 20px; padding-right: 20px; }
+    .circuit h2 { font-size: 28px; }
+    .circuit-canvas { padding: 16px 8px; }
+    .legend, .pin-table { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <div class="brand-mark"></div>
+      <span>Gaegle</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">홈</a>
+      <a href="build_plan.html" class="nav-link">회로 빌드</a>
+      <a href="circuit.html" class="nav-link active">회로 결선도</a>
+      <a href="code_editor.html" class="nav-link">코드 에디터</a>
+      <a href="parts_catalog.html" class="nav-link">부품 카탈로그</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-label">№ 03 · Circuit Diagrams</div>
+  <h1>핀 번호까지 표기된<br><span class="accent">상세 결선도</span></h1>
+  <p class="lead">실제 조립할 때 참고용으로 쓸 수 있는 회로 결선도. 라즈베리파이 5의 정확한 GPIO 핀 번호, I2C 주소, PCA9685 채널, MOSFET 게이트 핀까지 모두 표기되어 있어요.</p>
+</section>
+
+<main>
+
+  <!-- LEGEND -->
+  <section class="legend">
+    <h2>신호선 범례</h2>
+    <div class="legend-grid">
+      <div class="legend-item">
+        <div class="legend-line power"></div>
+        <div><span class="label">전원선</span> <span class="desc">V+, 5V, 12V, AC</span></div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line gnd"></div>
+        <div><span class="label">GND</span> <span class="desc">공통 그라운드</span></div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line pwm"></div>
+        <div><span class="label">PWM</span> <span class="desc">서보 / LED 디밍</span></div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line i2c"></div>
+        <div><span class="label">I2C</span> <span class="desc">SDA, SCL</span></div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-line data"></div>
+        <div><span class="label">데이터</span> <span class="desc">GPIO 입출력</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOC -->
+  <div class="toc">
+    <a href="#overall" class="toc-item">
+      <div class="num">№ 00</div>
+      <div class="title">전체 시스템</div>
+    </a>
+    <a href="#p1" class="toc-item">
+      <div class="num">№ 01 · Phase 1</div>
+      <div class="title">전원부</div>
+    </a>
+    <a href="#p2" class="toc-item">
+      <div class="num">№ 02 · Phase 2</div>
+      <div class="title">서보 액추에이터</div>
+    </a>
+    <a href="#p3" class="toc-item">
+      <div class="num">№ 03 · Phase 3</div>
+      <div class="title">조명 모듈</div>
+    </a>
+    <a href="#p4" class="toc-item">
+      <div class="num">№ 04 · Phase 4</div>
+      <div class="title">통합 + PIR</div>
+    </a>
+  </div>
+
+  <!-- ============ OVERALL ============ -->
+  <section id="overall" class="circuit">
+    <div class="circuit-header">
+      <span class="circuit-num">№ 00 · OVERALL</span>
+      <h2>전체 시스템 결선도</h2>
+    </div>
+    <p class="circuit-sub">AC 220V부터 LED와 서보까지, Vision-AI Gesture Tracking Lighting의 모든 부품 연결을 한 장에 표시한 통합 결선도. 색상으로 신호 종류를 구분하고, 각 연결선마다 핀 번호와 신호 이름을 라벨로 붙였어요.</p>
+
+    <div class="circuit-canvas">
+      <svg viewBox="0 0 1200 760" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="overall-title">
+        <title id="overall-title">전체 시스템 결선도</title>
+        <defs>
+          <marker id="dot-end" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
+            <circle cx="5" cy="5" r="3" fill="context-stroke"/>
+          </marker>
+        </defs>
+
+        <!-- AC 220V -->
+        <g>
+          <rect x="20" y="30" width="160" height="60" rx="10" fill="#fff" stroke="#d4361c" stroke-width="2"/>
+          <text x="100" y="55" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#0a0a0a">AC 220V</text>
+          <text x="100" y="74" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">콘센트 입력</text>
+        </g>
+
+        <!-- SMPS 5V -->
+        <g>
+          <rect x="220" y="20" width="170" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+          <text x="305" y="42" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#0a0a0a">SMPS LRS-35-5</text>
+          <text x="305" y="58" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">AC 220V → DC 5V 7A</text>
+          <line x1="245" y1="78" x2="270" y2="78" stroke="#d4361c" stroke-width="2"/>
+          <text x="290" y="82" font-family="JetBrains Mono,monospace" font-size="10" fill="#d4361c">+5V</text>
+          <line x1="245" y1="92" x2="270" y2="92" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="290" y="96" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a">GND</text>
+        </g>
+
+        <!-- SMPS 12V -->
+        <g>
+          <rect x="220" y="120" width="170" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+          <text x="305" y="142" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#0a0a0a">SMPS LRS-50-12</text>
+          <text x="305" y="158" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">AC 220V → DC 12V 4.2A</text>
+          <line x1="245" y1="178" x2="270" y2="178" stroke="#d4361c" stroke-width="2"/>
+          <text x="290" y="182" font-family="JetBrains Mono,monospace" font-size="10" fill="#d4361c">+12V</text>
+          <line x1="245" y1="192" x2="270" y2="192" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="290" y="196" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a">GND</text>
+        </g>
+
+        <!-- AC 라인 -->
+        <line x1="180" y1="60" x2="220" y2="60" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="200" y1="60" x2="200" y2="160" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="200" y1="160" x2="220" y2="160" stroke="#d4361c" stroke-width="2.5"/>
+
+        <!-- Raspberry Pi 5 -->
+        <g>
+          <rect x="450" y="40" width="240" height="200" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="2"/>
+          <text x="570" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#0C447C">Raspberry Pi 5</text>
+          <text x="570" y="84" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5">싱글보드 컴퓨터</text>
+          <!-- GPIO pins listed -->
+          <g font-family="JetBrains Mono,monospace" font-size="10" fill="#0C447C">
+            <text x="465" y="108">Pin 3 (GPIO 2)</text>
+            <text x="675" y="108" text-anchor="end" fill="#1a5fc4">SDA</text>
+            <text x="465" y="125">Pin 5 (GPIO 3)</text>
+            <text x="675" y="125" text-anchor="end" fill="#1a5fc4">SCL</text>
+            <text x="465" y="142">Pin 16 (GPIO 23)</text>
+            <text x="675" y="142" text-anchor="end" fill="#6a6a6a">PIR IN</text>
+            <text x="465" y="159">Pin 32 (GPIO 12)</text>
+            <text x="675" y="159" text-anchor="end" fill="#c89a30">PWM0</text>
+            <text x="465" y="176">Pin 33 (GPIO 13)</text>
+            <text x="675" y="176" text-anchor="end" fill="#c89a30">PWM1</text>
+            <text x="465" y="193">Pin 1 (3.3V)</text>
+            <text x="675" y="193" text-anchor="end" fill="#d4361c">3V3</text>
+            <text x="465" y="210">Pin 6 (GND)</text>
+            <text x="675" y="210" text-anchor="end" fill="#1a1a1a">GND</text>
+            <text x="465" y="227">USB / CSI</text>
+            <text x="675" y="227" text-anchor="end" fill="#6a6a6a">Camera</text>
+          </g>
+        </g>
+
+        <!-- Camera -->
+        <g>
+          <rect x="450" y="280" width="240" height="60" rx="10" fill="#fff" stroke="#6a6a6a" stroke-width="1.5"/>
+          <text x="570" y="305" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#0a0a0a">Raspberry Pi Camera 3 Wide</text>
+          <text x="570" y="322" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">CSI 어댑터 케이블 22pin → 15pin</text>
+        </g>
+        <line x1="675" y1="227" x2="715" y2="227" stroke="#6a6a6a" stroke-width="1.5"/>
+        <line x1="715" y1="227" x2="715" y2="310" stroke="#6a6a6a" stroke-width="1.5"/>
+        <line x1="715" y1="310" x2="690" y2="310" stroke="#6a6a6a" stroke-width="1.5"/>
+
+        <!-- PCA9685 -->
+        <g>
+          <rect x="800" y="30" width="200" height="170" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="2"/>
+          <text x="900" y="56" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#085041">PCA9685</text>
+          <text x="900" y="72" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#0F6E56">16ch PWM Driver</text>
+          <text x="900" y="86" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0F6E56">I2C addr: 0x40</text>
+          <g font-family="JetBrains Mono,monospace" font-size="10" fill="#085041">
+            <text x="815" y="108" fill="#1a5fc4">SDA</text>
+            <text x="815" y="123" fill="#1a5fc4">SCL</text>
+            <text x="815" y="138" fill="#d4361c">VCC (3.3V)</text>
+            <text x="815" y="153" fill="#1a1a1a">GND</text>
+            <text x="815" y="168" fill="#d4361c">V+ (5V 서보용)</text>
+            <text x="985" y="108" text-anchor="end" fill="#c89a30">CH 0 (Pan)</text>
+            <text x="985" y="123" text-anchor="end" fill="#c89a30">CH 1 (Tilt)</text>
+          </g>
+        </g>
+
+        <!-- I2C lines: Pi → PCA9685 -->
+        <line x1="690" y1="108" x2="800" y2="108" stroke="#1a5fc4" stroke-width="2"/>
+        <line x1="690" y1="125" x2="800" y2="125" stroke="#1a5fc4" stroke-width="2"/>
+
+        <!-- 3.3V Pi → PCA9685 VCC -->
+        <line x1="690" y1="193" x2="745" y2="193" stroke="#d4361c" stroke-width="2"/>
+        <line x1="745" y1="193" x2="745" y2="138" stroke="#d4361c" stroke-width="2"/>
+        <line x1="745" y1="138" x2="800" y2="138" stroke="#d4361c" stroke-width="2"/>
+
+        <!-- GND lines -->
+        <line x1="690" y1="210" x2="760" y2="210" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="760" y1="210" x2="760" y2="153" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="760" y1="153" x2="800" y2="153" stroke="#1a1a1a" stroke-width="2"/>
+
+        <!-- 5V SMPS to PCA9685 V+ (with capacitor) -->
+        <line x1="390" y1="78" x2="420" y2="78" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="420" y1="78" x2="420" y2="20" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="420" y1="20" x2="780" y2="20" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="780" y1="20" x2="780" y2="168" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="780" y1="168" x2="800" y2="168" stroke="#d4361c" stroke-width="2.5"/>
+        <!-- 캐패시터 표시 (가로 두 선) -->
+        <g transform="translate(770 165)">
+          <rect x="-8" y="-12" width="2" height="14" fill="#0a0a0a"/>
+          <rect x="-2" y="-12" width="2" height="14" fill="#0a0a0a"/>
+          <text x="-3" y="-18" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#0a0a0a">1000μF</text>
+        </g>
+
+        <!-- 5V SMPS GND -->
+        <line x1="390" y1="92" x2="408" y2="92" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="408" y1="92" x2="408" y2="245" stroke="#1a1a1a" stroke-width="2"/>
+        <text x="403" y="260" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a" text-anchor="middle">공통 GND</text>
+
+        <!-- Servos -->
+        <g>
+          <rect x="1050" y="30" width="130" height="70" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.5"/>
+          <text x="1115" y="55" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#633806">MG946R</text>
+          <text x="1115" y="72" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#854F0B">Pan 서보</text>
+          <text x="1115" y="88" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#854F0B">5V · 1A peak</text>
+        </g>
+        <g>
+          <rect x="1050" y="120" width="130" height="70" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.5"/>
+          <text x="1115" y="145" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#633806">MG90S</text>
+          <text x="1115" y="162" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#854F0B">Tilt 서보</text>
+          <text x="1115" y="178" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#854F0B">5V · 0.4A</text>
+        </g>
+
+        <line x1="1000" y1="108" x2="1050" y2="65" stroke="#e8b94a" stroke-width="2.5"/>
+        <text x="1015" y="80" font-family="JetBrains Mono,monospace" font-size="9" fill="#c89a30">PWM</text>
+        <line x1="1000" y1="123" x2="1050" y2="155" stroke="#e8b94a" stroke-width="2.5"/>
+        <text x="1015" y="148" font-family="JetBrains Mono,monospace" font-size="9" fill="#c89a30">PWM</text>
+
+        <!-- MOSFET (10W LED control) -->
+        <g>
+          <rect x="800" y="270" width="200" height="90" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.5"/>
+          <text x="900" y="294" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#3C3489">MOSFET 모듈 HQ00933</text>
+          <text x="900" y="310" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#534AB7">PWM 트리거 스위치</text>
+          <g font-family="JetBrains Mono,monospace" font-size="10" fill="#3C3489">
+            <text x="815" y="332" fill="#c89a30">PWM IN</text>
+            <text x="815" y="348" fill="#d4361c">V+ 12V</text>
+            <text x="985" y="332" text-anchor="end" fill="#d4361c">OUT+</text>
+            <text x="985" y="348" text-anchor="end" fill="#1a1a1a">OUT-</text>
+          </g>
+        </g>
+
+        <!-- Pi PWM0 → MOSFET -->
+        <line x1="690" y1="159" x2="720" y2="159" stroke="#e8b94a" stroke-width="2"/>
+        <line x1="720" y1="159" x2="720" y2="332" stroke="#e8b94a" stroke-width="2"/>
+        <line x1="720" y1="332" x2="800" y2="332" stroke="#e8b94a" stroke-width="2"/>
+
+        <!-- 12V → MOSFET -->
+        <line x1="390" y1="178" x2="430" y2="178" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="430" y1="178" x2="430" y2="348" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="430" y1="348" x2="800" y2="348" stroke="#d4361c" stroke-width="2.5"/>
+
+        <!-- HAM2121 → 10W LED -->
+        <g>
+          <rect x="1050" y="270" width="130" height="60" rx="10" fill="#fff" stroke="#854F0B" stroke-width="1.5"/>
+          <text x="1115" y="293" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#633806">HAM2121</text>
+          <text x="1115" y="310" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#854F0B">정전류 900mA</text>
+        </g>
+        <g>
+          <rect x="1050" y="350" width="130" height="60" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+          <text x="1115" y="373" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#712B13">10W COB LED</text>
+          <text x="1115" y="390" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#993C1D">+ 집광렌즈 15°</text>
+        </g>
+        <line x1="1000" y1="332" x2="1050" y2="300" stroke="#d4361c" stroke-width="2"/>
+        <line x1="1115" y1="330" x2="1115" y2="350" stroke="#d4361c" stroke-width="2"/>
+
+        <!-- HAM3005 → 3W LED -->
+        <g>
+          <rect x="800" y="400" width="200" height="60" rx="10" fill="#fff" stroke="#854F0B" stroke-width="1.5"/>
+          <text x="900" y="424" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#633806">HAM3005 LED 드라이버</text>
+          <text x="900" y="440" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#854F0B">정전류 700mA · PWM 디밍 내장</text>
+        </g>
+        <g>
+          <rect x="1050" y="430" width="130" height="60" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+          <text x="1115" y="453" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#712B13">3W LED × 8</text>
+          <text x="1115" y="470" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#993C1D">병렬 무드 조명</text>
+        </g>
+        <!-- Pi PWM1 → HAM3005 -->
+        <line x1="690" y1="176" x2="735" y2="176" stroke="#e8b94a" stroke-width="2"/>
+        <line x1="735" y1="176" x2="735" y2="420" stroke="#e8b94a" stroke-width="2"/>
+        <line x1="735" y1="420" x2="800" y2="420" stroke="#e8b94a" stroke-width="2"/>
+        <!-- 12V to HAM3005 -->
+        <line x1="430" y1="440" x2="800" y2="440" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="1000" y1="440" x2="1050" y2="460" stroke="#d4361c" stroke-width="2"/>
+
+        <!-- PIR Sensor -->
+        <g>
+          <rect x="220" y="420" width="170" height="70" rx="10" fill="#fff" stroke="#a4d4c5" stroke-width="2"/>
+          <text x="305" y="445" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#0a0a0a">PIR HC-SR501</text>
+          <text x="305" y="462" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">재실 감지 센서</text>
+          <text x="305" y="478" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0F6E56">VCC · OUT · GND</text>
+        </g>
+        <!-- Pi 3.3V → PIR VCC -->
+        <line x1="385" y1="430" x2="430" y2="430" stroke="#d4361c" stroke-width="2"/>
+        <line x1="430" y1="430" x2="430" y2="193" stroke="#d4361c" stroke-width="2"/>
+        <text x="437" y="440" font-family="JetBrains Mono,monospace" font-size="9" fill="#d4361c">3.3V</text>
+        <!-- PIR OUT → Pi GPIO 23 -->
+        <line x1="385" y1="450" x2="450" y2="450" stroke="#6a6a6a" stroke-width="2"/>
+        <line x1="450" y1="450" x2="450" y2="142" stroke="#6a6a6a" stroke-width="2"/>
+        <line x1="450" y1="142" x2="465" y2="142" stroke="#6a6a6a" stroke-width="2"/>
+        <text x="455" y="465" font-family="JetBrains Mono,monospace" font-size="9" fill="#6a6a6a">PIR OUT</text>
+
+        <!-- Capacitor between Pan servo and PCA9685 V+ -->
+
+        <!-- Common GND bus -->
+        <line x1="100" y1="700" x2="1180" y2="700" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="50" y="704" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#1a1a1a">공통 GND</text>
+        <!-- GND drops -->
+        <line x1="305" y1="98" x2="305" y2="700" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <line x1="305" y1="198" x2="305" y2="700" stroke="#1a1a1a" stroke-width="1.5"/>
+        <line x1="570" y1="240" x2="570" y2="700" stroke="#1a1a1a" stroke-width="1.5"/>
+        <line x1="900" y1="200" x2="900" y2="700" stroke="#1a1a1a" stroke-width="1.5"/>
+        <line x1="305" y1="490" x2="305" y2="700" stroke="#1a1a1a" stroke-width="1.5"/>
+
+        <!-- Common GND label -->
+        <g transform="translate(600 720)">
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">⚠ 모든 GND는 반드시 한 점(공통)에 모여야 PWM 신호가 정상 전달돼요</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="notes-box">
+      <strong>📌 통합 결선 핵심 포인트</strong>
+      <ul>
+        <li><strong>전원 분리</strong>: 서보(5V SMPS)와 LED(12V SMPS)를 별도 SMPS로 분리. Pi의 5V 핀은 서보에 절대 사용 금지</li>
+        <li><strong>I2C 풀업</strong>: PCA9685 모듈에 풀업 저항이 내장되어 있어 추가 부품 불필요</li>
+        <li><strong>공통 GND</strong>: 5V SMPS GND, 12V SMPS GND, Pi GND를 한 점에 모아야 PWM 신호 노이즈 방지</li>
+        <li><strong>전해 캐패시터 1000μF</strong>: PCA9685의 V+/GND 사이에 부착해서 서보 기동 전류 충격 흡수</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 1: 전원부 ============ -->
+  <section id="p1" class="circuit">
+    <div class="circuit-header">
+      <span class="circuit-num">№ 01 · PHASE 1</span>
+      <h2>전원부 결선도</h2>
+    </div>
+    <p class="circuit-sub">AC 220V 입력부터 두 개의 DC 전원 분기까지. 서보와 LED는 절대 같은 SMPS를 공유하지 않아요. 부하 간섭 방지를 위해 SMPS 두 대를 독립적으로 운영합니다.</p>
+
+    <div class="circuit-canvas">
+      <svg viewBox="0 0 1000 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="p1-title">
+        <title id="p1-title">Phase 1 전원부 결선도</title>
+
+        <!-- AC outlet -->
+        <g>
+          <rect x="40" y="180" width="160" height="100" rx="12" fill="#fff" stroke="#d4361c" stroke-width="2.5"/>
+          <text x="120" y="208" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="#0a0a0a">AC 220V</text>
+          <text x="120" y="228" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" fill="#6a6a6a">콘센트 입력</text>
+          <text x="120" y="252" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#d4361c">L (Live)</text>
+          <text x="120" y="268" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#1a1a1a">N (Neutral)</text>
+        </g>
+
+        <!-- AC distribution with PG terminals -->
+        <line x1="200" y1="220" x2="270" y2="220" stroke="#d4361c" stroke-width="3"/>
+        <line x1="200" y1="240" x2="270" y2="240" stroke="#1a1a1a" stroke-width="3"/>
+
+        <!-- PG 압착 단자 -->
+        <g>
+          <rect x="270" y="195" width="80" height="60" rx="6" fill="#FAF5E8" stroke="#854F0B" stroke-width="1.5"/>
+          <text x="310" y="218" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#633806">PG</text>
+          <text x="310" y="232" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#854F0B">압착 단자</text>
+          <text x="310" y="246" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#854F0B">Y형 1.5-2.5sq</text>
+        </g>
+
+        <!-- AC 분기 -->
+        <line x1="350" y1="225" x2="430" y2="225" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="390" y1="225" x2="390" y2="100" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="390" y1="100" x2="430" y2="100" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="390" y1="225" x2="390" y2="370" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="390" y1="370" x2="430" y2="370" stroke="#d4361c" stroke-width="2.5"/>
+
+        <line x1="350" y1="240" x2="410" y2="240" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="410" y1="240" x2="410" y2="120" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="410" y1="120" x2="430" y2="120" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="410" y1="240" x2="410" y2="390" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="410" y1="390" x2="430" y2="390" stroke="#1a1a1a" stroke-width="2.5"/>
+
+        <!-- SMPS 5V (Servo line) -->
+        <g>
+          <rect x="430" y="40" width="240" height="130" rx="12" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="550" y="65" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#0a0a0a">SMPS LRS-35-5</text>
+          <text x="550" y="84" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" fill="#6a6a6a">5V 7A · 35W · 서보 전용</text>
+          <g font-family="JetBrains Mono,monospace" font-size="11">
+            <text x="445" y="105" fill="#d4361c">L</text>
+            <text x="445" y="123" fill="#1a1a1a">N</text>
+            <text x="655" y="135" text-anchor="end" fill="#d4361c">+V (5V)</text>
+            <text x="655" y="155" text-anchor="end" fill="#1a1a1a">-V (GND)</text>
+          </g>
+        </g>
+
+        <!-- SMPS 12V (LED line) -->
+        <g>
+          <rect x="430" y="310" width="240" height="130" rx="12" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="550" y="335" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#0a0a0a">SMPS LRS-50-12</text>
+          <text x="550" y="354" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" fill="#6a6a6a">12V 4.2A · 50W · LED 전용</text>
+          <g font-family="JetBrains Mono,monospace" font-size="11">
+            <text x="445" y="375" fill="#d4361c">L</text>
+            <text x="445" y="393" fill="#1a1a1a">N</text>
+            <text x="655" y="405" text-anchor="end" fill="#d4361c">+V (12V)</text>
+            <text x="655" y="425" text-anchor="end" fill="#1a1a1a">-V (GND)</text>
+          </g>
+        </g>
+
+        <!-- DC barrel jack adapters -->
+        <line x1="670" y1="135" x2="730" y2="135" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="670" y1="155" x2="730" y2="155" stroke="#1a1a1a" stroke-width="2.5"/>
+        <g>
+          <rect x="730" y="115" width="120" height="60" rx="8" fill="#FAF5E8" stroke="#534AB7" stroke-width="1.5"/>
+          <text x="790" y="138" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#3C3489">DC Jack 어댑터</text>
+          <text x="790" y="154" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#534AB7">5.5×2.1mm</text>
+          <text x="790" y="168" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#534AB7">스크류 단자</text>
+        </g>
+
+        <line x1="670" y1="405" x2="730" y2="405" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="670" y1="425" x2="730" y2="425" stroke="#1a1a1a" stroke-width="2.5"/>
+        <g>
+          <rect x="730" y="385" width="120" height="60" rx="8" fill="#FAF5E8" stroke="#534AB7" stroke-width="1.5"/>
+          <text x="790" y="408" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#3C3489">DC Jack 어댑터</text>
+          <text x="790" y="424" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#534AB7">5.5×2.1mm</text>
+          <text x="790" y="438" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#534AB7">스크류 단자</text>
+        </g>
+
+        <!-- Output to breadboard -->
+        <line x1="850" y1="135" x2="900" y2="135" stroke="#d4361c" stroke-width="3"/>
+        <line x1="850" y1="155" x2="900" y2="155" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="905" y="139" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#d4361c">→ 서보 전원</text>
+        <text x="905" y="159" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">→ GND</text>
+
+        <line x1="850" y1="405" x2="900" y2="405" stroke="#d4361c" stroke-width="3"/>
+        <line x1="850" y1="425" x2="900" y2="425" stroke="#1a1a1a" stroke-width="3"/>
+        <text x="905" y="409" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#d4361c">→ LED 전원</text>
+        <text x="905" y="429" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#1a1a1a">→ GND</text>
+
+        <!-- Test points -->
+        <circle cx="700" cy="135" r="5" fill="#a4d4c5" stroke="#1a3a3a" stroke-width="1.5"/>
+        <text x="700" y="105" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0F6E56">측정점 ①</text>
+        <text x="700" y="92" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#0F6E56">5V±0.05V</text>
+
+        <circle cx="700" cy="405" r="5" fill="#a4d4c5" stroke="#1a3a3a" stroke-width="1.5"/>
+        <text x="700" y="465" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#0F6E56">측정점 ②</text>
+        <text x="700" y="478" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#0F6E56">12V±0.1V</text>
+      </svg>
+    </div>
+
+    <div class="pin-table">
+      <div class="pin-table-header">측정 체크포인트 (Phase 1)</div>
+      <table>
+        <thead>
+          <tr><th>측정점</th><th>위치</th><th>기대값</th><th>신호</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="pin-col">①</td><td class="target-col">LRS-35-5 출력</td><td class="target-col">4.95V ~ 5.05V (무부하)</td><td><span class="signal-tag sig-power">5V</span></td></tr>
+          <tr><td class="pin-col">②</td><td class="target-col">LRS-50-12 출력</td><td class="target-col">11.9V ~ 12.1V (무부하)</td><td><span class="signal-tag sig-power">12V</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="notes-box">
+      <strong>⚠ AC 220V 작업 시 주의</strong>
+      <ul>
+        <li>반드시 콘센트 뽑은 상태에서 결선. PG 압착 단자는 전용 압착기로 단단히 압착</li>
+        <li>SMPS의 L/N 단자에 220V 입력, +V/-V 단자에서 DC 출력</li>
+        <li>두 SMPS의 GND(-V)는 Phase 4에서 한 점으로 모음 (공통 GND)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 2: 서보 ============ -->
+  <section id="p2" class="circuit">
+    <div class="circuit-header">
+      <span class="circuit-num">№ 02 · PHASE 2</span>
+      <h2>서보 액추에이터 결선도</h2>
+    </div>
+    <p class="circuit-sub">라즈베리파이 5의 I2C 핀(GPIO 2, GPIO 3)으로 PCA9685를 제어하고, PCA9685의 PWM 채널 0번과 1번에서 두 서보의 신호를 보내요. 서보 전원은 5V SMPS에서 V+로 직접 공급되고, Pi의 5V 핀은 사용하지 않아요.</p>
+
+    <div class="circuit-canvas">
+      <svg viewBox="0 0 1100 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="p2-title">
+        <title id="p2-title">Phase 2 서보 액추에이터 결선도</title>
+
+        <!-- Raspberry Pi 5 -->
+        <g>
+          <rect x="40" y="60" width="280" height="280" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="2.5"/>
+          <text x="180" y="88" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="#0C447C">Raspberry Pi 5</text>
+          <text x="180" y="106" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5">GPIO 헤더 (40-pin)</text>
+
+          <!-- Pin labels -->
+          <g font-family="JetBrains Mono,monospace" font-size="12" fill="#0C447C">
+            <text x="60" y="140">Pin 1</text>
+            <text x="305" y="140" text-anchor="end" fill="#d4361c" font-weight="600">3.3V</text>
+            <line x1="100" y1="135" x2="290" y2="135" stroke="#185FA5" stroke-width="0.5" stroke-dasharray="2 2"/>
+
+            <text x="60" y="170">Pin 3</text>
+            <text x="305" y="170" text-anchor="end" fill="#1a5fc4" font-weight="700">GPIO 2 (SDA)</text>
+            <circle cx="300" cy="166" r="4" fill="#1a5fc4"/>
+
+            <text x="60" y="200">Pin 5</text>
+            <text x="305" y="200" text-anchor="end" fill="#1a5fc4" font-weight="700">GPIO 3 (SCL)</text>
+            <circle cx="300" cy="196" r="4" fill="#1a5fc4"/>
+
+            <text x="60" y="230">Pin 6</text>
+            <text x="305" y="230" text-anchor="end" fill="#1a1a1a" font-weight="700">GND</text>
+            <circle cx="300" cy="226" r="4" fill="#1a1a1a"/>
+
+            <text x="60" y="270">Pin 17</text>
+            <text x="305" y="270" text-anchor="end" fill="#d4361c" font-weight="600">3.3V</text>
+            <circle cx="300" cy="266" r="4" fill="#d4361c"/>
+          </g>
+
+          <text x="180" y="320" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5" font-style="italic">⚠ 5V 핀(Pin 2, 4)는 사용 안 함</text>
+        </g>
+
+        <!-- I2C wires to PCA9685 -->
+        <line x1="320" y1="166" x2="500" y2="166" stroke="#1a5fc4" stroke-width="2.5"/>
+        <text x="410" y="160" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a5fc4" font-weight="600">SDA</text>
+
+        <line x1="320" y1="196" x2="500" y2="196" stroke="#1a5fc4" stroke-width="2.5"/>
+        <text x="410" y="212" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a5fc4" font-weight="600">SCL</text>
+
+        <!-- 3.3V to PCA9685 VCC -->
+        <line x1="320" y1="266" x2="420" y2="266" stroke="#d4361c" stroke-width="2"/>
+        <line x1="420" y1="266" x2="420" y2="240" stroke="#d4361c" stroke-width="2"/>
+        <line x1="420" y1="240" x2="500" y2="240" stroke="#d4361c" stroke-width="2"/>
+        <text x="450" y="234" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#d4361c" font-weight="600">VCC 3.3V (로직)</text>
+
+        <!-- GND to PCA9685 -->
+        <line x1="320" y1="226" x2="440" y2="226" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="440" y1="226" x2="440" y2="276" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="440" y1="276" x2="500" y2="276" stroke="#1a1a1a" stroke-width="2"/>
+        <text x="470" y="270" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a" font-weight="600">GND</text>
+
+        <!-- PCA9685 -->
+        <g>
+          <rect x="500" y="120" width="240" height="240" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="2.5"/>
+          <text x="620" y="148" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="#085041">PCA9685</text>
+          <text x="620" y="166" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#0F6E56">16ch 12-bit PWM Driver</text>
+          <text x="620" y="183" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#0F6E56" font-weight="600">I2C addr: 0x40</text>
+
+          <g font-family="JetBrains Mono,monospace" font-size="11" fill="#085041">
+            <!-- Left side (inputs) -->
+            <circle cx="500" cy="166" r="4" fill="#1a5fc4"/>
+            <text x="515" y="170" fill="#1a5fc4">SDA</text>
+            <circle cx="500" cy="196" r="4" fill="#1a5fc4"/>
+            <text x="515" y="200" fill="#1a5fc4">SCL</text>
+            <circle cx="500" cy="240" r="4" fill="#d4361c"/>
+            <text x="515" y="244" fill="#d4361c">VCC</text>
+            <circle cx="500" cy="276" r="4" fill="#1a1a1a"/>
+            <text x="515" y="280" fill="#1a1a1a">GND</text>
+            <circle cx="500" cy="320" r="4" fill="#d4361c"/>
+            <text x="515" y="324" fill="#d4361c">V+ (5V 서보)</text>
+
+            <!-- Right side (PWM channels) -->
+            <text x="730" y="200" text-anchor="end" fill="#c89a30" font-weight="700">CH 0</text>
+            <text x="730" y="216" text-anchor="end" fill="#c89a30">(Pan PWM)</text>
+            <circle cx="740" cy="200" r="4" fill="#c89a30"/>
+
+            <text x="730" y="266" text-anchor="end" fill="#c89a30" font-weight="700">CH 1</text>
+            <text x="730" y="282" text-anchor="end" fill="#c89a30">(Tilt PWM)</text>
+            <circle cx="740" cy="266" r="4" fill="#c89a30"/>
+          </g>
+        </g>
+
+        <!-- 5V SMPS for servo V+ -->
+        <g>
+          <rect x="40" y="380" width="200" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="140" y="406" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#0a0a0a">SMPS LRS-35-5</text>
+          <text x="140" y="424" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">5V 7A · 서보 전용</text>
+          <text x="140" y="446" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#d4361c" font-weight="600">+V 출력 → V+</text>
+        </g>
+
+        <!-- 5V → PCA9685 V+ with capacitor -->
+        <line x1="240" y1="410" x2="460" y2="410" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="460" y1="410" x2="460" y2="320" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="460" y1="320" x2="500" y2="320" stroke="#d4361c" stroke-width="2.5"/>
+
+        <!-- 캐패시터 표시 -->
+        <g transform="translate(450 320)">
+          <line x1="-12" y1="-8" x2="-12" y2="8" stroke="#1a1a1a" stroke-width="2"/>
+          <line x1="-6" y1="-8" x2="-6" y2="8" stroke="#1a1a1a" stroke-width="2"/>
+          <line x1="-12" y1="0" x2="-25" y2="0" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="-6" y1="0" x2="6" y2="0" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="-25" y1="0" x2="-25" y2="35" stroke="#1a1a1a" stroke-width="1"/>
+          <text x="-9" y="-15" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700" fill="#1a1a1a">C1</text>
+          <text x="-9" y="-28" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#6a6a6a">1000μF 16V</text>
+        </g>
+
+        <!-- 5V SMPS GND -->
+        <line x1="240" y1="446" x2="425" y2="446" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="425" y1="446" x2="425" y2="355" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="425" y1="355" x2="500" y2="355" stroke="#1a1a1a" stroke-width="2.5" stroke-dasharray="2 2"/>
+        <line x1="500" y1="355" x2="500" y2="276" stroke="#1a1a1a" stroke-width="2.5" stroke-dasharray="2 2"/>
+        <text x="345" y="440" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a" font-weight="600">공통 GND</text>
+
+        <!-- Servo cables (extension 30cm) -->
+        <line x1="740" y1="200" x2="850" y2="200" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="740" y1="266" x2="850" y2="266" stroke="#e8b94a" stroke-width="2.5"/>
+
+        <!-- 서보 연장 케이블 표시 -->
+        <g transform="translate(795 175)">
+          <rect x="-20" y="15" width="40" height="20" rx="2" fill="#fff" stroke="#854F0B" stroke-width="1"/>
+          <text x="0" y="29" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#854F0B">30cm 연장</text>
+        </g>
+
+        <!-- MG946R Pan servo -->
+        <g>
+          <rect x="850" y="160" width="200" height="100" rx="12" fill="#FAEEDA" stroke="#854F0B" stroke-width="2"/>
+          <text x="950" y="186" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#633806">MG946R</text>
+          <text x="950" y="204" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#854F0B">Pan 축 (하단)</text>
+          <text x="950" y="222" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#854F0B">토크 10.5kg · 5V · 1A peak</text>
+          <text x="950" y="244" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#c89a30" font-weight="600">PWM 50Hz, 듀티 2.5~12.5%</text>
+        </g>
+
+        <!-- MG90S Tilt servo -->
+        <g>
+          <rect x="850" y="290" width="200" height="100" rx="12" fill="#FAEEDA" stroke="#854F0B" stroke-width="2"/>
+          <text x="950" y="316" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#633806">MG90S</text>
+          <text x="950" y="334" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#854F0B">Tilt 축 (상단)</text>
+          <text x="950" y="352" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#854F0B">토크 2.2kg · 5V · 0.4A</text>
+          <text x="950" y="374" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#c89a30" font-weight="600">PWM 50Hz, 듀티 2.5~12.5%</text>
+        </g>
+
+        <!-- I2C address label -->
+        <g transform="translate(670 460)">
+          <rect x="-100" y="-15" width="200" height="30" rx="14" fill="#a4d4c5" stroke="#1a3a3a" stroke-width="1"/>
+          <text text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#1a3a3a" dy="4">i2cdetect -y 1 → 0x40 확인</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="pin-table">
+      <div class="pin-table-header">Phase 2 핀 매핑</div>
+      <table>
+        <thead>
+          <tr><th>출발지</th><th>도착지</th><th>신호</th><th>비고</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="pin-col">Pi Pin 3 (GPIO 2)</td><td class="target-col">PCA9685 SDA</td><td><span class="signal-tag sig-i2c">I2C SDA</span></td><td class="target-col">데이터선</td></tr>
+          <tr><td class="pin-col">Pi Pin 5 (GPIO 3)</td><td class="target-col">PCA9685 SCL</td><td><span class="signal-tag sig-i2c">I2C SCL</span></td><td class="target-col">클럭선</td></tr>
+          <tr><td class="pin-col">Pi Pin 17 (3.3V)</td><td class="target-col">PCA9685 VCC</td><td><span class="signal-tag sig-power">3.3V</span></td><td class="target-col">로직 전원</td></tr>
+          <tr><td class="pin-col">Pi Pin 6 (GND)</td><td class="target-col">PCA9685 GND</td><td><span class="signal-tag sig-gnd">GND</span></td><td class="target-col">공통 GND</td></tr>
+          <tr><td class="pin-col">SMPS 5V +V</td><td class="target-col">PCA9685 V+</td><td><span class="signal-tag sig-power">5V</span></td><td class="target-col">서보 전원 (캐패시터 병렬)</td></tr>
+          <tr><td class="pin-col">PCA9685 CH 0</td><td class="target-col">MG946R 신호선</td><td><span class="signal-tag sig-pwm">PWM 50Hz</span></td><td class="target-col">Pan 축 제어</td></tr>
+          <tr><td class="pin-col">PCA9685 CH 1</td><td class="target-col">MG90S 신호선</td><td><span class="signal-tag sig-pwm">PWM 50Hz</span></td><td class="target-col">Tilt 축 제어</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="notes-box">
+      <strong>📌 Phase 2 결선 주의점</strong>
+      <ul>
+        <li>PCA9685의 <strong>VCC와 V+는 완전히 다른 핀</strong>. VCC는 로직 전원(3.3V), V+는 서보 전원(5V)</li>
+        <li>전해 캐패시터 <strong>극성 주의</strong>: V+에 (+), GND에 (−) 단자 연결. 반대로 끼우면 폭발 위험</li>
+        <li>I2C 주소 확인: 터미널에서 <code style="background: var(--surface-strong); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono);">i2cdetect -y 1</code> 명령으로 0x40 확인</li>
+        <li>서보 케이블이 짐벌 회전 시 끊어지지 않게 <strong>30cm 연장 케이블</strong> 사용</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 3: 조명 ============ -->
+  <section id="p3" class="circuit">
+    <div class="circuit-header">
+      <span class="circuit-num">№ 03 · PHASE 3</span>
+      <h2>조명 모듈 결선도</h2>
+    </div>
+    <p class="circuit-sub">10W 스팟 라인과 3W 무드 라인을 분리해서 표시. 10W는 MOSFET을 거쳐 PWM 디밍하고, 3W는 HAM3005 드라이버에 PWM 디밍 핀이 내장되어 있어 라즈베리파이에서 직접 연결해요. 모든 LED는 정전류 드라이버를 통과해야 안전합니다.</p>
+
+    <div class="circuit-canvas">
+      <svg viewBox="0 0 1200 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="p3-title">
+        <title id="p3-title">Phase 3 조명 모듈 결선도</title>
+
+        <!-- Raspberry Pi 5 -->
+        <g>
+          <rect x="40" y="40" width="240" height="240" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="2.5"/>
+          <text x="160" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#0C447C">Raspberry Pi 5</text>
+          <text x="160" y="84" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5">PWM 출력 채널</text>
+
+          <g font-family="JetBrains Mono,monospace" font-size="12" fill="#0C447C">
+            <text x="60" y="120">Pin 32</text>
+            <text x="265" y="120" text-anchor="end" fill="#c89a30" font-weight="700">GPIO 12 (PWM0)</text>
+            <circle cx="260" cy="116" r="4" fill="#c89a30"/>
+
+            <text x="60" y="155">Pin 33</text>
+            <text x="265" y="155" text-anchor="end" fill="#c89a30" font-weight="700">GPIO 13 (PWM1)</text>
+            <circle cx="260" cy="151" r="4" fill="#c89a30"/>
+
+            <text x="60" y="210">Pin 6</text>
+            <text x="265" y="210" text-anchor="end" fill="#1a1a1a" font-weight="700">GND</text>
+            <circle cx="260" cy="206" r="4" fill="#1a1a1a"/>
+          </g>
+
+          <text x="160" y="250" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5" font-style="italic">하드웨어 PWM 사용</text>
+          <text x="160" y="266" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5" font-style="italic">(100Hz~1kHz 권장)</text>
+        </g>
+
+        <!-- 12V SMPS -->
+        <g>
+          <rect x="40" y="350" width="240" height="100" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="160" y="378" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#0a0a0a">SMPS LRS-50-12</text>
+          <text x="160" y="396" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">12V 4.2A · LED 전용</text>
+          <text x="265" y="425" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" fill="#d4361c" font-weight="600">+V 12V</text>
+          <circle cx="270" cy="421" r="4" fill="#d4361c"/>
+          <text x="265" y="445" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" fill="#1a1a1a" font-weight="600">−V GND</text>
+          <circle cx="270" cy="441" r="4" fill="#1a1a1a"/>
+        </g>
+
+        <!-- ===== 10W LINE (TOP) ===== -->
+
+        <!-- MOSFET module -->
+        <g>
+          <rect x="360" y="80" width="220" height="160" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="2.5"/>
+          <text x="470" y="108" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#3C3489">MOSFET 모듈</text>
+          <text x="470" y="124" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#534AB7">HQ00933</text>
+
+          <g font-family="JetBrains Mono,monospace" font-size="11" fill="#3C3489">
+            <text x="375" y="155" fill="#c89a30" font-weight="700">SIG</text>
+            <circle cx="360" cy="151" r="4" fill="#c89a30"/>
+            <text x="375" y="175" fill="#d4361c">V+ IN</text>
+            <circle cx="360" cy="171" r="4" fill="#d4361c"/>
+            <text x="375" y="195" fill="#1a1a1a">GND</text>
+            <circle cx="360" cy="191" r="4" fill="#1a1a1a"/>
+
+            <text x="565" y="175" text-anchor="end" fill="#d4361c" font-weight="700">OUT+</text>
+            <circle cx="580" cy="171" r="4" fill="#d4361c"/>
+            <text x="565" y="195" text-anchor="end" fill="#1a1a1a" font-weight="700">OUT−</text>
+            <circle cx="580" cy="191" r="4" fill="#1a1a1a"/>
+          </g>
+        </g>
+
+        <!-- Pi GPIO 12 → MOSFET SIG -->
+        <line x1="280" y1="116" x2="320" y2="116" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="320" y1="116" x2="320" y2="151" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="320" y1="151" x2="360" y2="151" stroke="#e8b94a" stroke-width="2.5"/>
+        <text x="295" y="110" font-family="JetBrains Mono,monospace" font-size="9" fill="#c89a30" font-weight="600">PWM</text>
+
+        <!-- 12V → MOSFET V+ IN -->
+        <line x1="270" y1="421" x2="310" y2="421" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="310" y1="421" x2="310" y2="171" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="310" y1="171" x2="360" y2="171" stroke="#d4361c" stroke-width="2.5"/>
+
+        <!-- GND -->
+        <line x1="280" y1="206" x2="330" y2="206" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="330" y1="206" x2="330" y2="191" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="330" y1="191" x2="360" y2="191" stroke="#1a1a1a" stroke-width="2"/>
+
+        <!-- HAM2121 driver -->
+        <g>
+          <rect x="650" y="100" width="200" height="120" rx="12" fill="#fff" stroke="#854F0B" stroke-width="2"/>
+          <text x="750" y="128" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#633806">HAM2121</text>
+          <text x="750" y="144" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#854F0B">정전류 LED 드라이버</text>
+          <text x="750" y="162" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#854F0B" font-weight="600">900mA · 10W 고정</text>
+
+          <g font-family="JetBrains Mono,monospace" font-size="11">
+            <text x="665" y="195" fill="#d4361c">IN+</text>
+            <circle cx="650" cy="191" r="4" fill="#d4361c"/>
+            <text x="665" y="212" fill="#1a1a1a">IN−</text>
+            <circle cx="650" cy="208" r="4" fill="#1a1a1a"/>
+            <text x="835" y="195" text-anchor="end" fill="#d4361c">OUT+</text>
+            <circle cx="850" cy="191" r="4" fill="#d4361c"/>
+            <text x="835" y="212" text-anchor="end" fill="#1a1a1a">OUT−</text>
+            <circle cx="850" cy="208" r="4" fill="#1a1a1a"/>
+          </g>
+        </g>
+
+        <!-- MOSFET OUT → HAM2121 IN -->
+        <line x1="580" y1="171" x2="620" y2="171" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="620" y1="171" x2="620" y2="191" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="620" y1="191" x2="650" y2="191" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="580" y1="191" x2="610" y2="191" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="610" y1="191" x2="610" y2="208" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="610" y1="208" x2="650" y2="208" stroke="#1a1a1a" stroke-width="2.5"/>
+
+        <!-- 10W COB LED -->
+        <g>
+          <rect x="920" y="120" width="220" height="100" rx="12" fill="#FAECE7" stroke="#993C1D" stroke-width="2.5"/>
+          <text x="1030" y="148" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="700" fill="#712B13">10W COB LED</text>
+          <text x="1030" y="166" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#993C1D">스팟 조명용</text>
+          <text x="1030" y="186" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#993C1D">+ 집광렌즈 15°</text>
+          <text x="1030" y="204" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#993C1D">+ 60mm 방열판 · 써멀패드</text>
+        </g>
+        <line x1="850" y1="191" x2="880" y2="191" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="880" y1="191" x2="880" y2="155" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="880" y1="155" x2="920" y2="155" stroke="#d4361c" stroke-width="2.5"/>
+        <text x="885" y="180" font-family="JetBrains Mono,monospace" font-size="10" fill="#d4361c" font-weight="600">LED+</text>
+
+        <line x1="850" y1="208" x2="900" y2="208" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="900" y1="208" x2="900" y2="190" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="900" y1="190" x2="920" y2="190" stroke="#1a1a1a" stroke-width="2.5"/>
+        <text x="905" y="200" font-family="JetBrains Mono,monospace" font-size="10" fill="#1a1a1a" font-weight="600">LED−</text>
+
+        <text x="750" y="265" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#993C1D">▲ 10W 스팟 라인 (Pan-Tilt 짐벌에 마운트)</text>
+
+        <!-- Separator line -->
+        <line x1="40" y1="305" x2="1160" y2="305" stroke="#9a9a9a" stroke-width="1" stroke-dasharray="6 6"/>
+
+        <!-- ===== 3W LINE (BOTTOM) ===== -->
+
+        <!-- HAM3005 driver -->
+        <g>
+          <rect x="360" y="350" width="280" height="160" rx="12" fill="#fff" stroke="#854F0B" stroke-width="2"/>
+          <text x="500" y="378" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#633806">HAM3005</text>
+          <text x="500" y="394" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#854F0B">정전류 + PWM 디밍 내장</text>
+          <text x="500" y="412" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#854F0B" font-weight="600">700mA · 3W</text>
+
+          <g font-family="JetBrains Mono,monospace" font-size="11">
+            <text x="375" y="445" fill="#d4361c">VIN</text>
+            <circle cx="360" cy="441" r="4" fill="#d4361c"/>
+            <text x="375" y="465" fill="#1a1a1a">GND</text>
+            <circle cx="360" cy="461" r="4" fill="#1a1a1a"/>
+            <text x="375" y="485" fill="#c89a30" font-weight="700">DIM (PWM IN)</text>
+            <circle cx="360" cy="481" r="4" fill="#c89a30"/>
+
+            <text x="625" y="445" text-anchor="end" fill="#d4361c">OUT+</text>
+            <circle cx="640" cy="441" r="4" fill="#d4361c"/>
+            <text x="625" y="465" text-anchor="end" fill="#1a1a1a">OUT−</text>
+            <circle cx="640" cy="461" r="4" fill="#1a1a1a"/>
+          </g>
+        </g>
+
+        <!-- 12V → HAM3005 VIN -->
+        <line x1="310" y1="421" x2="360" y2="441" stroke="#d4361c" stroke-width="2.5"/>
+
+        <!-- GND → HAM3005 -->
+        <line x1="280" y1="206" x2="290" y2="206" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="290" y1="206" x2="290" y2="461" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="290" y1="461" x2="360" y2="461" stroke="#1a1a1a" stroke-width="2"/>
+
+        <!-- Pi GPIO 13 → HAM3005 DIM -->
+        <line x1="280" y1="151" x2="340" y2="151" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="340" y1="151" x2="340" y2="481" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="340" y1="481" x2="360" y2="481" stroke="#e8b94a" stroke-width="2.5"/>
+        <text x="345" y="350" font-family="JetBrains Mono,monospace" font-size="10" fill="#c89a30" font-weight="600">PWM (디밍)</text>
+
+        <!-- 3W LED 8개 병렬 -->
+        <g>
+          <rect x="720" y="370" width="380" height="170" rx="12" fill="#FAECE7" stroke="#993C1D" stroke-width="2.5"/>
+          <text x="910" y="398" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#712B13">3W LED × 8 (병렬)</text>
+          <text x="910" y="416" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#993C1D">무드 조명 라인</text>
+
+          <!-- Mini LED grid -->
+          <g>
+            <circle cx="760" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <circle cx="800" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <circle cx="840" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <circle cx="880" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <circle cx="920" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <circle cx="960" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <circle cx="1000" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <circle cx="1040" cy="450" r="10" fill="#ffb084" stroke="#993C1D" stroke-width="1"/>
+            <!-- top bus -->
+            <line x1="730" y1="450" x2="1040" y2="450" stroke="#d4361c" stroke-width="2"/>
+            <!-- bottom bus -->
+            <line x1="730" y1="490" x2="1040" y2="490" stroke="#1a1a1a" stroke-width="2"/>
+            <!-- vertical legs -->
+            <line x1="760" y1="450" x2="760" y2="490" stroke="#1a1a1a" stroke-width="1" stroke-dasharray="1 2"/>
+          </g>
+          <text x="910" y="520" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#993C1D">20mm 방열판 × 8 · 써멀패드 부착</text>
+        </g>
+
+        <!-- HAM3005 OUT → 3W LED string -->
+        <line x1="640" y1="441" x2="700" y2="441" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="700" y1="441" x2="700" y2="450" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="700" y1="450" x2="730" y2="450" stroke="#d4361c" stroke-width="2.5"/>
+
+        <line x1="640" y1="461" x2="680" y2="461" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="680" y1="461" x2="680" y2="490" stroke="#1a1a1a" stroke-width="2.5"/>
+        <line x1="680" y1="490" x2="730" y2="490" stroke="#1a1a1a" stroke-width="2.5"/>
+
+        <text x="500" y="560" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#993C1D">▼ 3W 무드 라인 (고정 위치, 방향 제어 없음)</text>
+
+        <!-- Note about heat -->
+        <g transform="translate(900 580)">
+          <rect x="-150" y="-15" width="300" height="30" rx="14" fill="#ff6b5a"/>
+          <text text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#fff" font-weight="600" dy="4">⚠ LED 표면 60°C 이하 유지 (방열 필수)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="pin-table">
+      <div class="pin-table-header">Phase 3 핀 매핑</div>
+      <table>
+        <thead>
+          <tr><th>출발지</th><th>도착지</th><th>신호</th><th>비고</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="pin-col">Pi Pin 32 (GPIO 12)</td><td class="target-col">MOSFET 모듈 SIG</td><td><span class="signal-tag sig-pwm">PWM0</span></td><td class="target-col">10W 스팟 디밍 (100Hz~1kHz)</td></tr>
+          <tr><td class="pin-col">Pi Pin 33 (GPIO 13)</td><td class="target-col">HAM3005 DIM</td><td><span class="signal-tag sig-pwm">PWM1</span></td><td class="target-col">3W 무드 디밍 (드라이버 내장)</td></tr>
+          <tr><td class="pin-col">SMPS 12V +V</td><td class="target-col">MOSFET V+ IN, HAM3005 VIN</td><td><span class="signal-tag sig-power">12V</span></td><td class="target-col">LED 전원 (공통)</td></tr>
+          <tr><td class="pin-col">MOSFET OUT</td><td class="target-col">HAM2121 IN+/IN−</td><td><span class="signal-tag sig-power">12V (스위칭)</span></td><td class="target-col">PWM 디밍된 전원</td></tr>
+          <tr><td class="pin-col">HAM2121 OUT</td><td class="target-col">10W COB LED</td><td><span class="signal-tag sig-power">정전류 900mA</span></td><td class="target-col">스팟 조명</td></tr>
+          <tr><td class="pin-col">HAM3005 OUT</td><td class="target-col">3W LED × 8 병렬</td><td><span class="signal-tag sig-power">정전류 700mA</span></td><td class="target-col">무드 조명</td></tr>
+          <tr><td class="pin-col">Pi Pin 6 (GND)</td><td class="target-col">MOSFET GND, HAM3005 GND</td><td><span class="signal-tag sig-gnd">GND</span></td><td class="target-col">공통 GND</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="notes-box">
+      <strong>📌 Phase 3 조명 회로 핵심</strong>
+      <ul>
+        <li><strong>LED 정전류 드라이버 필수</strong>: 12V를 LED에 직결하면 즉시 손상. 반드시 HAM2121/HAM3005를 거쳐야 함</li>
+        <li><strong>10W 라인은 2단 디밍 구조</strong>: Pi PWM → MOSFET 스위칭 → HAM2121 정전류 → LED. MOSFET이 거친 ON/OFF를 빠르게 반복</li>
+        <li><strong>3W 라인은 1단 직접 디밍</strong>: HAM3005에 PWM 입력 핀이 내장되어 있어 Pi에서 직접 연결</li>
+        <li><strong>방열은 절대 생략 금지</strong>: 써멀패드 → 방열판 → LED 순서로 부착. 점등 전 반드시 확인</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 4: 통합 ============ -->
+  <section id="p4" class="circuit">
+    <div class="circuit-header">
+      <span class="circuit-num">№ 04 · PHASE 4</span>
+      <h2>통합 + PIR 결선도</h2>
+    </div>
+    <p class="circuit-sub">Phase 2와 3의 모든 회로에 PIR 모션 센서와 카메라를 추가한 통합 결선도. PIR은 GPIO 23에 인터럽트로 연결되어 Standby 모드에서 시스템을 깨우는 트리거 역할을 해요. 모든 GND는 한 점에 모아요.</p>
+
+    <div class="circuit-canvas">
+      <svg viewBox="0 0 1200 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="p4-title">
+        <title id="p4-title">Phase 4 통합 결선도</title>
+
+        <!-- Raspberry Pi 5 (확장된 핀 표시) -->
+        <g>
+          <rect x="40" y="40" width="280" height="340" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="2.5"/>
+          <text x="180" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700" fill="#0C447C">Raspberry Pi 5</text>
+          <text x="180" y="86" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5">전체 시스템 컨트롤러</text>
+
+          <g font-family="JetBrains Mono,monospace" font-size="11" fill="#0C447C">
+            <text x="60" y="115">Pin 1</text>
+            <text x="305" y="115" text-anchor="end" fill="#d4361c" font-weight="600">3.3V</text>
+            <circle cx="300" cy="111" r="4" fill="#d4361c"/>
+
+            <text x="60" y="140">Pin 3</text>
+            <text x="305" y="140" text-anchor="end" fill="#1a5fc4" font-weight="700">GPIO 2 (SDA)</text>
+            <circle cx="300" cy="136" r="4" fill="#1a5fc4"/>
+
+            <text x="60" y="165">Pin 5</text>
+            <text x="305" y="165" text-anchor="end" fill="#1a5fc4" font-weight="700">GPIO 3 (SCL)</text>
+            <circle cx="300" cy="161" r="4" fill="#1a5fc4"/>
+
+            <text x="60" y="190">Pin 6</text>
+            <text x="305" y="190" text-anchor="end" fill="#1a1a1a" font-weight="700">GND</text>
+            <circle cx="300" cy="186" r="4" fill="#1a1a1a"/>
+
+            <text x="60" y="215">Pin 16</text>
+            <text x="305" y="215" text-anchor="end" fill="#6a6a6a" font-weight="700">GPIO 23 (PIR IN)</text>
+            <circle cx="300" cy="211" r="4" fill="#6a6a6a"/>
+
+            <text x="60" y="245">Pin 32</text>
+            <text x="305" y="245" text-anchor="end" fill="#c89a30" font-weight="700">GPIO 12 (PWM0)</text>
+            <circle cx="300" cy="241" r="4" fill="#c89a30"/>
+
+            <text x="60" y="270">Pin 33</text>
+            <text x="305" y="270" text-anchor="end" fill="#c89a30" font-weight="700">GPIO 13 (PWM1)</text>
+            <circle cx="300" cy="266" r="4" fill="#c89a30"/>
+
+            <text x="60" y="305">CSI</text>
+            <text x="305" y="305" text-anchor="end" fill="#6a6a6a" font-weight="600">Camera Connector</text>
+            <circle cx="300" cy="301" r="4" fill="#6a6a6a"/>
+          </g>
+
+          <text x="180" y="345" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5" font-style="italic">i2cdetect, MediaPipe,</text>
+          <text x="180" y="361" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#185FA5" font-style="italic">상태 머신 통합 운영</text>
+        </g>
+
+        <!-- Camera -->
+        <g>
+          <rect x="40" y="410" width="280" height="70" rx="10" fill="#fff" stroke="#6a6a6a" stroke-width="1.5"/>
+          <text x="180" y="436" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#0a0a0a">Pi Camera 3 Wide</text>
+          <text x="180" y="454" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">MediaPipe Hands 입력</text>
+          <text x="180" y="470" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#6a6a6a">CSI 어댑터 22pin→15pin</text>
+        </g>
+        <line x1="300" y1="301" x2="335" y2="301" stroke="#6a6a6a" stroke-width="2"/>
+        <line x1="335" y1="301" x2="335" y2="445" stroke="#6a6a6a" stroke-width="2"/>
+        <line x1="335" y1="445" x2="320" y2="445" stroke="#6a6a6a" stroke-width="2"/>
+
+        <!-- PIR Sensor -->
+        <g>
+          <rect x="400" y="40" width="200" height="120" rx="12" fill="#fff" stroke="#a4d4c5" stroke-width="2.5"/>
+          <text x="500" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#0a0a0a">PIR HC-SR501</text>
+          <text x="500" y="86" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#0F6E56">재실 감지 / 인터럽트</text>
+          <g font-family="JetBrains Mono,monospace" font-size="11">
+            <text x="415" y="115" fill="#d4361c" font-weight="700">VCC</text>
+            <circle cx="400" cy="111" r="4" fill="#d4361c"/>
+            <text x="415" y="135" fill="#6a6a6a" font-weight="700">OUT</text>
+            <circle cx="400" cy="131" r="4" fill="#6a6a6a"/>
+            <text x="415" y="155" fill="#1a1a1a" font-weight="700">GND</text>
+            <circle cx="400" cy="151" r="4" fill="#1a1a1a"/>
+          </g>
+          <text x="510" y="135" font-family="Inter,sans-serif" font-size="10" fill="#1a3a3a" font-style="italic">감지 시 OUT HIGH</text>
+          <text x="510" y="150" font-family="Inter,sans-serif" font-size="10" fill="#1a3a3a" font-style="italic">→ Pi GPIO 23 인터럽트</text>
+        </g>
+
+        <!-- Pi 3.3V → PIR VCC -->
+        <line x1="320" y1="111" x2="360" y2="111" stroke="#d4361c" stroke-width="2"/>
+        <line x1="360" y1="111" x2="400" y2="111" stroke="#d4361c" stroke-width="2"/>
+
+        <!-- PIR OUT → Pi GPIO 23 -->
+        <line x1="400" y1="131" x2="380" y2="131" stroke="#6a6a6a" stroke-width="2"/>
+        <line x1="380" y1="131" x2="380" y2="211" stroke="#6a6a6a" stroke-width="2"/>
+        <line x1="380" y1="211" x2="320" y2="211" stroke="#6a6a6a" stroke-width="2"/>
+
+        <!-- PIR GND → Pi GND -->
+        <line x1="400" y1="151" x2="360" y2="151" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="360" y1="151" x2="360" y2="186" stroke="#1a1a1a" stroke-width="2"/>
+        <line x1="360" y1="186" x2="320" y2="186" stroke="#1a1a1a" stroke-width="2"/>
+
+        <!-- PCA9685 -->
+        <g>
+          <rect x="700" y="40" width="220" height="180" rx="12" fill="#E1F5EE" stroke="#0F6E56" stroke-width="2.5"/>
+          <text x="810" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#085041">PCA9685</text>
+          <text x="810" y="86" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#0F6E56">0x40</text>
+
+          <g font-family="JetBrains Mono,monospace" font-size="11">
+            <circle cx="700" cy="111" r="4" fill="#1a5fc4"/>
+            <text x="715" y="115" fill="#1a5fc4">SDA</text>
+            <circle cx="700" cy="131" r="4" fill="#1a5fc4"/>
+            <text x="715" y="135" fill="#1a5fc4">SCL</text>
+            <circle cx="700" cy="151" r="4" fill="#d4361c"/>
+            <text x="715" y="155" fill="#d4361c">VCC</text>
+            <circle cx="700" cy="171" r="4" fill="#1a1a1a"/>
+            <text x="715" y="175" fill="#1a1a1a">GND</text>
+            <circle cx="700" cy="195" r="4" fill="#d4361c"/>
+            <text x="715" y="200" fill="#d4361c">V+ 5V</text>
+
+            <text x="905" y="115" text-anchor="end" fill="#c89a30">CH 0 (Pan)</text>
+            <circle cx="920" cy="111" r="4" fill="#c89a30"/>
+            <text x="905" y="155" text-anchor="end" fill="#c89a30">CH 1 (Tilt)</text>
+            <circle cx="920" cy="151" r="4" fill="#c89a30"/>
+          </g>
+        </g>
+
+        <!-- Pi → PCA9685 I2C -->
+        <line x1="320" y1="136" x2="380" y2="136" stroke="#1a5fc4" stroke-width="2.5"/>
+        <line x1="380" y1="136" x2="640" y2="136" stroke="#1a5fc4" stroke-width="2.5"/>
+        <line x1="640" y1="136" x2="640" y2="111" stroke="#1a5fc4" stroke-width="2.5"/>
+        <line x1="640" y1="111" x2="700" y2="111" stroke="#1a5fc4" stroke-width="2.5"/>
+
+        <line x1="320" y1="161" x2="660" y2="161" stroke="#1a5fc4" stroke-width="2.5"/>
+        <line x1="660" y1="161" x2="660" y2="131" stroke="#1a5fc4" stroke-width="2.5"/>
+        <line x1="660" y1="131" x2="700" y2="131" stroke="#1a5fc4" stroke-width="2.5"/>
+
+        <!-- 3.3V → PCA9685 VCC -->
+        <line x1="320" y1="111" x2="340" y2="111" stroke="#d4361c" stroke-width="1" stroke-dasharray="3 2"/>
+        <line x1="610" y1="151" x2="700" y2="151" stroke="#d4361c" stroke-width="2"/>
+        <text x="635" y="146" font-family="JetBrains Mono,monospace" font-size="9" fill="#d4361c">3.3V VCC</text>
+
+        <!-- Servos -->
+        <g>
+          <rect x="990" y="50" width="170" height="60" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.5"/>
+          <text x="1075" y="75" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#633806">MG946R</text>
+          <text x="1075" y="92" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#854F0B">Pan 축</text>
+        </g>
+        <g>
+          <rect x="990" y="125" width="170" height="60" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1.5"/>
+          <text x="1075" y="150" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#633806">MG90S</text>
+          <text x="1075" y="167" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#854F0B">Tilt 축</text>
+        </g>
+        <line x1="920" y1="111" x2="990" y2="80" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="920" y1="151" x2="990" y2="155" stroke="#e8b94a" stroke-width="2.5"/>
+
+        <!-- 5V SMPS -->
+        <g>
+          <rect x="700" y="260" width="220" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="810" y="286" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#0a0a0a">SMPS LRS-35-5</text>
+          <text x="810" y="304" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">5V 7A · 서보 전원</text>
+          <text x="905" y="328" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" fill="#d4361c" font-weight="600">+V</text>
+          <circle cx="915" cy="324" r="4" fill="#d4361c"/>
+        </g>
+        <!-- 5V → PCA9685 V+ -->
+        <line x1="915" y1="324" x2="970" y2="324" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="970" y1="324" x2="970" y2="195" stroke="#d4361c" stroke-width="2.5"/>
+        <line x1="970" y1="195" x2="700" y2="195" stroke="#d4361c" stroke-width="2.5"/>
+        <!-- Cap -->
+        <g transform="translate(740 195)">
+          <line x1="-6" y1="-8" x2="-6" y2="8" stroke="#1a1a1a" stroke-width="2"/>
+          <line x1="0" y1="-8" x2="0" y2="8" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="-3" y="-15" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" font-weight="700" fill="#1a1a1a">1000μF</text>
+        </g>
+
+        <!-- 12V SMPS + LED 라인 (간략) -->
+        <g>
+          <rect x="700" y="370" width="220" height="80" rx="10" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
+          <text x="810" y="396" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#0a0a0a">SMPS LRS-50-12</text>
+          <text x="810" y="414" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#6a6a6a">12V 4.2A · LED 전원</text>
+          <text x="905" y="438" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="11" fill="#d4361c" font-weight="600">+V</text>
+          <circle cx="915" cy="434" r="4" fill="#d4361c"/>
+        </g>
+
+        <!-- LED block (요약) -->
+        <g>
+          <rect x="990" y="220" width="170" height="280" rx="12" fill="#FAECE7" stroke="#993C1D" stroke-width="2"/>
+          <text x="1075" y="248" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#712B13">조명 모듈</text>
+          <text x="1075" y="270" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#993C1D">(Phase 3 회로 참조)</text>
+
+          <rect x="1010" y="285" width="130" height="50" rx="6" fill="#fff" stroke="#993C1D" stroke-width="1"/>
+          <text x="1075" y="305" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#712B13">MOSFET +</text>
+          <text x="1075" y="320" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#993C1D">HAM2121</text>
+
+          <rect x="1010" y="345" width="130" height="40" rx="6" fill="#993C1D"/>
+          <text x="1075" y="370" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#fff">10W COB LED</text>
+
+          <rect x="1010" y="400" width="130" height="40" rx="6" fill="#fff" stroke="#993C1D" stroke-width="1"/>
+          <text x="1075" y="425" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#712B13">HAM3005</text>
+
+          <rect x="1010" y="450" width="130" height="40" rx="6" fill="#ffb084"/>
+          <text x="1075" y="475" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#712B13">3W LED × 8</text>
+        </g>
+
+        <!-- PWM lines to LED block -->
+        <line x1="320" y1="241" x2="380" y2="241" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="380" y1="241" x2="380" y2="310" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="380" y1="310" x2="985" y2="310" stroke="#e8b94a" stroke-width="2.5"/>
+        <text x="650" y="305" font-family="JetBrains Mono,monospace" font-size="9" fill="#c89a30" font-weight="600">PWM0 → MOSFET</text>
+
+        <line x1="320" y1="266" x2="385" y2="266" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="385" y1="266" x2="385" y2="425" stroke="#e8b94a" stroke-width="2.5"/>
+        <line x1="385" y1="425" x2="985" y2="425" stroke="#e8b94a" stroke-width="2.5"/>
+        <text x="650" y="420" font-family="JetBrains Mono,monospace" font-size="9" fill="#c89a30" font-weight="600">PWM1 → HAM3005 DIM</text>
+
+        <!-- 12V → LED block -->
+        <line x1="915" y1="434" x2="985" y2="434" stroke="#d4361c" stroke-width="2.5"/>
+
+        <!-- ========= COMMON GND BUS ========= -->
+        <line x1="40" y1="560" x2="1180" y2="560" stroke="#1a1a1a" stroke-width="4"/>
+        <text x="30" y="565" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="end">GND</text>
+
+        <!-- GND drops -->
+        <line x1="180" y1="380" x2="180" y2="560" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <line x1="500" y1="160" x2="500" y2="560" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <line x1="810" y1="340" x2="810" y2="560" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <line x1="810" y1="450" x2="810" y2="560" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <line x1="1075" y1="500" x2="1075" y2="560" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+        <text x="600" y="595" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#d4361c">⚠ 모든 GND는 한 점에서 만나야 노이즈 없는 PWM 신호 보장</text>
+      </svg>
+    </div>
+
+    <div class="pin-table">
+      <div class="pin-table-header">Phase 4 전체 핀 매핑 요약</div>
+      <table>
+        <thead>
+          <tr><th>출발지</th><th>도착지</th><th>신호</th><th>비고</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="pin-col">Pi Pin 3 (GPIO 2)</td><td class="target-col">PCA9685 SDA</td><td><span class="signal-tag sig-i2c">I2C SDA</span></td><td class="target-col">서보 제어 데이터</td></tr>
+          <tr><td class="pin-col">Pi Pin 5 (GPIO 3)</td><td class="target-col">PCA9685 SCL</td><td><span class="signal-tag sig-i2c">I2C SCL</span></td><td class="target-col">서보 제어 클럭</td></tr>
+          <tr><td class="pin-col">Pi Pin 16 (GPIO 23)</td><td class="target-col">PIR OUT</td><td><span class="signal-tag sig-data">GPIO IN</span></td><td class="target-col">재실 감지 인터럽트</td></tr>
+          <tr><td class="pin-col">Pi Pin 32 (GPIO 12)</td><td class="target-col">MOSFET SIG</td><td><span class="signal-tag sig-pwm">PWM0</span></td><td class="target-col">10W 스팟 디밍</td></tr>
+          <tr><td class="pin-col">Pi Pin 33 (GPIO 13)</td><td class="target-col">HAM3005 DIM</td><td><span class="signal-tag sig-pwm">PWM1</span></td><td class="target-col">3W 무드 디밍</td></tr>
+          <tr><td class="pin-col">Pi Pin 1 (3.3V)</td><td class="target-col">PIR VCC</td><td><span class="signal-tag sig-power">3.3V</span></td><td class="target-col">센서 전원</td></tr>
+          <tr><td class="pin-col">Pi Pin 17 (3.3V)</td><td class="target-col">PCA9685 VCC</td><td><span class="signal-tag sig-power">3.3V</span></td><td class="target-col">로직 전원</td></tr>
+          <tr><td class="pin-col">Pi CSI Connector</td><td class="target-col">Pi Camera 3 Wide</td><td><span class="signal-tag sig-data">CSI</span></td><td class="target-col">MIPI Camera (22→15pin)</td></tr>
+          <tr><td class="pin-col">SMPS 5V +V</td><td class="target-col">PCA9685 V+ (+ 캐패시터)</td><td><span class="signal-tag sig-power">5V</span></td><td class="target-col">서보 전원 (별도 라인)</td></tr>
+          <tr><td class="pin-col">SMPS 12V +V</td><td class="target-col">MOSFET, HAM3005</td><td><span class="signal-tag sig-power">12V</span></td><td class="target-col">LED 전원 (별도 라인)</td></tr>
+          <tr><td class="pin-col">모든 GND</td><td class="target-col">공통 GND 버스</td><td><span class="signal-tag sig-gnd">GND</span></td><td class="target-col">한 점에서 만남</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="notes-box">
+      <strong>📌 Phase 4 통합 체크리스트</strong>
+      <ul>
+        <li><strong>전원 인가 순서</strong>: ① Pi 부팅 → ② 5V SMPS ON → ③ 12V SMPS ON. 역순이면 서보가 갑자기 풀스윙할 수 있음</li>
+        <li><strong>PIR 감도/딜레이 조정</strong>: HC-SR501의 두 가변저항으로 감도(SX)와 트리거 시간(TX) 캘리브레이션</li>
+        <li><strong>카메라와 짐벌 분리 마운트</strong>: 카메라가 짐벌과 함께 움직이면 좌표계가 흔들림. 거치대에 별도 고정</li>
+        <li><strong>인터럽트 등록</strong>: Python <code style="background: var(--surface-strong); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono);">gpiozero.MotionSensor(23)</code>로 콜백 등록하면 Standby에서 자동 복귀</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <svg class="footer-mountains" viewBox="0 0 1200 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M 0 80 L 0 50 L 100 20 L 200 45 L 320 15 L 440 40 L 560 10 L 680 38 L 800 18 L 920 42 L 1040 22 L 1200 48 L 1200 80 Z" fill="#b8a4ed" opacity="0.6"/>
+    <path d="M 0 80 L 0 60 L 120 35 L 240 55 L 380 30 L 500 50 L 620 28 L 760 48 L 880 32 L 1020 52 L 1200 38 L 1200 80 Z" fill="#e8b94a" opacity="0.8"/>
+    <path d="M 0 80 L 0 70 L 140 50 L 280 65 L 420 48 L 560 62 L 720 50 L 880 64 L 1040 52 L 1200 60 L 1200 80 Z" fill="#1a3a3a"/>
+  </svg>
+  <p>Gaegle · 2026-1 캡스톤디자인 · 숭실대학교 AI소프트웨어학부</p>
+</footer>
+
+</body>
+</html>
