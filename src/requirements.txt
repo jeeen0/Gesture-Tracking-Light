@@ -1,0 +1,24 @@
+# Gaegle 캡스톤 - Python 의존성
+# Raspberry Pi 5 (64bit OS) 기준
+
+# === 하드웨어 제어 ===
+adafruit-circuitpython-servokit>=1.3.0   # PCA9685 + 서보
+adafruit-blinka>=8.0.0                    # CircuitPython 호환 레이어
+lgpio>=0.2.2                              # Pi 5 GPIO (RPi.GPIO 대체)
+
+# === 비전 ===
+mediapipe>=0.10.0                         # 손 랜드마크
+opencv-python>=4.8.0                      # 카메라 + 이미지 처리
+numpy>=1.24.0
+
+# === 유틸 ===
+# (표준 라이브러리만 사용)
+
+# 설치:
+#   pip install -r requirements.txt
+# 
+# I2C 활성화 필요:
+#   sudo raspi-config → Interface Options → I2C → Enable
+# 
+# 권한 (lgpio용):
+#   sudo usermod -aG gpio $USER
