@@ -1,6 +1,8 @@
 # ===== Python =====
 __pycache__/
 *.py[cod]
+*.pyc
+*.pyo
 *$py.class
 *.so
 .Python
@@ -21,16 +23,22 @@ wheels/
 *.egg
 MANIFEST
 
+
 # 가상환경
+.gaegle2/
+.gaegle2/
 venv/
 env/
-ENV/
-.venv/
+*.venv
 
 # 환경변수 / 비밀
 .env
 .env.local
 *.key
+light-env/
+
+# 모델
+/models
 
 # ===== IDE / 에디터 =====
 .vscode/
@@ -54,3 +62,6 @@ Thumbs.db
 # ===== 빌드 결과물 =====
 *.docx~$*
 ~$*
+
+
+
