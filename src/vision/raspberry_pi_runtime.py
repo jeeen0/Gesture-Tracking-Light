@@ -1,3 +1,4 @@
+import logging
 import sys
 import shutil
 import subprocess
@@ -39,8 +40,15 @@ from pi_runtime_config import (
     YOLO_ROI_PADDING_RATIO,
     YOLO_ROI_SCALE,
 )
+from pi_runtime_config import PROJECT_ROOT
 from pi_runtime_controller import PiSmartLightController
 from pi_runtime_events import emit_state
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.core.servo_controller import ServoController
+from src.core.led_controller import LEDController
 
 
 class OpenCVCamera:
@@ -469,7 +477,45 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
         cv2.putText(frame, f"POINT {label}", (tx + 12, ty - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
     return cv2.vconcat([panel[:panel_h, :], frame])
 
+def dispatch_hardware(servo, led, controller, gesture, hw_state):
+    # POINT 잠금 전환 순간 1회만 발화
+    if controller.point_status == "locked" and hw_state["point_status"] != "locked":
+        servo.move_to(controller.pan_deg, controller.tilt_deg)
+        led.spot_on(controller.brightness)
+
+    if gesture == "WAVE":
+        servo.move_to(controller.pan_deg, controller.tilt_deg)
+        if controller.mode == "Spot":
+            led.spot_on(controller.brightness)
+        else:
+            led.mood_on(controller.brightness)
+    elif gesture == "FIST":
+        servo.home()
+        led.all_off()
+    elif gesture in ("THUMBS_UP", "THUMBS_DOWN"):
+        if controller.brightness != hw_state["brightness"]:
+            if controller.mode == "Spot":
+                led.spot_set(controller.brightness)
+            else:
+                led.mood_set(controller.brightness)
+    elif gesture == "MODE_SWITCH":
+        if controller.mode != hw_state["mode"]:
+            if controller.mode == "Spot":
+                led.mood_off()
+                led.spot_on(controller.brightness)
+            else:
+                led.spot_off()
+                led.mood_on(controller.brightness)
+
+    hw_state["point_status"] = controller.point_status
+    hw_state["mode"] = controller.mode
+    hw_state["brightness"] = controller.brightness
+
+
 def main():
+    log_level = logging.DEBUG if DEBUG_OUTPUT else logging.INFO
+    logging.basicConfig(level=log_level, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+
     print(
         f"[PI] app.py algorithm runtime cam={CAM_INDEX} backend={CAMERA_BACKEND} "
         f"{FRAME_W}x{FRAME_H}@{TARGET_FPS} mirror={MIRROR}",
@@ -482,6 +528,13 @@ def main():
     )
 
     controller = PiSmartLightController()
+    servo = ServoController()
+    led = LEDController()
+    hw_state = {
+        "point_status": controller.point_status,
+        "mode": controller.mode,
+        "brightness": controller.brightness,
+    }
     cap = open_camera()
 
     mp_hands = mp.solutions.hands
@@ -728,6 +781,7 @@ def main():
                     current_gesture = None
 
                 gesture = controller.apply_gesture(current_gesture, results, clean_frame, is_shaking)
+                dispatch_hardware(servo, led, controller, gesture, hw_state)
 
                 state.update(
                     {
@@ -810,6 +864,8 @@ def main():
                     break
 
     cap.release()
+    servo.shutdown()
+    led.shutdown()
     if SHOW_PREVIEW:
         cv2.destroyAllWindows()
 
