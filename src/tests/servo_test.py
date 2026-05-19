@@ -35,29 +35,18 @@ def test_basic_angles(servo: ServoController):
 
 
 def test_pan_sweep(servo: ServoController):
-    """2단계: Pan 축만 좌우 스윕."""
     log.info("=== Test 2: Pan sweep ===")
     servo.move_to(0, 90)
-    time.sleep(0.5)
-    for ang in range(0, 181, 10):
-        servo.move_to(ang, 90, smooth=False)
-        time.sleep(0.1)
-    for ang in range(180, -1, -10):
-        servo.move_to(ang, 90, smooth=False)
-        time.sleep(0.1)
-
+    time.sleep(0.3)
+    servo.move_to(180, 90)   # 0→180 한 번에
+    servo.move_to(0, 90)     # 180→0 한 번에
 
 def test_tilt_sweep(servo: ServoController):
-    """3단계: Tilt 축만 위아래 스윕."""
     log.info("=== Test 3: Tilt sweep ===")
     servo.move_to(90, TILT_MIN_DEG)
-    time.sleep(0.5)
-    for ang in range(TILT_MIN_DEG, TILT_MAX_DEG + 1, 10):
-        servo.move_to(90, ang, smooth=False)
-        time.sleep(0.1)
-    for ang in range(TILT_MAX_DEG, TILT_MIN_DEG - 1, -10):
-        servo.move_to(90, ang, smooth=False)
-        time.sleep(0.1)
+    time.sleep(0.3)
+    servo.move_to(90, TILT_MAX_DEG)
+    servo.move_to(90, TILT_MIN_DEG)
 
 
 def test_diagonal(servo: ServoController):

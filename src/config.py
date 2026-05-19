@@ -6,7 +6,7 @@ Gaegle 캡스톤 · 공통 설정 파일
 # ============ I2C ============
 I2C_BUS = 1                  # Raspberry Pi 5 기본 I2C 버스
 PCA9685_ADDRESS = 0x40       # PCA9685 기본 주소
-PCA9685_FREQ = 50            # 서보 PWM 50Hz
+PCA9685_FREQ = 333            # 50 → 333Hz. 주기 3ms로 단축
 
 # ============ PCA9685 채널 ============
 SERVO_PAN_CH = 0             # MG946R - 수평 회전 (하단)
@@ -25,8 +25,8 @@ TILT_MIN_DEG = 30            # 너무 위로 꺾이면 LED가 천장 향함
 TILT_MAX_DEG = 150           # 너무 아래로 꺾이면 짐벌 부딪힘
 
 # 부드러운 이동을 위한 속도 제한 (deg/step)
-SERVO_MAX_STEP_DEG = 3       # 한 번에 최대 3도씩만 이동
-SERVO_STEP_DELAY_S = 0.02    # 스텝 간 20ms 대기
+SERVO_MAX_STEP_DEG = 0.5       # 0.5° 단위로 쪼갬 (기존이 2~3°면 확 부드러워짐)
+SERVO_STEP_DELAY_S = 0.003    # 15ms = 약 66Hz. PCA9685 50Hz면 0.02도 OK
 
 # ============ GPIO 핀 (BCM 번호) ============
 PIN_PIR = 23                 # PIR HC-SR501 OUT → GPIO 23 (Pin 16)

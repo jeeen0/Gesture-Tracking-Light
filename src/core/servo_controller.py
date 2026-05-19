@@ -5,6 +5,7 @@
 import logging
 import time
 from typing import Optional
+import math
 
 try:
     from adafruit_servokit import ServoKit
@@ -60,11 +61,6 @@ class ServoController:
             log.error(f"Failed to set CH{channel} to {angle}°: {e}")
     
     def move_to(self, pan_deg: float, tilt_deg: float, smooth: bool = True):
-        """Pan/Tilt를 목표 각도로 이동.
-        
-        smooth=True: 단계적으로 이동 (기본). 지터 방지.
-        smooth=False: 즉시 이동. 초기화 시에만 사용.
-        """
         pan_target = self._clamp_pan(pan_deg)
         tilt_target = self._clamp_tilt(tilt_deg)
         
@@ -75,24 +71,29 @@ class ServoController:
             self._current_tilt = tilt_target
             return
         
-        # 단계별 이동
-        steps = max(
-            int(abs(pan_target - self._current_pan) / SERVO_MAX_STEP_DEG),
-            int(abs(tilt_target - self._current_tilt) / SERVO_MAX_STEP_DEG),
-            1,
-        )
+        pan_delta = pan_target - self._current_pan
+        tilt_delta = tilt_target - self._current_tilt
+        max_delta = max(abs(pan_delta), abs(tilt_delta))
+        
+        if max_delta < 0.1:  # 거의 안 움직이면 skip
+            return
+        
+        steps = max(int(max_delta / SERVO_MAX_STEP_DEG), 1)
+        pan_start = self._current_pan
+        tilt_start = self._current_tilt
         
         for i in range(1, steps + 1):
-            ratio = i / steps
-            pan_now = self._current_pan + (pan_target - self._current_pan) * ratio
-            tilt_now = self._current_tilt + (tilt_target - self._current_tilt) * ratio
+            t = i / steps
+            # ease-in-out: 0.5 - 0.5*cos(pi*t)
+            eased = 0.5 - 0.5 * math.cos(math.pi * t)
+            pan_now = pan_start + pan_delta * eased
+            tilt_now = tilt_start + tilt_delta * eased
             self._set_raw(SERVO_PAN_CH, pan_now)
             self._set_raw(SERVO_TILT_CH, tilt_now)
             time.sleep(SERVO_STEP_DELAY_S)
         
         self._current_pan = pan_target
         self._current_tilt = tilt_target
-        log.debug(f"Moved to Pan={pan_target:.1f}°, Tilt={tilt_target:.1f}°")
     
     def get_position(self) -> tuple[float, float]:
         """현재 (pan, tilt) 각도 반환."""
