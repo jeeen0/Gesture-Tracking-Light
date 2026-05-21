@@ -4,6 +4,7 @@ import threading
 import time
 
 from gestures import GestureRecognizer
+from src.core.servo_controller import ServoController  # 0521_v2m
 from pi_runtime_config import (
     ACTIVE_TIMEOUT_SECONDS,
     BRIGHTNESS_UPDATE_INTERVAL,
@@ -56,6 +57,19 @@ class PiSmartLightController:
         self.point_stable_ratio = 0.0
         self.point_std_px = 0.0
 
+        # ── 서보 (모터) 제어 ── 0521_v2m
+        self.servo = None
+        try:
+            self.servo = ServoController()
+            emit("servo_ready")
+        except Exception as e:
+            emit("servo_error", error=str(e))
+            print(f"[PI] ServoController init failed (DRY mode): {e}", flush=True)
+
+        # 서보 절대 각도 (0~180°, 중앙=90°)
+        self.servo_pan_deg = 90.0
+        self.servo_tilt_deg = 90.0
+
         self.point_estimator = None
         self.point_status = "idle"
         self.point_error = None
@@ -90,6 +104,11 @@ class PiSmartLightController:
             self.preview_pan_deg = self.pan_deg
             self.preview_tilt_deg = self.tilt_deg
             self.point_target = data.get("point_target", self.point_target)
+            # 서보 절대 각도 복원 (저장된 값이 없으면 90° 중앙 유지) 0521_v2m
+            self.servo_pan_deg = float(data.get("servo_pan_deg", self.servo_pan_deg))
+            self.servo_tilt_deg = float(data.get("servo_tilt_deg", self.servo_tilt_deg))
+            if self.servo is not None:
+                self.servo.move_to(self.servo_pan_deg, self.servo_tilt_deg)
             emit("state_loaded", file=STATE_FILE, saved_brightness=self.saved_brightness, mode=self.mode)
         except Exception as e:
             emit("state_load_error", file=STATE_FILE, error=str(e))
@@ -102,6 +121,8 @@ class PiSmartLightController:
             "pan_deg": self.pan_deg,
             "tilt_deg": self.tilt_deg,
             "point_target": self.point_target,
+            "servo_pan_deg": self.servo_pan_deg,  # 0521_v2m
+            "servo_tilt_deg": self.servo_tilt_deg,
         }
         try:
             with open(STATE_FILE, "w", encoding="utf-8") as f:
@@ -161,6 +182,9 @@ class PiSmartLightController:
             self.point_status = "idle"
         self.power = True
         self.brightness = self.saved_brightness
+        # sleep() 시 PWM이 꺼져 있을 수 있으니 마지막 위치로 재기동
+        if self.servo is not None:
+            self.servo.move_to(self.servo_pan_deg, self.servo_tilt_deg)
         self.save_state()
         emit("wake", brightness=self.brightness)
 
@@ -171,6 +195,9 @@ class PiSmartLightController:
         self.power = False
         self.brightness = 0
         self.save_state()
+        # 서보 PWM 해제 (전류 절약, 서보 위치는 state에 저장됨) 0521_v2m
+        if self.servo is not None:
+            self.servo.shutdown()
         emit("sleep")
 
     def update_activity_timeout(self, hand_detected):
@@ -184,7 +211,7 @@ class PiSmartLightController:
 
     def enter_point_mode(self):
         self.point_mode = True
-        self.mode = "Point"
+        # mode(조명 모드: Spot/Mood)는 건드리지 않음 — point_mode는 별도 플래그
         self.point_target = None
         self.point_display_target = None
         self.point_stable_ratio = 0.0
@@ -230,14 +257,30 @@ class PiSmartLightController:
             self.point_status = "disabled"
             return
         if self.point_estimator is None:
-            if self.point_preload_started:
-                self.point_status = self.point_status or "preloading"
-                return
+            if self.point_preload_started and self.point_status == "preloading":
+                # 프리로딩이 아직 진행 중이면 잠시 대기하되,
+                # 10초 이상 걸리면 동기 생성으로 전환 (2D fallback이라도 동작)
+                if not hasattr(self, '_preload_wait_start'):
+                    self._preload_wait_start = time.time()
+                if time.time() - self._preload_wait_start < 10.0:
+                    return
+                print("[PI] preload timeout, creating estimator synchronously", flush=True)
             self.point_status = "loading"
+            if PointingTargetEstimator is None:
+                self.point_status = "module_unavailable"
+                emit("pointing_error", error="PointingTargetEstimator module not available")
+                return
             self.point_estimator = PointingTargetEstimator(FRAME_W, FRAME_H)
+            self.point_status = "ready"
+            emit("pointing_ready", method="sync_fallback")
 
         target = self.point_estimator.update(frame, hand_landmarks)
-        self.point_status = "tracking_2d_fallback" if target.get("depth_available") is False else "tracking"
+        if target.get("depth_available") is False:
+            self.point_status = "tracking_2d_fallback"
+        elif target.get("used_depth_hit"):
+            self.point_status = "tracking_depth"
+        else:
+            self.point_status = "tracking_depth_fallback"
         self.point_display_target = target.get("display_target")
         self.point_stable_ratio = float(target.get("stable_ratio", 0.0))
         self.point_std_px = float(target.get("std_px", 0.0))
@@ -255,6 +298,27 @@ class PiSmartLightController:
             self.point_target = target["confirmed"]
             self.point_mode = False
             self.point_status = "locked"
+
+            # ── 서보 구동: 상대 각도(delta)를 현재 서보 위치에 적용 ── 0521_v2m
+            # pan_deg/tilt_deg는 카메라 중심 기준 상대 각도.
+            # 서보 절대 각도 = 현재 서보 위치 + delta
+            # 부호 규칙: 카메라 오른쪽(+pan) → 서보도 +방향
+            #           카메라 아래쪽(+tilt) → 서보도 +방향
+            # ※ 카메라-서보 방향이 반대면 부호를 뒤집을 것 (현장 캘리브레이션)
+            new_servo_pan = self.servo_pan_deg + self.last_delta_pan_deg
+            new_servo_tilt = self.servo_tilt_deg + self.last_delta_tilt_deg
+            self.servo_pan_deg = new_servo_pan
+            self.servo_tilt_deg = new_servo_tilt
+            if self.servo is not None:
+                self.servo.move_to(new_servo_pan, new_servo_tilt)
+                emit(
+                    "servo_moved",
+                    servo_pan=round(new_servo_pan, 2),
+                    servo_tilt=round(new_servo_tilt, 2),
+                    delta_pan=round(self.last_delta_pan_deg, 2),
+                    delta_tilt=round(self.last_delta_tilt_deg, 2),
+                )
+
             self.save_state()
             emit(
                 "point_target_locked",
@@ -266,13 +330,17 @@ class PiSmartLightController:
                 delta_pan_deg=round(self.last_delta_pan_deg, 2),
                 delta_tilt_deg=round(self.last_delta_tilt_deg, 2),
                 std_px=round(target.get("std_px", 0.0), 1),
+                hit_method=target.get("hit_method"),
+                used_depth_hit=target.get("used_depth_hit"),
             )
             emit("point_mode", enabled=False, reason="target_locked")
 
     def apply_gesture(self, gesture, results, frame, wave_active):
         if gesture is None:
-            self.latched_gesture = None
-            self._reset_hold()
+            # point_mode 활성화 중에는 제스처가 잠깐 끊겨도 point_mode 유지
+            if not self.point_mode:
+                self.latched_gesture = None
+                self._reset_hold()
             return None
 
         if self.standby:
@@ -283,8 +351,10 @@ class PiSmartLightController:
                 return "WAVE"
             return None
 
-        if gesture == "FIST":
-            if not self._hold_ready("FIST"):
+
+        if gesture == "FIST": ##0519_v4 수정부분
+            hold_time = COMMAND_HOLD_SECONDS * (4 if self.point_mode else 1)
+            if not self._hold_ready_with("FIST", hold_time):
                 return None
             self.sleep()
             self._reset_hold()
@@ -301,9 +371,10 @@ class PiSmartLightController:
                 emit("point_blocked", reason="point_mode_required")
                 return None
             self.update_point_target(frame, results.multi_hand_landmarks[0])
-        elif gesture in ("THUMBS_UP", "THUMBS_DOWN"):
+        elif gesture in ("THUMBS_UP", "THUMBS_DOWN"):    #0520_v2m   
             self._reset_hold()
-            self.apply_brightness_gesture(gesture)
+            if not self.point_mode:              # ← 추가: 포인트모드 중엔 밝기 변경 무시
+                self.apply_brightness_gesture(gesture)
         elif gesture == "MODE_SWITCH":
             if self.latched_gesture == "MODE_SWITCH":
                 return gesture
@@ -317,6 +388,14 @@ class PiSmartLightController:
             self._reset_hold()
         self.latched_gesture = gesture
         return gesture
+
+    def _hold_ready_with(self, gesture, seconds): ##0519_v4 추가부분
+        now = time.time()
+        if self.hold_gesture != gesture:
+            self.hold_gesture = gesture
+            self.hold_start_time = now
+            return False
+        return now - self.hold_start_time >= seconds
 
     def state_payload(self, fps, gesture, hand_detected, bbox_px, wave_active):
         active_remaining = max(0.0, self.active_until - time.time()) if not self.standby else 0.0
@@ -342,6 +421,8 @@ class PiSmartLightController:
             "last_delta_pan_deg": round(self.last_delta_pan_deg, 2),
             "last_delta_tilt_deg": round(self.last_delta_tilt_deg, 2),
             "last_brightness_gesture": self.last_brightness_gesture,
+            "servo_pan_deg": round(self.servo_pan_deg, 2),  # 0521_v2m (디버깅용)
+            "servo_tilt_deg": round(self.servo_tilt_deg, 2),
             "gesture": gesture,
             "hand_detected": hand_detected,
             "hand_bbox_width_px": bbox_px,

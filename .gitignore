@@ -51,6 +51,8 @@ Thumbs.db
 
 # ===== 라즈베리파이 =====
 *.log
+# 라파에서 가져온 참조 스냅샷 (작업본은 src/ 사용)
+rasp/
 
 # ===== Jupyter =====
 .ipynb_checkpoints/

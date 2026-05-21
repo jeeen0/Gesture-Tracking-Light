@@ -29,7 +29,6 @@ SERVO_MAX_STEP_DEG = 0.5       # 0.5° 단위로 쪼갬 (기존이 2~3°면 확 
 SERVO_STEP_DELAY_S = 0.003    # 15ms = 약 66Hz. PCA9685 50Hz면 0.02도 OK
 
 # ============ GPIO 핀 (BCM 번호) ============
-PIN_PIR = 23                 # PIR HC-SR501 OUT → GPIO 23 (Pin 16)
 PIN_LED_SPOT_PWM = 12        # 10W LED MOSFET 게이트 → GPIO 12 (Pin 32)
 PIN_LED_MOOD_PWM = 13        # 3W LED HAM3005 DIM → GPIO 13 (Pin 33)
 

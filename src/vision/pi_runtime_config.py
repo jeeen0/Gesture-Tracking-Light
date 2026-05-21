@@ -25,8 +25,8 @@ except ValueError:
 
 CAMERA_BACKEND = os.environ.get("PI_CAMERA_BACKEND", "rpicam-vid").lower()
 FRAME_W = int(os.environ.get("PI_FRAME_W", "640"))
-FRAME_H = int(os.environ.get("PI_FRAME_H", "480"))
-TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "30"))
+FRAME_H = int(os.environ.get("PI_FRAME_H", "360"))
+TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "20"))
 MIRROR = os.environ.get("PI_MIRROR", "1") != "0"
 SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "0") == "1"
 DEBUG_OUTPUT = os.environ.get("PI_DEBUG", "0") == "1"
@@ -34,18 +34,40 @@ DEBUG_OUTPUT = os.environ.get("PI_DEBUG", "0") == "1"
 MP_DET_CONF = float(os.environ.get("PI_MP_DET_CONF", "0.30"))
 MP_TRK_CONF = float(os.environ.get("PI_MP_TRK_CONF", "0.30"))
 
+# MediaPipe Hands model.
+# 0 = lite / faster, 1 = full / default-ish, 2 = heavier if supported.
+MP_MODEL_COMPLEXITY = int(os.environ.get("PI_MP_MODEL_COMPLEXITY", "0"))
+
+# Limit expensive AI inference separately from camera FPS.
+# Camera can still run at TARGET_FPS, but MediaPipe/ROI/YOLO processing is throttled.
+DEFAULT_INFERENCE_FPS = float(os.environ.get("PI_INFERENCE_FPS", "10"))
+STANDBY_INFERENCE_FPS = float(os.environ.get("PI_STANDBY_INFERENCE_FPS", "6"))
+ACTIVE_INFERENCE_FPS = float(os.environ.get("PI_ACTIVE_INFERENCE_FPS", str(DEFAULT_INFERENCE_FPS)))
+POINT_INFERENCE_FPS = float(os.environ.get("PI_POINT_INFERENCE_FPS", "20"))
+
 ACTIVE_TIMEOUT_SECONDS = float(os.environ.get("PI_ACTIVE_TIMEOUT", "20.0"))
 KEEP_AWAKE = os.environ.get("PI_KEEP_AWAKE", "1") != "0"
 
 ENABLE_POINTING = os.environ.get("PI_ENABLE_POINT", "1") != "0"
 PRELOAD_POINTING = os.environ.get("PI_PRELOAD_POINT", "1") != "0"
 
-ENABLE_YOLO = os.environ.get("PI_ENABLE_YOLO", "1") != "0"
-PRELOAD_YOLO = os.environ.get("PI_PRELOAD_YOLO", "1") != "0"
+# YOLO ROI
+ENABLE_YOLO = os.environ.get("PI_ENABLE_YOLO", "0") != "0"
+PRELOAD_YOLO = os.environ.get("PI_PRELOAD_YOLO", "0") != "0"
 YOLO_MODEL_PATH = resolve_project_path(os.environ.get("PI_YOLO_MODEL", "models/hand_yolo.pt"))
 YOLO_CONFIDENCE = float(os.environ.get("PI_YOLO_CONF", "0.25"))
 YOLO_ROI_SCALE = int(os.environ.get("PI_YOLO_ROI_SCALE", "2"))
 YOLO_ROI_PADDING_RATIO = float(os.environ.get("PI_YOLO_ROI_PADDING", "0.25"))
+
+# 기본 ROI (Tracked hand ROI): once a hand is found, use this smaller ROI first.
+TRACK_ROI_SCALE = int(os.environ.get("PI_TRACK_ROI_SCALE", "2"))
+TRACK_ROI_PADDING_RATIO = float(os.environ.get("PI_TRACK_ROI_PADDING", "0.65"))
+TRACK_ROI_TTL = float(os.environ.get("PI_TRACK_ROI_TTL", "1.0"))
+FULL_FRAME_REACQUIRE_INTERVAL = float(os.environ.get("PI_FULL_FRAME_REACQUIRE_INTERVAL", "0.50"))
+
+# YOLO should be used as a reacquire detector, not every frame.
+YOLO_REACQUIRE_INTERVAL = float(os.environ.get("PI_YOLO_REACQUIRE_INTERVAL", "0.70"))
+YOLO_AFTER_MISSES = int(os.environ.get("PI_YOLO_AFTER_MISSES", "2"))
 
 ENABLE_GESTURE_ZONE_ROI = os.environ.get("PI_ENABLE_GESTURE_ZONE_ROI", "1") != "0"
 ENABLE_MOTION_ROI = os.environ.get("PI_ENABLE_MOTION_ROI", "1") != "0"
@@ -71,8 +93,8 @@ MIN_BRIGHTNESS = 0
 MAX_BRIGHTNESS = 100
 
 STATUS_INTERVAL = float(os.environ.get("PI_STATUS_INTERVAL", "1.0"))
-STATE_FILE = os.environ.get("PI_STATE_FILE", "pi_state.json")
-WAVE_CANDIDATE_FRAMES = int(os.environ.get("PI_WAVE_CANDIDATE_FRAMES", "22"))
+STATE_FILE = resolve_project_path(os.environ.get("PI_STATE_FILE", "pi_state.json"))
+WAVE_CANDIDATE_FRAMES = int(os.environ.get("PI_WAVE_CANDIDATE_FRAMES", "8")) # 기존 22
 WAVE_MOTION_SPAN_RATIO = float(os.environ.get("PI_WAVE_MOTION_SPAN_RATIO", "0.03"))
 WAVE_CONFIRM_WINDOW_SECONDS = float(os.environ.get("PI_WAVE_CONFIRM_WINDOW", "0.8"))
 WAVE_CONFIRM_MIN_HITS = int(os.environ.get("PI_WAVE_CONFIRM_HITS", "2"))

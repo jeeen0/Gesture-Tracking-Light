@@ -1,3 +1,4 @@
+import atexit
 import logging
 import sys
 import shutil
@@ -26,6 +27,16 @@ from pi_runtime_config import (
     MOTION_ROI_PADDING_RATIO,
     MP_DET_CONF,
     MP_TRK_CONF,
+    MP_MODEL_COMPLEXITY,
+    ACTIVE_INFERENCE_FPS,
+    STANDBY_INFERENCE_FPS,
+    POINT_INFERENCE_FPS,
+    TRACK_ROI_SCALE,
+    TRACK_ROI_PADDING_RATIO,
+    TRACK_ROI_TTL,
+    FULL_FRAME_REACQUIRE_INTERVAL,
+    YOLO_AFTER_MISSES,
+    YOLO_REACQUIRE_INTERVAL,
     ROI_FALLBACK_AFTER_MISSES,
     ROI_FALLBACK_INTERVAL,
     ROI_SCALE,
@@ -41,13 +52,12 @@ from pi_runtime_config import (
     YOLO_ROI_SCALE,
 )
 from pi_runtime_config import PROJECT_ROOT
-from pi_runtime_controller import PiSmartLightController
-from pi_runtime_events import emit_state
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.servo_controller import ServoController
+from pi_runtime_controller import PiSmartLightController
+from pi_runtime_events import emit_state
 from src.core.led_controller import LEDController
 
 
@@ -356,11 +366,15 @@ def motion_roi_box_from_thresh(thresh, frame_width, frame_height):
 
 
 def yolo_hand_box_from_motion_roi(controller, frame, motion_roi_box):
-    if not ENABLE_YOLO or controller.yolo_model is None or motion_roi_box is None:
+    return yolo_hand_box_from_box(controller, frame, motion_roi_box)
+
+
+def yolo_hand_box_from_box(controller, frame, search_box):
+    if not ENABLE_YOLO or controller.yolo_model is None or search_box is None:
         return None
 
     frame_height, frame_width = frame.shape[:2]
-    x1, y1, x2, y2 = clamp_roi_box(motion_roi_box, frame_width, frame_height)
+    x1, y1, x2, y2 = clamp_roi_box(search_box, frame_width, frame_height)
     crop = frame[y1:y2, x1:x2]
     if crop.size == 0:
         return None
@@ -401,7 +415,6 @@ def yolo_hand_box_from_motion_roi(controller, frame, motion_roi_box):
     pad = max(bx2 - bx1, by2 - by1) * YOLO_ROI_PADDING_RATIO
     return clamp_roi_box((bx1 - pad, by1 - pad, bx2 + pad, by2 + pad), frame_width, frame_height)
 
-
 def process_roi_with_landmark_remap(hands, frame, roi_box, roi_scale):
     frame_height, frame_width = frame.shape[:2]
     x1, y1, x2, y2 = clamp_roi_box(roi_box, frame_width, frame_height)
@@ -431,6 +444,34 @@ def hand_bbox_width_px(results, frame_width):
         return 0
     xs = [lm.x for lm in results.multi_hand_landmarks[0].landmark]
     return int((max(xs) - min(xs)) * frame_width)
+
+def hand_roi_box_from_results(results, frame_width, frame_height, padding_ratio):
+    if not has_hand(results):
+        return None
+
+    landmarks = results.multi_hand_landmarks[0].landmark
+    xs = [lm.x for lm in landmarks]
+    ys = [lm.y for lm in landmarks]
+
+    x1 = min(xs) * frame_width
+    y1 = min(ys) * frame_height
+    x2 = max(xs) * frame_width
+    y2 = max(ys) * frame_height
+
+    box_w = x2 - x1
+    box_h = y2 - y1
+    size = max(box_w, box_h)
+
+    if size <= 1:
+        return None
+
+    pad = size * padding_ratio
+
+    return clamp_roi_box(
+        (x1 - pad, y1 - pad, x2 + pad, y2 + pad),
+        frame_width,
+        frame_height,
+    )
 
 
 def print_status(payload):
@@ -463,7 +504,16 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
     for i, text in enumerate(lines):
         cv2.putText(panel, text, (18, 30 + i * 24), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 2)
 
-    show_point_marker = controller.point_mode or controller.point_status in ("tracking", "tracking_2d_fallback", "locked")
+    show_point_marker = (
+        controller.point_mode
+        or controller.point_status in (
+            "tracking",
+            "tracking_depth",
+            "tracking_depth_fallback",
+            "tracking_2d_fallback",
+            "locked",
+        )
+    )
     target = (controller.point_target or controller.point_display_target) if show_point_marker else None
     if target:
         tx, ty = int(target[0]), int(target[1])
@@ -477,20 +527,21 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
         cv2.putText(frame, f"POINT {label}", (tx + 12, ty - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
     return cv2.vconcat([panel[:panel_h, :], frame])
 
-def dispatch_hardware(servo, led, controller, gesture, hw_state):
-    # POINT 잠금 전환 순간 1회만 발화
+
+def dispatch_hardware(led, controller, gesture, hw_state):
+    # 서보 제어는 controller가 담당. dispatch는 LED + WAVE 시 서보 재기동만 처리.
+    # POINT 잠금 전환 순간 1회만 LED 발화 (서보는 controller.update_point_target에서 이미 처리)
     if controller.point_status == "locked" and hw_state["point_status"] != "locked":
-        servo.move_to(controller.pan_deg, controller.tilt_deg)
         led.spot_on(controller.brightness)
 
     if gesture == "WAVE":
-        servo.move_to(controller.pan_deg, controller.tilt_deg)
+        # 서보는 controller.wake()에서 이미 재기동 → LED만 켬
         if controller.mode == "Spot":
             led.spot_on(controller.brightness)
         else:
             led.mood_on(controller.brightness)
     elif gesture == "FIST":
-        servo.home()
+        # controller.sleep()이 이미 servo.shutdown() 호출 (서보는 마지막 위치 유지)
         led.all_off()
     elif gesture in ("THUMBS_UP", "THUMBS_DOWN"):
         if controller.brightness != hw_state["brightness"]:
@@ -528,14 +579,36 @@ def main():
     )
 
     controller = PiSmartLightController()
-    servo = ServoController()
     led = LEDController()
     hw_state = {
         "point_status": controller.point_status,
         "mode": controller.mode,
         "brightness": controller.brightness,
     }
+    controller.start_preloads()
     cap = open_camera()
+
+    def _shutdown_hardware():
+        try:
+            cap.release()
+        except Exception:
+            pass
+        if controller.servo is not None:
+            try:
+                controller.servo.shutdown()
+            except Exception:
+                pass
+        try:
+            led.shutdown()
+        except Exception:
+            pass
+        if SHOW_PREVIEW:
+            try:
+                cv2.destroyAllWindows()
+            except Exception:
+                pass
+
+    atexit.register(_shutdown_hardware)
 
     mp_hands = mp.solutions.hands
     mp_draw = mp.solutions.drawing_utils
@@ -547,6 +620,20 @@ def main():
     wave_shape_hits = deque()
     no_motion_since = None
     hand_miss_frames = 0
+    
+    # New: tracked ROI / YOLO reacquire state
+    last_hand_roi_box = None
+    last_hand_roi_time = 0.0
+    last_full_frame_time = 0.0
+    last_yolo_time = 0.0
+    last_inference_time = 0.0
+    
+    last_results = None
+    last_results_time = 0.0
+    last_hand_detected = False
+    last_hand_bbox = 0
+    last_gesture_state = controller.recognizer.extract_full_state(None)
+    
     last_roi_fallback_time = 0.0
     skip_counter = 0
     fps_times = deque(maxlen=30)
@@ -555,6 +642,8 @@ def main():
     last_state = {}
 
     with mp_hands.Hands(
+        static_image_mode=False,
+        model_complexity=MP_MODEL_COMPLEXITY,
         min_detection_confidence=MP_DET_CONF,
         min_tracking_confidence=MP_TRK_CONF,
         max_num_hands=1,
@@ -570,7 +659,6 @@ def main():
             if MIRROR:
                 frame = cv2.flip(frame, 1)
             clean_frame = frame.copy()
-            controller.start_preloads()
 
             now = time.time()
             fps_times.append(now - prev_time)
@@ -584,31 +672,48 @@ def main():
                     skip_processing = True
             else:
                 skip_counter = 0
-
+                
             gesture = None
-            hand_detected = False
-            hand_bbox = 0
-            state = {
-                "processing_mode": "skipped",
-                "wave_active": False,
-                "wave_motion_span": wave_motion_span,
-                "wave_motion_turns": wave_motion_turns,
+            results = last_results
+            results_updated = False
+            hand_detected = last_hand_detected
+            hand_bbox = last_hand_bbox
+
+            motion_detected = False
+            motion_score = 0
+            motion_roi_box = None
+            processing_mode = "skipped_hold"
+            gesture_zone_used = False
+            yolo_roi_used = False
+            motion_roi_used = False
+            roi_box = None
+            roi_scale = 1
+            
+            state = last_gesture_state.copy() if isinstance(last_gesture_state, dict) else {
+                "gesture": None,
+                "value": None,
             }
+            state["processing_mode"] = "skipped_hold"
+                
+            # Limit expensive inference FPS separately from camera FPS.
+            if not skip_processing:
+                if controller.point_mode:
+                    inference_fps_limit = POINT_INFERENCE_FPS
+                elif controller.standby:
+                    inference_fps_limit = STANDBY_INFERENCE_FPS
+                else:
+                    inference_fps_limit = ACTIVE_INFERENCE_FPS
+
+                inference_interval = 1.0 / max(inference_fps_limit, 1.0)
+                if now - last_inference_time < inference_interval:
+                    skip_processing = True
+                else:
+                    last_inference_time = now
 
             if not skip_processing:
                 small_frame = cv2.resize(frame, (160, 120))
                 gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
                 gray = cv2.GaussianBlur(gray, (9, 9), 0)
-                motion_detected = False
-                motion_score = 0
-                motion_roi_box = None
-                processing_mode = "skipped"
-                gesture_zone_used = False
-                yolo_roi_used = False
-                motion_roi_used = False
-                roi_box = None
-                roi_scale = 1
-                results = None
 
                 if prev_gray is not None:
                     frame_delta = cv2.absdiff(prev_gray, gray)
@@ -621,11 +726,13 @@ def main():
                         motion_detected = True
                         no_motion_since = None
                         motion_roi_box = motion_roi_box_from_thresh(thresh, frame.shape[1], frame.shape[0])
+
                         moments = cv2.moments(thresh)
                         if moments["m00"] > 0:
                             centroid_history.append(int(moments["m10"] / moments["m00"]))
                             if len(centroid_history) > 15:
                                 centroid_history.pop(0)
+
                             if len(centroid_history) > 3:
                                 span = max(centroid_history) - min(centroid_history)
                                 min_span_threshold = max(4, int(gray.shape[1] * WAVE_MOTION_SPAN_RATIO))
@@ -641,12 +748,15 @@ def main():
                                 x_turns = sum(
                                     1 for i in range(1, len(x_signs)) if x_signs[i] != x_signs[i - 1]
                                 )
+
                                 wave_motion_span = float(span)
                                 wave_motion_turns = x_turns
-                                if span > min_span_threshold and x_turns >= 2:
+
+                                if controller.standby and span > min_span_threshold and x_turns >= 2:
                                     if DEBUG_OUTPUT:
                                         print(
-                                            f"[DEBUG] WAVE CANDIDATE triggered (span: {span:.1f} > threshold: {min_span_threshold})",
+                                            f"[DEBUG] WAVE CANDIDATE triggered "
+                                            f"(span: {span:.1f} > threshold: {min_span_threshold})",
                                             flush=True,
                                         )
                                     wave_candidate_frames = WAVE_CANDIDATE_FRAMES
@@ -654,6 +764,7 @@ def main():
 
                 if not motion_detected and no_motion_since is None:
                     no_motion_since = time.time()
+
                 prev_gray = gray
 
                 active_deadline_alive = not controller.standby and time.time() < controller.active_until
@@ -664,105 +775,203 @@ def main():
                 )
 
                 if not skip_inference:
-                    processing_mode = "full_frame"
-                    results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                    now_infer = time.time()
+                    frame_height, frame_width = frame.shape[:2]
+                    new_results = None
 
-                hand_detected = has_hand(results)
-                if hand_detected:
-                    hand_miss_frames = 0
-                else:
-                    hand_miss_frames += 1
+                    # 1) If we recently saw a hand, try tracked hand ROI first.
+                    tracked_roi_valid = (
+                        not controller.standby
+                        and not controller.point_mode
+                        and last_hand_roi_box is not None
+                        and (now_infer - last_hand_roi_time) <= TRACK_ROI_TTL
+                        and (now_infer - last_full_frame_time) < FULL_FRAME_REACQUIRE_INTERVAL
+                    )
 
-                now_for_roi = time.time()
-                standby_roi_allowed = controller.standby and (motion_detected or wave_candidate_frames > 0)
-                active_roi_allowed = not controller.standby and hand_miss_frames >= ROI_FALLBACK_AFTER_MISSES
-                interval_ready = now_for_roi - last_roi_fallback_time >= ROI_FALLBACK_INTERVAL
-                should_try_roi = (
-                    ENABLE_GESTURE_ZONE_ROI
-                    and not hand_detected
-                    and not skip_inference
-                    and hand_miss_frames >= ROI_FALLBACK_AFTER_MISSES
-                    and interval_ready
-                    and (standby_roi_allowed or active_roi_allowed)
-                )
+                    if tracked_roi_valid:
+                        roi_results = process_roi_with_landmark_remap(
+                            hands,
+                            frame,
+                            last_hand_roi_box,
+                            TRACK_ROI_SCALE,
+                        )
+                        if has_hand(roi_results):
+                            new_results = roi_results
+                            processing_mode = "tracked_hand_roi"
+                            roi_box = last_hand_roi_box
+                            roi_scale = TRACK_ROI_SCALE
 
-                if should_try_roi:
-                    gesture_roi_box = gesture_zone_box(frame.shape[1], frame.shape[0])
-                    roi_results = process_roi_with_landmark_remap(hands, frame, gesture_roi_box, ROI_SCALE)
-                    last_roi_fallback_time = now_for_roi
-                    gesture_zone_used = True
-                    roi_box = gesture_roi_box
-                    roi_scale = ROI_SCALE
-
-                    if has_hand(roi_results):
-                        results = roi_results
-                        hand_detected = True
-                        hand_miss_frames = 0
-                        processing_mode = "gesture_zone_roi"
-                    elif ENABLE_YOLO and controller.yolo_model is not None and motion_roi_box is not None:
-                        yolo_roi_box = yolo_hand_box_from_motion_roi(controller, frame, motion_roi_box)
-                        if yolo_roi_box is not None:
-                            roi_results = process_roi_with_landmark_remap(hands, frame, yolo_roi_box, YOLO_ROI_SCALE)
-                            yolo_roi_used = True
-                            roi_box = yolo_roi_box
-                            roi_scale = YOLO_ROI_SCALE
-                            if has_hand(roi_results):
-                                results = roi_results
-                                hand_detected = True
-                                hand_miss_frames = 0
-                                processing_mode = "yolo_hand_roi"
-
-                    if not hand_detected and ENABLE_MOTION_ROI and motion_roi_box is not None:
-                        roi_results = process_roi_with_landmark_remap(hands, frame, motion_roi_box, ROI_SCALE)
+                    # 2) If tracked ROI failed, try motion ROI with MediaPipe.
+                    if (
+                        new_results is None
+                        and ENABLE_MOTION_ROI
+                        and motion_roi_box is not None
+                        and not controller.standby
+                        and not controller.point_mode
+                    ):
+                        roi_results = process_roi_with_landmark_remap(
+                            hands,
+                            frame,
+                            motion_roi_box,
+                            ROI_SCALE,
+                        )
                         motion_roi_used = True
                         roi_box = motion_roi_box
                         roi_scale = ROI_SCALE
+
                         if has_hand(roi_results):
-                            results = roi_results
-                            hand_detected = True
-                            hand_miss_frames = 0
+                            new_results = roi_results
                             processing_mode = "motion_roi"
 
-                hand_bbox = hand_bbox_width_px(results, frame.shape[1])
+                    # 3) If still no hand, use YOLO as a reacquire detector.
+                    should_try_yolo = (
+                        new_results is None
+                        and not controller.point_mode
+                        and ENABLE_YOLO
+                        and controller.yolo_model is not None
+                        and hand_miss_frames >= YOLO_AFTER_MISSES
+                        and (now_infer - last_yolo_time) >= YOLO_REACQUIRE_INTERVAL
+                    )
+
+                    if should_try_yolo:
+                        last_yolo_time = now_infer
+
+                        if motion_roi_box is not None:
+                            yolo_search_box = motion_roi_box
+                        elif ENABLE_GESTURE_ZONE_ROI:
+                            yolo_search_box = gesture_zone_box(frame_width, frame_height)
+                        else:
+                            yolo_search_box = (0, 0, frame_width, frame_height)
+
+                        yolo_roi_box = yolo_hand_box_from_box(controller, frame, yolo_search_box)
+
+                        if yolo_roi_box is not None:
+                            yolo_roi_used = True
+                            roi_box = yolo_roi_box
+                            roi_scale = YOLO_ROI_SCALE
+
+                            roi_results = process_roi_with_landmark_remap(
+                                hands,
+                                frame,
+                                yolo_roi_box,
+                                YOLO_ROI_SCALE,
+                            )
+                            if has_hand(roi_results):
+                                new_results = roi_results
+                                processing_mode = "yolo_reacquire_roi"
+
+                    # 4) Full-frame reacquire periodically or when all ROI paths fail.
+                    if new_results is None:
+                        processing_mode = "full_frame"
+                        new_results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        last_full_frame_time = now_infer
+
+                    results = new_results
+                    results_updated = True
+
+                # Update hand state only when we actually ran inference.
+                if results_updated:
+                    hand_detected = has_hand(results)
+
+                    if hand_detected:
+                        hand_miss_frames = 0
+
+                        updated_roi = hand_roi_box_from_results(
+                            results,
+                            frame.shape[1],
+                            frame.shape[0],
+                            TRACK_ROI_PADDING_RATIO,
+                        )
+                        if updated_roi is not None:
+                            last_hand_roi_box = updated_roi
+                            last_hand_roi_time = time.time()
+                    else:
+                        hand_miss_frames += 1
+                        results = None
+                        hand_detected = False
+                else:
+                    # No new inference this frame. Keep previous hand state.
+                    hand_detected = last_hand_detected
+                    hand_bbox = last_hand_bbox
+                    results = last_results
+
+                if results_updated:
+                    hand_bbox = hand_bbox_width_px(results, frame.shape[1])
+                else:
+                    hand_bbox = last_hand_bbox
+
+                # Save cache for skipped frames.
+                last_results = results
+                last_hand_detected = hand_detected
+                last_hand_bbox = hand_bbox
+                if results is not None and has_hand(results):
+                    last_results_time = time.time()
+
                 controller.update_activity_timeout(hand_detected)
 
-                if hand_detected and SHOW_PREVIEW:
-                    mp_draw.draw_landmarks(frame, results.multi_hand_landmarks[0], mp_hands.HAND_CONNECTIONS)
+                # if hand_detected and SHOW_PREVIEW and results:
+                #     mp_draw.draw_landmarks(frame, results.multi_hand_landmarks[0], mp_hands.HAND_CONNECTIONS)
 
-                state = controller.recognizer.extract_full_state(results) if results else controller.recognizer.extract_full_state(None)
+                if results_updated:
+                    state = (
+                        controller.recognizer.extract_full_state(results)
+                        if results
+                        else controller.recognizer.extract_full_state(None)
+                    )
+                    last_gesture_state = state.copy()
+                else:
+                    state = (
+                        last_gesture_state.copy()
+                        if isinstance(last_gesture_state, dict)
+                        else controller.recognizer.extract_full_state(None)
+                    )
+
+                    # Do not replay most gestures on skipped frames,
+                    # because brightness/mode commands could repeat.
+                    # Exception: keep POINT during point mode so target stability does not reset.
+                    state["gesture"] = None
+                    state["value"] = None
+                    state["confirmed_gesture"] = None
+
+                    state["processing_mode"] = "skipped_hold"
                 tick_gesture_allowed = (
                     not ENABLE_HAND_SIZE_GATING
                     or hand_bbox >= MIN_FINE_GESTURE_HAND_BBOX_WIDTH_PX
                 )
                 fine_gesture_allowed = tick_gesture_allowed
-                if (
-                    state.get("gesture") in ("FOUR_FINGER_AIM_LEFT", "FOUR_FINGER_AIM_RIGHT")
-                    and not tick_gesture_allowed
-                ):
-                    state["gesture"] = None
-                    state["value"] = None
-
                 is_shaking = False
-                if wave_candidate_frames > 0:
+                if controller.standby and wave_candidate_frames > 0:
                     wave_candidate_frames -= 1
                     is_shaking = True
+                elif not controller.standby:
+                    wave_candidate_frames = 0
 
-                if is_shaking and state.get("gesture") == "WAVE":
-                    wave_shape_hits.append(time.time())
-                while wave_shape_hits and time.time() - wave_shape_hits[0] > WAVE_CONFIRM_WINDOW_SECONDS:
-                    wave_shape_hits.popleft()
+                # WAVE is only used to wake from STANDBY.
+                # Once ACTIVE, ignore WAVE completely so it does not interfere with other gestures.
+                if controller.standby:
+                    if is_shaking and state.get("gesture") == "WAVE":
+                        wave_shape_hits.append(time.time())
 
-                wave_confirmed = (
-                    controller.standby and
-                    is_shaking and
-                    hand_detected and
-                    len(wave_shape_hits) >= WAVE_CONFIRM_MIN_HITS
-                )
-                if wave_confirmed:
-                    state["gesture"] = "WAVE"
-                    state["value"] = None
-                elif state.get("gesture") == "WAVE":
-                    state["gesture"] = None
+                    while wave_shape_hits and time.time() - wave_shape_hits[0] > WAVE_CONFIRM_WINDOW_SECONDS:
+                        wave_shape_hits.popleft()
+
+                    wave_confirmed = (
+                        is_shaking
+                        and hand_detected
+                        and len(wave_shape_hits) >= WAVE_CONFIRM_MIN_HITS
+                    )
+
+                    if wave_confirmed:
+                        state["gesture"] = "WAVE"
+                        state["value"] = None
+                    elif state.get("gesture") == "WAVE":
+                        state["gesture"] = None
+                else:
+                    wave_shape_hits.clear()
+                    if state.get("gesture") == "WAVE":
+                        state["gesture"] = None
+                        state["value"] = None
+                        state["confirmed_gesture"] = None
 
                 current_gesture = state.get("gesture")
                 if controller.standby and current_gesture in ("THUMBS_UP", "THUMBS_DOWN"):
@@ -781,7 +990,7 @@ def main():
                     current_gesture = None
 
                 gesture = controller.apply_gesture(current_gesture, results, clean_frame, is_shaking)
-                dispatch_hardware(servo, led, controller, gesture, hw_state)
+                dispatch_hardware(led, controller, gesture, hw_state)
 
                 state.update(
                     {
@@ -809,34 +1018,22 @@ def main():
                     }
                 )
 
-                if DEBUG_OUTPUT and gesture in ("FOUR_FINGER_AIM_LEFT", "FOUR_FINGER_AIM_RIGHT"):
-                    print(
-                        f"[4F TRIGGER] {gesture} "
-                        f"sx={state.get('swipe_delta_x', 0.0):.3f} "
-                        f"mx={state.get('mapped_offset_x', 0.0):.3f} "
-                        f"z={state.get('aim_vector_z', 0.0):.3f} "
-                        f"pr={state.get('aim_projection_ratio', 1.0):.3f} "
-                        f"palm={state.get('palm_move', 0.0):.3f} "
-                        f"dir={state.get('tick_direction') or '-'}",
-                        flush=True,
-                    )
-                elif DEBUG_OUTPUT and state.get("four_finger_aim_candidate"):
-                    print(
-                        f"[4F CANDIDATE] sx={state.get('swipe_delta_x', 0.0):.3f} "
-                        f"sy={state.get('swipe_delta_y', 0.0):.3f} "
-                        f"mx={state.get('mapped_offset_x', 0.0):.3f} "
-                        f"z={state.get('aim_vector_z', 0.0):.3f} "
-                        f"pr={state.get('aim_projection_ratio', 1.0):.3f} "
-                        f"palm={state.get('palm_move', 0.0):.3f} "
-                        f"state={state.get('four_finger_tick_state')}",
-                        flush=True,
-                    )
-
                 last_state = state
             else:
                 controller.update_activity_timeout(False)
                 last_state = state
+                
+            # Draw cached landmarks on every preview frame to reduce flicker.
+            if SHOW_PREVIEW:
+                draw_results = results if results is not None else last_results
+                draw_hand_detected = hand_detected or last_hand_detected
 
+                if draw_hand_detected and draw_results and has_hand(draw_results):
+                    mp_draw.draw_landmarks(
+                        frame,
+                        draw_results.multi_hand_landmarks[0],
+                        mp_hands.HAND_CONNECTIONS,
+                    )
             if now - last_status >= STATUS_INTERVAL:
                 last_status = now
                 payload = controller.state_payload(fps, gesture, hand_detected, hand_bbox, last_state.get("wave_motion_active", False))
@@ -863,11 +1060,7 @@ def main():
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
-    cap.release()
-    servo.shutdown()
-    led.shutdown()
-    if SHOW_PREVIEW:
-        cv2.destroyAllWindows()
+    # 정상 종료 및 예외 모두 atexit 핸들러(_shutdown_hardware)가 처리
 
 
 if __name__ == "__main__":
