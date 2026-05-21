@@ -656,6 +656,9 @@ def main():
                 continue
 
             frame = cv2.resize(frame, (FRAME_W, FRAME_H))
+            # fisheye 보정을 mirror 이전에 적용 (캘리브레이션이 원본 방향 기준)
+            if controller.undistorter is not None:
+                frame = controller.undistorter.undistort(frame)
             if MIRROR:
                 frame = cv2.flip(frame, 1)
             clean_frame = frame.copy()

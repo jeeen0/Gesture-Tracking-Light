@@ -218,13 +218,14 @@ class PointingTargetEstimator:
     INDEX_TIP = 8
     MIDDLE_MCP = 9
 
-    def __init__(self, frame_w, frame_h):
+    def __init__(self, frame_w, frame_h, cam_fx=None, cam_fy=None, cx=None, cy=None):
         self.frame_w = frame_w
         self.frame_h = frame_h
-        self.cam_fx = frame_w * 0.7
-        self.cam_fy = self.cam_fx
-        self.cx = frame_w / 2.0
-        self.cy = frame_h / 2.0
+        # 캘리브레이션 값이 제공되면 사용, 아니면 0.7*W 추정값
+        self.cam_fx = float(cam_fx) if cam_fx is not None else frame_w * 0.7
+        self.cam_fy = float(cam_fy) if cam_fy is not None else self.cam_fx
+        self.cx = float(cx) if cx is not None else frame_w / 2.0
+        self.cy = float(cy) if cy is not None else frame_h / 2.0
         self.depth_est = None
         self.depth_error = None
         try:

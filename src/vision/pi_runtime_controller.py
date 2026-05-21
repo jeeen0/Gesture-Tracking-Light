@@ -10,8 +10,10 @@ from pi_runtime_config import (
     BRIGHTNESS_UPDATE_INTERVAL,
     BRIGHTNESS_STEP,
     COMMAND_HOLD_SECONDS,
+    ENABLE_FISHEYE_UNDISTORT,
     ENABLE_POINTING,
     ENABLE_YOLO,
+    FISHEYE_CALIB_PATH,
     FRAME_H,
     FRAME_W,
     KEEP_AWAKE,
@@ -23,6 +25,12 @@ from pi_runtime_config import (
     YOLO_MODEL_PATH,
 )
 from pi_runtime_events import emit
+
+try:
+    from fisheye_undistort import FisheyeUndistorter
+except Exception as e:
+    FisheyeUndistorter = None
+    print(f"[PI] FisheyeUndistorter unavailable: {e}")
 
 try:
     from pointing_target import PointingTargetEstimator
@@ -69,6 +77,26 @@ class PiSmartLightController:
         # 서보 절대 각도 (0~180°, 중앙=90°)
         self.servo_pan_deg = 90.0
         self.servo_tilt_deg = 90.0
+
+        # ── Fisheye 카메라 보정 (있으면 frame 보정 + 실제 intrinsics 사용) ──
+        self.undistorter = None
+        if ENABLE_FISHEYE_UNDISTORT and FisheyeUndistorter is not None:
+            try:
+                self.undistorter = FisheyeUndistorter(
+                    FISHEYE_CALIB_PATH, (FRAME_W, FRAME_H)
+                )
+                emit(
+                    "undistort_ready",
+                    file=FISHEYE_CALIB_PATH,
+                    fx=round(self.undistorter.fx, 2),
+                    fy=round(self.undistorter.fy, 2),
+                    cx=round(self.undistorter.cx, 2),
+                    cy=round(self.undistorter.cy, 2),
+                    rms=round(self.undistorter.rms, 3),
+                )
+            except Exception as e:
+                emit("undistort_unavailable", file=FISHEYE_CALIB_PATH, error=str(e))
+                print(f"[PI] Fisheye undistort 비활성: {e}", flush=True)
 
         self.point_estimator = None
         self.point_status = "idle"
@@ -142,7 +170,9 @@ class PiSmartLightController:
             return
         try:
             self.point_status = "preloading"
-            self.point_estimator = PointingTargetEstimator(FRAME_W, FRAME_H)
+            self.point_estimator = PointingTargetEstimator(
+                FRAME_W, FRAME_H, **self._pointing_intrinsics()
+            )
             self.point_status = "ready"
             emit("pointing_ready")
         except Exception as e:
@@ -150,6 +180,17 @@ class PiSmartLightController:
             self.point_error = str(e)
             self.point_status = f"preload_error:{e}"
             emit("pointing_error", error=str(e))
+
+    def _pointing_intrinsics(self):
+        """undistorter가 있으면 실제 intrinsics, 없으면 빈 dict (PointingTargetEstimator가 기본 추정값 사용)."""
+        if self.undistorter is None:
+            return {}
+        return {
+            "cam_fx": self.undistorter.fx,
+            "cam_fy": self.undistorter.fy,
+            "cx": self.undistorter.cx,
+            "cy": self.undistorter.cy,
+        }
 
     def start_yolo_preload(self):
         if not ENABLE_YOLO or not PRELOAD_YOLO or self.yolo_preload_started:
@@ -270,7 +311,9 @@ class PiSmartLightController:
                 self.point_status = "module_unavailable"
                 emit("pointing_error", error="PointingTargetEstimator module not available")
                 return
-            self.point_estimator = PointingTargetEstimator(FRAME_W, FRAME_H)
+            self.point_estimator = PointingTargetEstimator(
+                FRAME_W, FRAME_H, **self._pointing_intrinsics()
+            )
             self.point_status = "ready"
             emit("pointing_ready", method="sync_fallback")
 

@@ -99,3 +99,9 @@ WAVE_MOTION_SPAN_RATIO = float(os.environ.get("PI_WAVE_MOTION_SPAN_RATIO", "0.03
 WAVE_CONFIRM_WINDOW_SECONDS = float(os.environ.get("PI_WAVE_CONFIRM_WINDOW", "0.8"))
 WAVE_CONFIRM_MIN_HITS = int(os.environ.get("PI_WAVE_CONFIRM_HITS", "2"))
 
+# Fisheye 카메라 보정 (.npz). 파일이 없으면 보정 비활성, 기본 fx 추정값 사용.
+FISHEYE_CALIB_PATH = resolve_project_path(
+    os.environ.get("PI_FISHEYE_CALIB", "src/calibration/fisheye_undistort_map.npz")
+)
+ENABLE_FISHEYE_UNDISTORT = os.environ.get("PI_ENABLE_FISHEYE", "1") != "0"
+
