@@ -28,7 +28,7 @@ FRAME_W = int(os.environ.get("PI_FRAME_W", "640"))
 FRAME_H = int(os.environ.get("PI_FRAME_H", "360"))
 TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "20"))
 MIRROR = os.environ.get("PI_MIRROR", "1") != "0"
-SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "0") == "1"
+SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "1") == "1"
 DEBUG_OUTPUT = os.environ.get("PI_DEBUG", "0") == "1"
 
 MP_DET_CONF = float(os.environ.get("PI_MP_DET_CONF", "0.30"))

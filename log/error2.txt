@@ -1,0 +1,42 @@
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ sudo .gaegle2/bin/python -m src.main
+[PI] app.py algorithm runtime cam=0 backend=rpicam-vid 640x360@20 mirror=True
+[PI] output=normal (set PI_DEBUG=1 for STATE JSON and candidate logs)
+2026-05-21 20:30:13,296 [INFO] src.core.servo_controller: PCA9685 initialized at 0x40, 333Hz
+EVENT {"type": "servo_ready", "ts": 1779363013.3}
+EVENT {"file": "/home/gaegle/Gesture-Tracking-Light/pi_state.json", "saved_brightness": 56, "mode": "Spot", "type": "state_loaded", "ts": 1779363013.3}
+2026-05-21 20:30:13,300 [INFO] src.core.led_controller: LED PWM ready (Spot=GPIO12, Mood=GPIO13, 1000Hz)
+[PI] camera opened with rpicam-vid mjpeg pipe
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=11.3
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=30.0
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=19.9
+[Pointing] MiDaS loading... first run can take a while
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=20.1
+Downloading: "https://github.com/intel-isl/MiDaS/zipball/master" to /root/.cache/torch/hub/master.zip
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=20.0
+EVENT {"brightness": 56, "type": "wake", "ts": 1779363019.462}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=19.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=18.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=18.8
+/home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Loading weights:  None
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=20.3
+The repository rwightman_gen-efficientnet-pytorch does not belong to the list of trusted repositories and as such cannot be downloaded. Do you trust this repository and wish to add it to the trusted list of repositories (y/N)?[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+0.0 tilt=+0.0 fps=20.6
+^CTraceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gaegle/Gesture-Tracking-Light/src/main.py", line 27, in <module>
+    main()
+  File "/home/gaegle/Gesture-Tracking-Light/src/vision/raspberry_pi_runtime.py", line 652, in main
+    ok, frame = cap.read()
+                ^^^^^^^^^^
+  File "/home/gaegle/Gesture-Tracking-Light/src/vision/raspberry_pi_runtime.py", line 118, in read
+    chunk = self.proc.stdout.read(4096)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+2026-05-21 20:30:25,835 [INFO] src.core.servo_controller: Servo PWM disabled
+2026-05-21 20:30:25,836 [INFO] src.core.led_controller: All LEDs off
+2026-05-21 20:30:25,936 [INFO] src.core.led_controller: LED controller shutdown
+`^C

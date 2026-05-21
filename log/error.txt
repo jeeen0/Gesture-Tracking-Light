@@ -1,0 +1,35 @@
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ sudo python -m src.main
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gaegle/Gesture-Tracking-Light/src/main.py", line 20, in <module>
+    from src.vision.raspberry_pi_runtime import main  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gaegle/Gesture-Tracking-Light/src/vision/raspberry_pi_runtime.py", line 10, in <module>
+    import mediapipe as mp
+ModuleNotFoundError: No module named 'mediapipe'
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ mediapipe -v
+bash: mediapipe: command not found
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ mediapipe --version
+bash: mediapipe: command not found
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ pip show mediapipe
+Name: mediapipe
+Version: 0.10.9
+Summary: MediaPipe is the simplest way for researchers and developers to build world-class ML solutions and applications for mobile, edge, cloud and the web.
+Home-page: https://github.com/google/mediapipe
+Author: The MediaPipe Authors
+Author-email: mediapipe@google.com
+License: Apache 2.0
+Location: /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages
+Requires: absl-py, attrs, flatbuffers, matplotlib, numpy, opencv-contrib-python, protobuf, sounddevice
+Required-by: 
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ sudo pythonsrc.main
+sudo: pythonsrc.main: command not found
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ sudo python src.main
+python: can't open file '/home/gaegle/Gesture-Tracking-Light/src.main': [Errno 2] No such file or directory
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ python -version
+Unknown option: -e
+usage: python [option] ... [-c cmd | -m mod | file | -] [arg] ...
+Try `python -h' for more information.
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ python --version
+Python 3.11.9
