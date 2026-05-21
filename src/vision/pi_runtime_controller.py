@@ -14,6 +14,8 @@ from pi_runtime_config import (
     ENABLE_POINTING,
     ENABLE_YOLO,
     FISHEYE_CALIB_PATH,
+    SERVO_PAN_SIGN,
+    SERVO_TILT_SIGN,
     FRAME_H,
     FRAME_W,
     KEEP_AWAKE,
@@ -348,8 +350,8 @@ class PiSmartLightController:
             # 부호 규칙: 카메라 오른쪽(+pan) → 서보도 +방향
             #           카메라 아래쪽(+tilt) → 서보도 +방향
             # ※ 카메라-서보 방향이 반대면 부호를 뒤집을 것 (현장 캘리브레이션)
-            new_servo_pan = self.servo_pan_deg + self.last_delta_pan_deg
-            new_servo_tilt = self.servo_tilt_deg + self.last_delta_tilt_deg
+            new_servo_pan = self.servo_pan_deg + self.last_delta_pan_deg * SERVO_PAN_SIGN
+            new_servo_tilt = self.servo_tilt_deg + self.last_delta_tilt_deg * SERVO_TILT_SIGN
             self.servo_pan_deg = new_servo_pan
             self.servo_tilt_deg = new_servo_tilt
             if self.servo is not None:

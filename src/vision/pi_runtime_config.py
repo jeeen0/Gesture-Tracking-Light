@@ -105,3 +105,9 @@ FISHEYE_CALIB_PATH = resolve_project_path(
 )
 ENABLE_FISHEYE_UNDISTORT = os.environ.get("PI_ENABLE_FISHEYE", "1") != "0"
 
+# 카메라-서보 방향 부호 보정. 짐벌 조립 방향에 따라 +1 또는 -1.
+# 카메라 오른쪽(+pan_deg)이 서보 +방향과 일치하면 +1, 반대면 -1.
+# 카메라 아래쪽(+tilt_deg)이 서보 +방향과 일치하면 +1, 반대면 -1.
+SERVO_PAN_SIGN = int(os.environ.get("PI_SERVO_PAN_SIGN", "1"))
+SERVO_TILT_SIGN = int(os.environ.get("PI_SERVO_TILT_SIGN", "-1"))
+
