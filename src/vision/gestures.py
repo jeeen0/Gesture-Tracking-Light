@@ -46,7 +46,7 @@ class GestureRecognizer:
         self.TICK_COOLDOWN = 0.80
         self.MIRROR_TICK_DIRECTION = True
         self.THUMB_DIRECTION_THRESHOLD = 0.30
-        self.THUMB_SMOOTHING_FRAMES = 7
+        self.THUMB_SMOOTHING_FRAMES = 6
         self.THUMB_SMOOTHING_MIN_HITS = 4
 
         self.wrist_history = deque()
@@ -395,10 +395,10 @@ class GestureRecognizer:
         wrist_to_index_mcp = self._get_distance(landmarks[self.INDEX_FINGER_MCP], landmarks[self.WRIST])
         wrist_to_middle_mcp = self._get_distance(landmarks[self.MIDDLE_FINGER_MCP], landmarks[self.WRIST])
 
-        index_open = dist_index > wrist_to_index_mcp * 1.3
-        middle_open = dist_middle > wrist_to_middle_mcp * 1.5
-        ring_open = dist_ring > wrist_to_middle_mcp * 1.5
-        pinky_open = dist_pinky > wrist_to_middle_mcp * 1.5
+        index_open = dist_index > wrist_to_index_mcp * 1.2
+        middle_open = dist_middle > wrist_to_middle_mcp * 1.25
+        ring_open = dist_ring > wrist_to_middle_mcp * 1.25
+        pinky_open = dist_pinky > wrist_to_middle_mcp * 1.15
 
         self.debug_state.update({
             "index_open": index_open,
@@ -419,11 +419,11 @@ class GestureRecognizer:
         palm_size = max(palm_ref, palm_width, 1e-6)
 
         thumb_palm_dist = self._get_distance(thumb_tip, palm_center)
-        thumb_folded = thumb_palm_dist < palm_ref * 0.80
+        thumb_folded = thumb_palm_dist < palm_ref * 0.70
         thumb_tip_to_mcp = self._get_distance(thumb_tip, thumb_mcp)
         thumb_open = (
             not thumb_folded and
-            thumb_tip_to_mcp > palm_size * 0.35
+            thumb_tip_to_mcp > palm_size * 0.28
         )
 
         index_ratio = dist_index / max(wrist_to_index_mcp, 1e-6)
@@ -521,14 +521,8 @@ class GestureRecognizer:
             abs(aim_vector_z) > self.FOUR_FINGER_AIM_Z_THRESHOLD or
             aim_projection_ratio < self.FOUR_FINGER_AIM_PROJECTION_RATIO_MAX
         )
-        four_finger_aim_candidate = (
-            index_aim_open and
-            middle_aim_open and
-            ring_aim_open and
-            pinky_aim_open and
-            not is_point and
-            not is_mode_switch
-        )
+        # FOUR_FINGER_AIM은 라파 환경에서 노이즈가 많아 비활성화 (rasp 동기)
+        four_finger_aim_candidate = False
         fist_blocked_by_four_finger_aim = (
             is_fist and
             four_finger_aim_candidate and

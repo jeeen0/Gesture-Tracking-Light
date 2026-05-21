@@ -1,4 +1,5 @@
 import math
+import os
 import time
 from collections import deque
 
@@ -9,12 +10,12 @@ import numpy as np
 HAND_WRIST_TO_MIDDLE_MCP_M = 0.10
 RAY_STEP_PX = 4
 RAY_MAX_STEPS = 300
-DEPTH_HIT_THRESHOLD = 0.08
-DEPTH_UPDATE_INTERVAL = 3
+DEPTH_HIT_THRESHOLD = 0.12
+DEPTH_UPDATE_INTERVAL = 4
 STABLE_SECONDS = 3.0
 STABLE_STD_PX = 55.0
 JITTER_RESET_PX = 140.0
-BUFFER_MAXLEN = 90
+BUFFER_MAXLEN = 50
 EMA_ALPHA = 0.25
 
 
@@ -82,7 +83,7 @@ class DepthEstimator:
         return self.depth_scale / midas_val
 
 
-class MotorAngleTracker:
+class MotorAngleTracker: #0520_v2m
     def __init__(self, cam_fx, cam_fy, cx, cy):
         self.fx = cam_fx
         self.fy = cam_fy
@@ -95,6 +96,9 @@ class MotorAngleTracker:
         self.confirmed_angles = None
         self.ema_x = None
         self.ema_y = None
+        self.grace_until = 0.0
+        self.last_pointing_time = 0.0
+        self.pointing_grace_seconds = float(os.environ.get("PI_POINTING_GRACE_SECONDS", "0.35"))
 
     def update(self, raw, is_pointing):
         result = {
@@ -112,7 +116,26 @@ class MotorAngleTracker:
             result["stable_ratio"] = 1.0
             return result
 
-        if not is_pointing or raw is None:
+        # 포인트모드 진입 직후 유예시간 — 피스→포인트 전환 중 잘못된 데이터 방지
+        if time.time() < self.grace_until: #0520_v2m
+            return result
+
+        now = time.time()
+
+        if is_pointing and raw is not None:
+            self.last_pointing_time = now
+        else:
+            if now - self.last_pointing_time <= self.pointing_grace_seconds:
+                result["display_target"] = (
+                    (int(self.ema_x), int(self.ema_y))
+                    if self.ema_x is not None and self.ema_y is not None
+                    else None
+                )
+                if self.stable_start is not None:
+                    elapsed = now - self.stable_start
+                    result["stable_ratio"] = min(elapsed / STABLE_SECONDS, 1.0)
+                return result
+
             self._reset_buffer()
             return result
 
@@ -143,9 +166,9 @@ class MotorAngleTracker:
                 return result
 
         if elapsed >= STABLE_SECONDS:
-            if result["std_px"] > STABLE_STD_PX:
+            if result["std_px"] > STABLE_STD_PX: #0520_v2m
                 print(f"[Pointing] not stable enough, retry std={result['std_px']:.1f}px")
-                self.stable_start = time.time()
+                self._reset_buffer()          # ← 버퍼도 비워서 과거 흔들림 데이터 제거
                 result["stable_ratio"] = 0.0
                 result["stable_rejected"] = True
                 return result
@@ -181,11 +204,12 @@ class MotorAngleTracker:
         self.ema_x = None
         self.ema_y = None
 
-    def reset(self, clear_confirmed=False):
+    def reset(self, clear_confirmed=False): #0520_v2m
         self._reset_buffer()
         if clear_confirmed:
             self.confirmed_target = None
             self.confirmed_angles = None
+            self.grace_until = time.time() + 1.0   # ← 추가: 1초간 데이터 무시
 
 
 class PointingTargetEstimator:
@@ -226,6 +250,8 @@ class PointingTargetEstimator:
             result["raw_target"] = raw_target
             result["calibrated"] = False
             result["depth_available"] = False
+            result["used_depth_hit"] = False
+            result["hit_method"] = "2d_fallback_no_depth"
             result["depth_error"] = self.depth_error
             return result
 
@@ -241,10 +267,18 @@ class PointingTargetEstimator:
             )
 
         raw_target = self._march(points["index_mcp"], points["index_tip"])
+        used_depth_hit = raw_target is not None
+
+        # ray가 표면을 못 찾았을 때 2D fallback으로 임시 타겟 제공
+        if raw_target is None:
+            raw_target = self._project_to_screen_edge(points["index_mcp"], points["index_tip"])
+
         result = self.tracker.update(raw_target, True)
         result["raw_target"] = raw_target
         result["calibrated"] = self.depth_est.is_calibrated
         result["depth_available"] = True
+        result["used_depth_hit"] = used_depth_hit
+        result["hit_method"] = "depth_march" if used_depth_hit else "2d_fallback_after_depth"
         result["depth_error"] = None
         return result
 
