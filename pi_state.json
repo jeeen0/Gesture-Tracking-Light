@@ -2,7 +2,12 @@
   "power": true,
   "brightness": 56,
   "mode": "Spot",
-  "pan_deg": 0.0,
-  "tilt_deg": 0.0,
-  "point_target": null
+  "pan_deg": -22.982147691869447,
+  "tilt_deg": -6.620776082314977,
+  "point_target": [
+    130,
+    128
+  ],
+  "servo_pan_deg": 67.01785230813059,
+  "servo_tilt_deg": 83.379223917685
 }
