@@ -44,6 +44,9 @@ class LEDController:
         lgpio.gpio_claim_output(self.h, PIN_LED_SPOT_PWM, 0)
         lgpio.gpio_claim_output(self.h, PIN_LED_MOOD_PWM, 0)
         log.info(f"LED PWM ready (Spot=GPIO{PIN_LED_SPOT_PWM}, Mood=GPIO{PIN_LED_MOOD_PWM}, {LED_PWM_FREQ}Hz)")
+        # 시작 시 명시적으로 OFF 신호 송신 (floating 방지)
+        self.spot_off()
+        self.mood_off()
     
     def _set_pwm(self, pin: int, duty_percent: float):
         """0~100 → 0~100 duty cycle PWM 설정."""
