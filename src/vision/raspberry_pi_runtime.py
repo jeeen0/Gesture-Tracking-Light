@@ -489,6 +489,23 @@ def print_status(payload):
         flush=True,
     )
     if DEBUG_OUTPUT:
+        print(
+            "[GESTURE DEBUG] "
+            f"ratio i={payload.get('index_ratio', 0.0):.2f}/{payload.get('index_open')} "
+            f"m={payload.get('middle_ratio', 0.0):.2f}/{payload.get('middle_open')} "
+            f"r={payload.get('ring_ratio', 0.0):.2f}/{payload.get('ring_open')} "
+            f"p={payload.get('pinky_ratio', 0.0):.2f}/{payload.get('pinky_open')} "
+            f"avg={payload.get('avg_ratio', 0.0):.2f} "
+            f"thumb_open={payload.get('thumb_open')} "
+            f"thumb_folded={payload.get('thumb_folded')} "
+            f"thumb_palm={payload.get('thumb_palm_ratio', 0.0):.2f} "
+            f"thumb_tip_mcp={payload.get('thumb_tip_to_mcp_ratio', 0.0):.2f} "
+            f"thumb_dir={payload.get('thumb_direction_delta', 0.0):+.2f}/"
+            f"{payload.get('thumb_direction_clear')} "
+            f"up={payload.get('thumbs_up_candidate')} "
+            f"down={payload.get('thumbs_down_candidate')}",
+            flush=True,
+        )
         emit_state(payload)
 
 
@@ -1087,6 +1104,23 @@ def main():
                         "motion_roi_used": last_state.get("motion_roi_used", False),
                         "roi_box": last_state.get("roi_box"),
                         "roi_scale": last_state.get("roi_scale", 1),
+                        "index_open": last_state.get("index_open", False),
+                        "middle_open": last_state.get("middle_open", False),
+                        "ring_open": last_state.get("ring_open", False),
+                        "pinky_open": last_state.get("pinky_open", False),
+                        "index_ratio": last_state.get("index_ratio", 0.0),
+                        "middle_ratio": last_state.get("middle_ratio", 0.0),
+                        "ring_ratio": last_state.get("ring_ratio", 0.0),
+                        "pinky_ratio": last_state.get("pinky_ratio", 0.0),
+                        "avg_ratio": last_state.get("avg_ratio", 0.0),
+                        "thumb_open": last_state.get("thumb_open", False),
+                        "thumb_folded": last_state.get("thumb_folded", False),
+                        "thumb_palm_ratio": last_state.get("thumb_palm_ratio", 0.0),
+                        "thumb_tip_to_mcp_ratio": last_state.get("thumb_tip_to_mcp_ratio", 0.0),
+                        "thumb_direction_delta": last_state.get("thumb_direction_delta", 0.0),
+                        "thumb_direction_clear": last_state.get("thumb_direction_clear", False),
+                        "thumbs_up_candidate": last_state.get("thumbs_up_candidate", False),
+                        "thumbs_down_candidate": last_state.get("thumbs_down_candidate", False),
                     }
                 )
                 print_status(payload)

@@ -56,9 +56,19 @@ class GestureRecognizer:
             "middle_open": False,
             "ring_open": False,
             "pinky_open": False,
+            "index_ratio": 0.0,
+            "middle_ratio": 0.0,
+            "ring_ratio": 0.0,
+            "pinky_ratio": 0.0,
+            "avg_ratio": 0.0,
+            "thumb_open": False,
+            "thumb_folded": False,
+            "thumb_palm_ratio": 0.0,
+            "thumb_tip_to_mcp_ratio": 0.0,
             "thumbs_up_candidate": False,
             "thumbs_down_candidate": False,
             "thumb_direction_delta": 0.0,
+            "thumb_direction_clear": False,
             "confirmed_gesture": None,
         }
 
@@ -170,13 +180,6 @@ class GestureRecognizer:
         ring_open = dist_ring > wrist_to_ring_mcp * self.RING_OPEN_THRESHOLD
         pinky_open = dist_pinky > wrist_to_pinky_mcp * self.PINKY_OPEN_THRESHOLD
 
-        self.debug_state.update({
-            "index_open": index_open,
-            "middle_open": middle_open,
-            "ring_open": ring_open,
-            "pinky_open": pinky_open,
-        })
-
         # THUMB
         thumb_tip = landmarks[self.THUMB_TIP]
         thumb_mcp = landmarks[self.THUMB_MCP]
@@ -202,6 +205,22 @@ class GestureRecognizer:
         ring_ratio = dist_ring / max(wrist_to_ring_mcp, 1e-6)
         pinky_ratio = dist_pinky / max(wrist_to_pinky_mcp, 1e-6)
         avg_ratio = (index_ratio + middle_ratio + ring_ratio + pinky_ratio) / 4.0
+
+        self.debug_state.update({
+            "index_open": index_open,
+            "middle_open": middle_open,
+            "ring_open": ring_open,
+            "pinky_open": pinky_open,
+            "index_ratio": index_ratio,
+            "middle_ratio": middle_ratio,
+            "ring_ratio": ring_ratio,
+            "pinky_ratio": pinky_ratio,
+            "avg_ratio": avg_ratio,
+            "thumb_open": thumb_open,
+            "thumb_folded": thumb_folded,
+            "thumb_palm_ratio": thumb_palm_dist / max(palm_ref, 1e-6),
+            "thumb_tip_to_mcp_ratio": thumb_tip_to_mcp / palm_size,
+        })
 
         is_fist = (
             avg_ratio < self.FIST_AVG_RATIO_MAX and
@@ -273,6 +292,7 @@ class GestureRecognizer:
             "thumbs_up_candidate": thumbs_up_candidate,
             "thumbs_down_candidate": thumbs_down_candidate,
             "thumb_direction_delta": thumb_direction_delta,
+            "thumb_direction_clear": thumb_direction_clear,
         })
 
         # Priority 1: FIST
