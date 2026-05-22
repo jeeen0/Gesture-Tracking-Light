@@ -1,0 +1,225 @@
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ python -m src.main
+[PI] app.py algorithm runtime cam=0 backend=rpicam-vid 640x360@20 mirror=True
+[PI] output=normal (set PI_DEBUG=1 for STATE JSON and candidate logs)
+2026-05-21 22:03:28,894 [INFO] src.core.servo_controller: PCA9685 initialized at 0x40, 333Hz
+EVENT {"type": "servo_ready", "ts": 1779368608.898}
+EVENT {"file": "/home/gaegle/Gesture-Tracking-Light/src/calibration/fisheye_undistort_map.npz", "fx": 276.84, "fy": 277.01, "cx": 317.98, "cy": 178.12, "rms": 0.805, "type": "undistort_ready", "ts": 1779368608.933}
+EVENT {"file": "/home/gaegle/Gesture-Tracking-Light/pi_state.json", "saved_brightness": 56, "mode": "Spot", "type": "state_loaded", "ts": 1779368609.255}
+2026-05-21 22:03:29,255 [INFO] src.core.led_controller: LED PWM ready (Spot=GPIO12, Mood=GPIO13, 1000Hz)
+[PI] camera opened with rpicam-vid mjpeg pipe
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=8.1
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in "/home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/plugins"
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=11.1
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=34.8
+[Pointing] MiDaS loading... first run can take a while
+Using cache found in /home/gaegle/.cache/torch/hub/intel-isl_MiDaS_master
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=19.9
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=19.8
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=20.1
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=18.0
+/home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Loading weights:  None
+Using cache found in /home/gaegle/.cache/torch/hub/rwightman_gen-efficientnet-pytorch_master
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=-38.0 tilt=+27.3 fps=20.0
+Using cache found in /home/gaegle/.cache/torch/hub/intel-isl_MiDaS_master
+[Pointing] MiDaS loaded (cpu)
+EVENT {"type": "pointing_ready", "ts": 1779368620.193}
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=22.3
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=19.9
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=15.5
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=26.1
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=19.9
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=20.0
+EVENT {"brightness": 56, "type": "wake", "ts": 1779368631.051}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=ready pan=-38.0 tilt=+27.3 fps=18.7
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368632.698}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=ready pan=-38.0 tilt=+27.3 fps=17.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=ready pan=-38.0 tilt=+27.3 fps=22.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=ready pan=-38.0 tilt=+27.3 fps=20.0
+[Pointing] calibrated scale=0.5635 hand_depth=0.74m midas=0.766
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=14.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=22.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=18.8
+[Pointing] not stable enough, retry std=80.2px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=27.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=22.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=17.3
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368643.798}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=21.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=19.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=23.5
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368646.353}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=-38.0 tilt=+27.3 fps=20.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=16.2
+[Pointing] too much jitter, reset buffer std=140.2px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=14.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=14.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=16.0
+[Pointing] not stable enough, retry std=67.1px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=14.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-38.0 tilt=+27.3 fps=16.2
+[Pointing] target confirmed pixel=(545,35) pan=+39.35 tilt=-27.32 std=5.2px
+EVENT {"servo_pan": 129.35, "servo_tilt": 174.79, "delta_pan": 77.31, "delta_tilt": -54.61, "type": "servo_moved", "ts": 1779368655.758}
+EVENT {"target_px": [545, 35], "pan_deg": 39.35, "tilt_deg": -27.32, "previous_pan_deg": -37.96, "previous_tilt_deg": 27.28, "delta_pan_deg": 77.31, "delta_tilt_deg": -54.61, "std_px": 5.2, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779368655.759}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779368655.759}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+39.4 tilt=-27.3 fps=10.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+39.4 tilt=-27.3 fps=12.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+39.4 tilt=-27.3 fps=19.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+39.4 tilt=-27.3 fps=19.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+39.4 tilt=-27.3 fps=18.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+39.4 tilt=-27.3 fps=17.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+39.4 tilt=-27.3 fps=19.4
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368662.535}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=+39.4 tilt=-27.3 fps=22.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=locked pan=+39.4 tilt=-27.3 fps=30.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=21.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368668.641}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+39.4 tilt=-27.3 fps=17.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=+39.4 tilt=-27.3 fps=18.0
+[Pointing] not stable enough, retry std=132.0px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+39.4 tilt=-27.3 fps=21.8
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368677.689}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=tracking_depth_fallback pan=+39.4 tilt=-27.3 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=+39.4 tilt=-27.3 fps=21.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=15.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=15.9
+[Pointing] not stable enough, retry std=58.8px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=14.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=16.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+39.4 tilt=-27.3 fps=14.3
+[Pointing] target confirmed pixel=(587,33) pan=+44.18 tilt=-27.65 std=7.6px
+EVENT {"servo_pan": 134.18, "servo_tilt": 175.12, "delta_pan": 4.83, "delta_tilt": -0.33, "type": "servo_moved", "ts": 1779368685.021}
+EVENT {"target_px": [587, 33], "pan_deg": 44.18, "tilt_deg": -27.65, "previous_pan_deg": 39.35, "previous_tilt_deg": -27.32, "delta_pan_deg": 4.83, "delta_tilt_deg": -0.33, "std_px": 7.6, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779368685.022}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779368685.022}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+44.2 tilt=-27.6 fps=15.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+44.2 tilt=-27.6 fps=19.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+44.2 tilt=-27.6 fps=19.3
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368688.533}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=+44.2 tilt=-27.6 fps=19.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=locked pan=+44.2 tilt=-27.6 fps=36.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=+44.2 tilt=-27.6 fps=24.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368693.234}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=17.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+44.2 tilt=-27.6 fps=20.0
+[Pointing] target confirmed pixel=(408,235) pan=+18.01 tilt=+11.60 std=0.0px
+EVENT {"servo_pan": 108.01, "servo_tilt": 135.87, "delta_pan": -26.17, "delta_tilt": 39.25, "type": "servo_moved", "ts": 1779368703.306}
+EVENT {"target_px": [408, 235], "pan_deg": 18.01, "tilt_deg": 11.6, "previous_pan_deg": 44.18, "previous_tilt_deg": -27.65, "delta_pan_deg": -26.17, "delta_tilt_deg": 39.25, "std_px": 0.0, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779368703.306}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779368703.306}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+18.0 tilt=+11.6 fps=15.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+18.0 tilt=+11.6 fps=15.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+18.0 tilt=+11.6 fps=17.3
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368706.422}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=locked pan=+18.0 tilt=+11.6 fps=16.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=locked pan=+18.0 tilt=+11.6 fps=35.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=+18.0 tilt=+11.6 fps=21.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+18.0 tilt=+11.6 fps=16.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+18.0 tilt=+11.6 fps=15.6
+[Pointing] not stable enough, retry std=98.2px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+18.0 tilt=+11.6 fps=16.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+18.0 tilt=+11.6 fps=28.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+18.0 tilt=+11.6 fps=22.5
+[Pointing] target confirmed pixel=(449,268) pan=+25.33 tilt=+17.98 std=16.7px
+EVENT {"servo_pan": 115.33, "servo_tilt": 129.49, "delta_pan": 7.31, "delta_tilt": 6.37, "type": "servo_moved", "ts": 1779368714.36}
+EVENT {"target_px": [449, 268], "pan_deg": 25.33, "tilt_deg": 17.98, "previous_pan_deg": 18.01, "previous_tilt_deg": 11.6, "delta_pan_deg": 7.31, "delta_tilt_deg": 6.37, "std_px": 16.7, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779368714.361}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779368714.361}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+25.3 tilt=+18.0 fps=18.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+25.3 tilt=+18.0 fps=15.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+25.3 tilt=+18.0 fps=23.7
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368717.463}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=locked pan=+25.3 tilt=+18.0 fps=24.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=24.8
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368719.433}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=17.6
+[Pointing] too much jitter, reset buffer std=144.6px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=16.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=15.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+25.3 tilt=+18.0 fps=28.6
+[Pointing] target confirmed pixel=(407,295) pan=+17.83 tilt=+22.88 std=19.9px
+EVENT {"servo_pan": 107.83, "servo_tilt": 124.59, "delta_pan": -7.5, "delta_tilt": 4.9, "type": "servo_moved", "ts": 1779368726.94}
+EVENT {"target_px": [407, 295], "pan_deg": 17.83, "tilt_deg": 22.88, "previous_pan_deg": 25.33, "previous_tilt_deg": 17.98, "delta_pan_deg": -7.5, "delta_tilt_deg": 4.9, "std_px": 19.9, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779368726.94}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779368726.94}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+17.8 tilt=+22.9 fps=19.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+17.8 tilt=+22.9 fps=15.5
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779368729.363}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT_MODE hand=True point_mode=True point=locked pan=+17.8 tilt=+22.9 fps=21.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=18.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=18.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=16.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=17.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=18.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=23.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=18.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=16.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=17.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=17.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=16.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=17.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=18.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=21.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=22.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=19.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=18.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=22.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=30.7
+^CTraceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gaegle/Gesture-Tracking-Light/src/main.py", line 27, in <module>
+    main()
+  File "/home/gaegle/Gesture-Tracking-Light/src/vision/raspberry_pi_runtime.py", line 869, in main
+    new_results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/mediapipe/python/solutions/hands.py", line 153, in process
+    return super().process(input_data={'image': image})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/mediapipe/python/solution_base.py", line 372, in process
+    self._graph.wait_until_idle()
+KeyboardInterrupt
+2026-05-21 22:05:54,118 [INFO] src.core.servo_controller: Servo PWM disabled
+2026-05-21 22:05:54,118 [INFO] src.core.led_controller: All LEDs off
+2026-05-21 22:05:54,218 [INFO] src.core.led_controller: LED controller shutdown
