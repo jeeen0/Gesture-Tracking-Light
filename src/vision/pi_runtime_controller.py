@@ -15,7 +15,13 @@ from pi_runtime_config import (
     ENABLE_POINTING,
     ENABLE_YOLO,
     FISHEYE_CALIB_PATH,
+    POINT_PAN_GAIN,
+    POINT_PAN_OFFSET_DEG,
+    POINT_TILT_GAIN,
+    POINT_TILT_OFFSET_DEG,
+    SERVO_PAN_CENTER,
     SERVO_PAN_SIGN,
+    SERVO_TILT_CENTER,
     SERVO_TILT_SIGN,
     FRAME_H,
     FRAME_W,
@@ -385,14 +391,18 @@ class PiSmartLightController:
             self.point_mode = False
             self.point_status = "locked"
 
-            # ── 서보 구동: 상대 각도(delta)를 현재 서보 위치에 적용 ── 0521_v2m
-            # pan_deg/tilt_deg는 카메라 중심 기준 상대 각도.
-            # 서보 절대 각도 = 현재 서보 위치 + delta
-            # 부호 규칙: 카메라 오른쪽(+pan) → 서보도 +방향
-            #           카메라 아래쪽(+tilt) → 서보도 +방향
-            # ※ 카메라-서보 방향이 반대면 부호를 뒤집을 것 (현장 캘리브레이션)
-            new_servo_pan = self.servo_pan_deg + self.last_delta_pan_deg * SERVO_PAN_SIGN
-            new_servo_tilt = self.servo_tilt_deg + self.last_delta_tilt_deg * SERVO_TILT_SIGN
+            # Absolute pointing target. CENTER is only a calculation baseline;
+            # move_to() moves directly from the current servo position.
+            new_servo_pan = (
+                SERVO_PAN_CENTER
+                + self.pan_deg * SERVO_PAN_SIGN * POINT_PAN_GAIN
+                + POINT_PAN_OFFSET_DEG
+            )
+            new_servo_tilt = (
+                SERVO_TILT_CENTER
+                + self.tilt_deg * SERVO_TILT_SIGN * POINT_TILT_GAIN
+                + POINT_TILT_OFFSET_DEG
+            )
             self.servo_pan_deg = new_servo_pan
             self.servo_tilt_deg = new_servo_tilt
             if self.servo is not None:
@@ -403,6 +413,12 @@ class PiSmartLightController:
                     servo_tilt=round(new_servo_tilt, 2),
                     delta_pan=round(self.last_delta_pan_deg, 2),
                     delta_tilt=round(self.last_delta_tilt_deg, 2),
+                    pan_center=round(SERVO_PAN_CENTER, 2),
+                    tilt_center=round(SERVO_TILT_CENTER, 2),
+                    point_pan_gain=round(POINT_PAN_GAIN, 3),
+                    point_tilt_gain=round(POINT_TILT_GAIN, 3),
+                    point_pan_offset_deg=round(POINT_PAN_OFFSET_DEG, 2),
+                    point_tilt_offset_deg=round(POINT_TILT_OFFSET_DEG, 2),
                 )
 
             self.save_state()
