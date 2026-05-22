@@ -525,7 +525,7 @@
           <line x1="9" y1="17" x2="15" y2="17"/>
         </svg>
         <h3>코드 파일을 선택하거나 새로 만드세요</h3>
-        <p>처음이라면 좌측 상단 <strong>"초기 코드 불러오기"</strong> 버튼을 눌러보세요. 현재 라파에서 돌아가는 19개 파일(서보·LED·비전·상태머신·테스트)이 Phase별로 한 번에 들어와요. Python 문법 강조와 자동 저장이 적용됩니다.</p>
+        <p>처음이라면 좌측 상단 <strong>"초기 코드 불러오기"</strong> 버튼을 눌러보세요. 현재 라파에서 돌아가는 19개 파일(서보·LED·비전·상태머신·테스트)이 Phase별로 한 번에 들어와요.</p>
         <button class="btn btn-primary" onclick="document.getElementById('seedBtn').click()">초기 코드 불러오기</button>
       </div>
     </div>
@@ -637,7 +637,7 @@ let editor = null;
 let isDirty = false;
 let autoSaveTimer = null;
 
-const PHASE_ORDER = ["공통", "Phase 2", "Phase 3", "Phase 4", "Vision", "통합", "기타"];
+const PHASE_ORDER = ["공통", "하드웨어 (core)", "비전 (vision)", "상태머신 (state)", "테스트 (tests)", "기타"];
 
 // ============ TOAST ============
 let toastTimer;
