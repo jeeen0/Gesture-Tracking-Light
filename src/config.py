@@ -21,7 +21,7 @@ SERVO_MAX_PULSE = 600        # 180도 위치 (약 2.93ms)
 # Pan/Tilt 안전 각도 제한 (기구적 한계)
 PAN_MIN_DEG = 0
 PAN_MAX_DEG = 180
-TILT_MIN_DEG = 30            # 너무 위로 꺾이면 LED가 천장 향함
+TILT_MIN_DEG = 0             # 위로 한계 확장 (정면 CENTER=135 기준 위로 135도 가능)
 TILT_MAX_DEG = 150           # 너무 아래로 꺾이면 짐벌 부딪힘
 
 # 부드러운 이동을 위한 속도 제한 (deg/step)

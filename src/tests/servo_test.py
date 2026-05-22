@@ -33,22 +33,29 @@ def _clamp_tilt(pwm: float) -> float:
 
 
 def test_basic_angles(servo: ServoController):
-    """1단계: 정면 기준 5개 위치."""
-    log.info("=== Test 1: Basic angles (CENTER 기준 ±45°) ===")
-    offsets = [-45, -22, 0, 22, 45]
-    for offset in offsets:
-        pan_pwm = _clamp_pan(SERVO_PAN_CENTER + offset)
-        tilt_pwm = _clamp_tilt(SERVO_TILT_CENTER + offset)
-        log.info(f"offset={offset:+d}° → Pan PWM={pan_pwm:.1f}, Tilt PWM={tilt_pwm:.1f}")
+    """1단계: 정면 기준 큰 폭 이동. Pan은 ±90°, Tilt는 위로 -90 / 아래로 +15."""
+    log.info("=== Test 1: Basic angles (Pan ±90°, Tilt 위 -90 / 아래 +15) ===")
+    # (pan_offset, tilt_offset)
+    samples = [
+        (-90, -90),   # 왼쪽 끝, 위로 많이
+        (-45, -45),
+        (0, 0),       # 정면
+        (45, 0),
+        (90, 15),     # 오른쪽 끝, 아래 한계
+    ]
+    for pan_off, tilt_off in samples:
+        pan_pwm = _clamp_pan(SERVO_PAN_CENTER + pan_off)
+        tilt_pwm = _clamp_tilt(SERVO_TILT_CENTER + tilt_off)
+        log.info(f"pan_off={pan_off:+d}° tilt_off={tilt_off:+d}° → Pan PWM={pan_pwm:.1f}, Tilt PWM={tilt_pwm:.1f}")
         servo.move_to(pan_pwm, tilt_pwm)
         time.sleep(1.0)
 
 
 def test_pan_sweep(servo: ServoController):
-    """2단계: Pan 좌우 스윕 (Tilt 정면 고정)."""
-    log.info("=== Test 2: Pan 좌우 스윕 (Tilt CENTER 고정) ===")
-    pan_left = _clamp_pan(SERVO_PAN_CENTER - 45)
-    pan_right = _clamp_pan(SERVO_PAN_CENTER + 45)
+    """2단계: Pan 좌우 ±90° 스윕 (Tilt 정면 고정)."""
+    log.info("=== Test 2: Pan 좌우 ±90° 스윕 (Tilt CENTER 고정) ===")
+    pan_left = _clamp_pan(SERVO_PAN_CENTER - 90)
+    pan_right = _clamp_pan(SERVO_PAN_CENTER + 90)
     tilt_center = _clamp_tilt(SERVO_TILT_CENTER)
     servo.move_to(pan_left, tilt_center)
     time.sleep(0.3)
@@ -57,11 +64,11 @@ def test_pan_sweep(servo: ServoController):
 
 
 def test_tilt_sweep(servo: ServoController):
-    """3단계: Tilt 상하 스윕 (Pan 정면 고정)."""
-    log.info("=== Test 3: Tilt 상하 스윕 (Pan CENTER 고정) ===")
+    """3단계: Tilt 위 -90° / 아래 +15° 스윕 (Pan 정면 고정)."""
+    log.info("=== Test 3: Tilt 상하 스윕 (위 -90°, 아래 +15°) ===")
     pan_center = _clamp_pan(SERVO_PAN_CENTER)
-    tilt_up = _clamp_tilt(SERVO_TILT_CENTER - 45)
-    tilt_down = _clamp_tilt(SERVO_TILT_CENTER + 45)
+    tilt_up = _clamp_tilt(SERVO_TILT_CENTER - 90)
+    tilt_down = _clamp_tilt(SERVO_TILT_CENTER + 15)
     servo.move_to(pan_center, tilt_up)
     time.sleep(0.3)
     servo.move_to(pan_center, tilt_down)
@@ -69,15 +76,15 @@ def test_tilt_sweep(servo: ServoController):
 
 
 def test_diagonal(servo: ServoController):
-    """4단계: 대각선 이동 (두 축 동시 구동)."""
-    log.info("=== Test 4: Diagonal movement (CENTER 기준 4방향) ===")
+    """4단계: 대각선 이동 (Pan ±90, Tilt 위 -90 / 아래 +15)."""
+    log.info("=== Test 4: Diagonal movement ===")
     pan_c = SERVO_PAN_CENTER
     tilt_c = SERVO_TILT_CENTER
     waypoints = [
-        (_clamp_pan(pan_c - 45), _clamp_tilt(tilt_c - 45)),  # ↖
-        (_clamp_pan(pan_c + 45), _clamp_tilt(tilt_c + 45)),  # ↘
-        (_clamp_pan(pan_c + 45), _clamp_tilt(tilt_c - 45)),  # ↗
-        (_clamp_pan(pan_c - 45), _clamp_tilt(tilt_c + 45)),  # ↙
+        (_clamp_pan(pan_c - 90), _clamp_tilt(tilt_c - 90)),  # ↖ 왼쪽 위 끝
+        (_clamp_pan(pan_c + 90), _clamp_tilt(tilt_c + 15)),  # ↘ 오른쪽 아래
+        (_clamp_pan(pan_c + 90), _clamp_tilt(tilt_c - 90)),  # ↗ 오른쪽 위
+        (_clamp_pan(pan_c - 90), _clamp_tilt(tilt_c + 15)),  # ↙ 왼쪽 아래
         (_clamp_pan(pan_c), _clamp_tilt(tilt_c)),            # 정면 복귀
     ]
     for pan, tilt in waypoints:
