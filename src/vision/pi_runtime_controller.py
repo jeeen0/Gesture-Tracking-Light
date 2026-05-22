@@ -77,15 +77,18 @@ class PiSmartLightController:
         # ── 서보 (모터) 제어 ── 0521_v2m
         self.servo = None
         try:
-            self.servo = ServoController()
+            self.servo = ServoController(
+                initial_pan=SERVO_PAN_CENTER,
+                initial_tilt=SERVO_TILT_CENTER,
+            )
             emit("servo_ready")
         except Exception as e:
             emit("servo_error", error=str(e))
             print(f"[PI] ServoController init failed (DRY mode): {e}", flush=True)
 
-        # 서보 절대 각도 (0~180°, 중앙=90°)
-        self.servo_pan_deg = 90.0
-        self.servo_tilt_deg = 90.0
+        # 서보 절대 PWM 각도 (0~180°). 시작 시 CENTER 위치 = 정면.
+        self.servo_pan_deg = SERVO_PAN_CENTER
+        self.servo_tilt_deg = SERVO_TILT_CENTER
 
         # ── Fisheye 카메라 보정 (있으면 frame 보정 + 실제 intrinsics 사용) ──
         self.undistorter = None

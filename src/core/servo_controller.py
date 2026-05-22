@@ -29,11 +29,11 @@ class ServoController:
     새 명령이 도착하면 진행 중인 이동을 중단하고 현재 위치에서 새 타깃으로 재계획.
     """
 
-    def __init__(self, pan_center: float = 90.0, tilt_center: float = 90.0):
+    def __init__(self, initial_pan: float = 90.0, initial_tilt: float = 90.0):
         """
-        pan_center, tilt_center: PWM 절대 각도 중 '정면'을 향하는 값.
-        내부 명령(90=정면)을 실제 PWM 출력 시 (CENTER - 90) 만큼 보정한다.
-        예: pan_center=85 → 외부 90 명령 → 실제 PCA9685에는 85 송신.
+        initial_pan, initial_tilt: 시작 시 즉시 송신할 PWM 절대 각도.
+        호출자가 전달하는 angle은 항상 PWM 절대 각도로 해석된다 (OFFSET 없음).
+        포인팅 각도 → PWM 절대각 변환은 호출자가 담당.
         """
         if ServoKit is None:
             log.warning("adafruit_servokit not available - running in DRY mode")
@@ -42,19 +42,16 @@ class ServoController:
             self.kit = ServoKit(channels=16, address=PCA9685_ADDRESS, frequency=PCA9685_FREQ)
             log.info(f"PCA9685 initialized at 0x{PCA9685_ADDRESS:02X}, {PCA9685_FREQ}Hz")
 
-        self._pan_offset = pan_center - 90.0
-        self._tilt_offset = tilt_center - 90.0
-
         self._lock = threading.Lock()
-        self._current_pan = 90.0
-        self._current_tilt = 90.0
-        self._target_pan = 90.0
-        self._target_tilt = 90.0
+        self._current_pan = initial_pan
+        self._current_tilt = initial_tilt
+        self._target_pan = initial_pan
+        self._target_tilt = initial_tilt
         self._new_target = threading.Event()
         self._stop = False
 
-        self._set_raw(SERVO_PAN_CH, 90.0)
-        self._set_raw(SERVO_TILT_CH, 90.0)
+        self._set_raw(SERVO_PAN_CH, initial_pan)
+        self._set_raw(SERVO_TILT_CH, initial_tilt)
 
         self._worker = threading.Thread(target=self._move_worker, daemon=True)
         self._worker.start()
@@ -66,16 +63,10 @@ class ServoController:
         return max(TILT_MIN_DEG, min(TILT_MAX_DEG, deg))
 
     def _set_raw(self, channel: int, angle: float):
-        """PCA9685 채널에 직접 각도 명령 전송. CENTER offset을 적용한다."""
-        if channel == SERVO_PAN_CH:
-            actual = angle + self._pan_offset
-        elif channel == SERVO_TILT_CH:
-            actual = angle + self._tilt_offset
-        else:
-            actual = angle
-        actual = max(0.0, min(180.0, actual))
+        """PCA9685 채널에 직접 각도 명령 전송 (PWM 절대 각도). 0~180 안전 clamp."""
+        actual = max(0.0, min(180.0, angle))
         if self.kit is None:
-            log.debug(f"[DRY] CH{channel} → cmd={angle:.1f}° actual={actual:.1f}°")
+            log.debug(f"[DRY] CH{channel} → {actual:.1f}°")
             return
         try:
             self.kit.servo[channel].angle = actual
