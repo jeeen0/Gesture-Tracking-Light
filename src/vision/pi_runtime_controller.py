@@ -77,7 +77,10 @@ class PiSmartLightController:
         # ── 서보 (모터) 제어 ── 0521_v2m
         self.servo = None
         try:
-            self.servo = ServoController()
+            self.servo = ServoController(
+                pan_center=SERVO_PAN_CENTER,
+                tilt_center=SERVO_TILT_CENTER,
+            )
             emit("servo_ready")
         except Exception as e:
             emit("servo_error", error=str(e))
