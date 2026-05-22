@@ -48,6 +48,13 @@ class LEDController:
         self.spot_off()
         self.mood_off()
     
+    GAMMA = 2.2  # LED dimming 인지 선형화 (사람 눈의 로그 응답 보정)
+
+    def _to_pwm_duty(self, brightness_percent: float) -> float:
+        """사용자 밝기 (0~100) → PWM duty (0~100), 감마 보정 적용."""
+        b = max(0.0, min(100.0, brightness_percent)) / 100.0
+        return (b ** self.GAMMA) * 100.0
+
     def _set_pwm(self, pin: int, duty_percent: float):
         """0~100 → 0~100 duty cycle PWM 설정."""
         duty = max(0.0, min(100.0, duty_percent))
@@ -64,10 +71,11 @@ class LEDController:
     # ---------- Spot (10W) ----------
     
     def spot_set(self, duty_percent: float):
-        """10W 스팟 조명 밝기 설정 (0~100%)."""
+        """10W 스팟 조명 밝기 설정 (0~100%). 감마 보정으로 인지 선형화."""
         self._spot_duty = max(0.0, min(100.0, duty_percent))
-        self._set_pwm(PIN_LED_SPOT_PWM, self._spot_duty)
-        log.debug(f"Spot LED → {self._spot_duty:.1f}%")
+        actual = self._to_pwm_duty(self._spot_duty)
+        self._set_pwm(PIN_LED_SPOT_PWM, actual)
+        log.debug(f"Spot LED → {self._spot_duty:.1f}% (PWM duty {actual:.1f}%)")
     
     def spot_on(self, duty_percent: float = 80.0):
         self.spot_set(duty_percent)
@@ -78,9 +86,10 @@ class LEDController:
     # ---------- Mood (3W × 8) ----------
     
     def mood_set(self, duty_percent: float):
-        """3W 무드 LED 밝기 설정 (0~100%). HAM3005가 active low라 PWM duty 반전."""
+        """3W 무드 LED 밝기 설정 (0~100%). 감마 보정 + HAM3005 active low 반전."""
         self._mood_duty = max(0.0, min(100.0, duty_percent))
-        actual = 100.0 - self._mood_duty
+        corrected = self._to_pwm_duty(self._mood_duty)
+        actual = 100.0 - corrected
         self._set_pwm(PIN_LED_MOOD_PWM, actual)
         log.debug(f"Mood LED → {self._mood_duty:.1f}% (PWM duty {actual:.1f}%)")
     
