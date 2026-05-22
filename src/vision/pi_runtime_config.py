@@ -93,7 +93,16 @@ MIN_BRIGHTNESS = 0
 MAX_BRIGHTNESS = 100
 
 STATUS_INTERVAL = float(os.environ.get("PI_STATUS_INTERVAL", "1.0"))
-STATE_FILE = resolve_project_path(os.environ.get("PI_STATE_FILE", "pi_state.json"))
+
+
+def _resolve_state_file(value):
+    path = Path(value).expanduser()
+    if path.is_absolute():
+        return str(path)
+    return str((PROJECT_ROOT / path).resolve())
+
+
+STATE_FILE = _resolve_state_file(os.environ.get("PI_STATE_FILE", "pi_state.json"))
 WAVE_CANDIDATE_FRAMES = int(os.environ.get("PI_WAVE_CANDIDATE_FRAMES", "8")) # 기존 22
 WAVE_MOTION_SPAN_RATIO = float(os.environ.get("PI_WAVE_MOTION_SPAN_RATIO", "0.03"))
 WAVE_CONFIRM_WINDOW_SECONDS = float(os.environ.get("PI_WAVE_CONFIRM_WINDOW", "0.8"))
