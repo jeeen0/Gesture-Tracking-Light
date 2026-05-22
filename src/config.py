@@ -9,8 +9,8 @@ PCA9685_ADDRESS = 0x40       # PCA9685 기본 주소
 PCA9685_FREQ = 50             # SG90 아날로그 서보 호환 (50Hz 필수)
 
 # ============ PCA9685 채널 ============
-SERVO_PAN_CH = 1             # SG90   - 수평 회전 (하단, CH1)
-SERVO_TILT_CH = 0            # MG946R - 수직 회전 (상단, CH0)
+SERVO_PAN_CH = 0             # 좌우 회전 (CH0)
+SERVO_TILT_CH = 1            # 상하 회전 (CH1)
 
 # ============ 서보 캘리브레이션 ============
 # PCA9685는 12-bit (0~4095) PWM
