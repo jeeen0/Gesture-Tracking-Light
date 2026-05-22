@@ -518,19 +518,16 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
     )
     target = (controller.point_target or controller.point_display_target) if show_point_marker else None
 
-    # 포인팅 ray 시각화: MCP → hit 지점까지 선(노란색) + hit 원(자홍색)
+    # 포인팅 ray 시각화: MCP → 화면 타깃(원)까지 노란선. 끝점은 원 위치와 일치.
     if controller.point_mode and controller.point_ray_start_px is not None:
         sx, sy = int(controller.point_ray_start_px[0]), int(controller.point_ray_start_px[1])
-        hit = controller.point_ray_hit_px
-        if hit is not None:
-            end_px = (int(hit[0]), int(hit[1]))
-            cv2.line(frame, (sx, sy), end_px, (0, 255, 255), 2)
+        target_end = controller.point_target or controller.point_display_target
+        if target_end is not None:
+            ex, ey = int(target_end[0]), int(target_end[1])
+            cv2.line(frame, (sx, sy), (ex, ey), (0, 255, 255), 2)
             cv2.circle(frame, (sx, sy), 4, (0, 200, 200), -1)
-            if controller.point_target is None:
-                cv2.circle(frame, end_px, 10, (255, 0, 255), 2)
-                cv2.circle(frame, end_px, 2, (255, 0, 255), -1)
         elif controller.point_ray_tip_px is not None:
-            # depth hit 없으면 tip 방향으로 화면 끝까지 연장 (OpenCV가 클리핑)
+            # 표시 타깃 없으면 tip 방향으로 화면 끝까지 연장
             tx_r, ty_r = controller.point_ray_tip_px
             dx, dy = tx_r - sx, ty_r - sy
             dist = math.hypot(dx, dy)
