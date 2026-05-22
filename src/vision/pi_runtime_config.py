@@ -26,7 +26,7 @@ except ValueError:
 CAMERA_BACKEND = os.environ.get("PI_CAMERA_BACKEND", "rpicam-vid").lower()
 FRAME_W = int(os.environ.get("PI_FRAME_W", "640"))
 FRAME_H = int(os.environ.get("PI_FRAME_H", "360"))
-TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "20"))
+TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "30"))
 MIRROR = os.environ.get("PI_MIRROR", "1") != "0"
 SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "1") == "1"
 DEBUG_OUTPUT = os.environ.get("PI_DEBUG", "0") == "1"
@@ -40,10 +40,10 @@ MP_MODEL_COMPLEXITY = int(os.environ.get("PI_MP_MODEL_COMPLEXITY", "0"))
 
 # Limit expensive AI inference separately from camera FPS.
 # Camera can still run at TARGET_FPS, but MediaPipe/ROI/YOLO processing is throttled.
-DEFAULT_INFERENCE_FPS = float(os.environ.get("PI_INFERENCE_FPS", "10"))
-STANDBY_INFERENCE_FPS = float(os.environ.get("PI_STANDBY_INFERENCE_FPS", "6"))
+DEFAULT_INFERENCE_FPS = float(os.environ.get("PI_INFERENCE_FPS", "30"))
+STANDBY_INFERENCE_FPS = float(os.environ.get("PI_STANDBY_INFERENCE_FPS", "10"))
 ACTIVE_INFERENCE_FPS = float(os.environ.get("PI_ACTIVE_INFERENCE_FPS", str(DEFAULT_INFERENCE_FPS)))
-POINT_INFERENCE_FPS = float(os.environ.get("PI_POINT_INFERENCE_FPS", "20"))
+POINT_INFERENCE_FPS = float(os.environ.get("PI_POINT_INFERENCE_FPS", "30"))
 
 ACTIVE_TIMEOUT_SECONDS = float(os.environ.get("PI_ACTIVE_TIMEOUT", "20.0"))
 KEEP_AWAKE = os.environ.get("PI_KEEP_AWAKE", "1") != "0"

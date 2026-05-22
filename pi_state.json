@@ -1,10 +1,10 @@
 {
   "power": true,
   "brightness": 54,
-  "mode": "Mood",
-  "pan_deg": -40.082807340393714,
-  "tilt_deg": -32.74231388901117,
+  "mode": "Spot",
+  "pan_deg": 0.004726929193797379,
+  "tilt_deg": -32.59574135493837,
   "point_target": null,
-  "servo_pan_deg": 49.917192659606286,
-  "servo_tilt_deg": 122.74231388901117
+  "servo_pan_deg": 90.0047269291938,
+  "servo_tilt_deg": 122.59574135493837
 }
