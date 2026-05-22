@@ -63,7 +63,7 @@ def test_basic_angles(servo: ServoController):
     for pan_off, tilt_off, label in samples:
         pan_pwm = _clamp_pan(SERVO_PAN_CENTER + pan_off)
         tilt_pwm = _clamp_tilt(SERVO_TILT_CENTER + tilt_off)
-        _move_with_log(servo, pan_pwm, tilt_pwm, label=label, wait=1.0)
+        _move_with_log(servo, pan_pwm, tilt_pwm, label=label, hold=1.0)
 
 
 def test_pan_sweep(servo: ServoController):
@@ -75,9 +75,9 @@ def test_pan_sweep(servo: ServoController):
     pan_left = _clamp_pan(SERVO_PAN_CENTER - 90)
     pan_right = _clamp_pan(SERVO_PAN_CENTER + 90)
     tilt_center = _clamp_tilt(SERVO_TILT_CENTER)
-    _move_with_log(servo, pan_left, tilt_center, label="왼쪽 끝", wait=0.3)
-    _move_with_log(servo, pan_right, tilt_center, label="오른쪽 끝", wait=1.0)
-    _move_with_log(servo, pan_left, tilt_center, label="왼쪽 끝", wait=1.0)
+    _move_with_log(servo, pan_left, tilt_center, label="왼쪽 끝", hold=0.3)
+    _move_with_log(servo, pan_right, tilt_center, label="오른쪽 끝", hold=1.0)
+    _move_with_log(servo, pan_left, tilt_center, label="왼쪽 끝", hold=1.0)
 
 
 def test_tilt_sweep(servo: ServoController):
@@ -89,9 +89,9 @@ def test_tilt_sweep(servo: ServoController):
     pan_center = _clamp_pan(SERVO_PAN_CENTER)
     tilt_up = _clamp_tilt(SERVO_TILT_CENTER + 45)    # PWM 큰 값 = 위
     tilt_down = _clamp_tilt(SERVO_TILT_CENTER - 105) # PWM 작은 값 = 아래
-    _move_with_log(servo, pan_center, tilt_up, label="위쪽 끝", wait=0.3)
-    _move_with_log(servo, pan_center, tilt_down, label="아래쪽 끝", wait=1.0)
-    _move_with_log(servo, pan_center, tilt_up, label="위쪽 끝", wait=1.0)
+    _move_with_log(servo, pan_center, tilt_up, label="위쪽 끝", hold=0.3)
+    _move_with_log(servo, pan_center, tilt_down, label="아래쪽 끝", hold=1.0)
+    _move_with_log(servo, pan_center, tilt_up, label="위쪽 끝", hold=1.0)
 
 
 def test_diagonal(servo: ServoController):
@@ -110,7 +110,7 @@ def test_diagonal(servo: ServoController):
         (_clamp_pan(pan_c), _clamp_tilt(tilt_c), "정면 복귀"),
     ]
     for pan, tilt, label in waypoints:
-        _move_with_log(servo, pan, tilt, label=label, wait=0.8)
+        _move_with_log(servo, pan, tilt, label=label, hold=0.8)
 
 
 def main():
