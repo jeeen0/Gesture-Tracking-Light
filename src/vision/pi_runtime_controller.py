@@ -114,6 +114,8 @@ class PiSmartLightController:
         self.latched_gesture = None
         self.hold_gesture = None
         self.hold_start_time = 0.0
+        self._last_save_time = 0.0
+        self._pending_save = False
         self.load_state()
 
     def start_preloads(self):
@@ -144,7 +146,16 @@ class PiSmartLightController:
         except Exception as e:
             emit("state_load_error", file=STATE_FILE, error=str(e))
 
-    def save_state(self):
+    _SAVE_DEBOUNCE_S = 0.4
+
+    def save_state(self, debounce: bool = False):
+        now = time.time()
+        if debounce:
+            self._pending_save = True
+            if now - self._last_save_time < self._SAVE_DEBOUNCE_S:
+                return
+        self._pending_save = False
+        self._last_save_time = now
         data = {
             "power": self.power,
             "brightness": self.saved_brightness,
@@ -178,6 +189,11 @@ class PiSmartLightController:
                 except OSError:
                     pass
             emit("state_save_error", file=STATE_FILE, error=str(e))
+
+    def flush_pending_save(self):
+        """debounce로 미뤄진 save_state를 강제 실행. 종료 직전에 호출."""
+        if self._pending_save:
+            self.save_state()
 
     def start_point_preload(self):
         if not ENABLE_POINTING or not PRELOAD_POINTING or self.point_preload_started:
@@ -311,7 +327,7 @@ class PiSmartLightController:
         if self.brightness != old:
             self.saved_brightness = self.brightness
             self.last_brightness_gesture = gesture
-            self.save_state()
+            self.save_state(debounce=True)
             emit("brightness", gesture=gesture, brightness=self.brightness, delta=self.brightness - old)
 
     def update_point_target(self, frame, hand_landmarks):
