@@ -77,10 +77,11 @@ class LEDController:
     # ---------- Mood (3W × 8) ----------
     
     def mood_set(self, duty_percent: float):
-        """3W 무드 LED 밝기 설정 (0~100%)."""
+        """3W 무드 LED 밝기 설정 (0~100%). HAM3005가 active low라 PWM duty 반전."""
         self._mood_duty = max(0.0, min(100.0, duty_percent))
-        self._set_pwm(PIN_LED_MOOD_PWM, self._mood_duty)
-        log.debug(f"Mood LED → {self._mood_duty:.1f}%")
+        actual = 100.0 - self._mood_duty
+        self._set_pwm(PIN_LED_MOOD_PWM, actual)
+        log.debug(f"Mood LED → {self._mood_duty:.1f}% (PWM duty {actual:.1f}%)")
     
     def mood_on(self, duty_percent: float = 40.0):
         self.mood_set(duty_percent)
@@ -103,19 +104,21 @@ class LEDController:
         }
     
     def shutdown(self):
-        """GPIO 해제. PWM을 명시적으로 멈추고 핀을 LOW로 고정해서
-        MOSFET 게이트가 floating으로 켜지지 않도록 한다."""
+        """GPIO 해제. PWM을 명시적으로 OFF 신호로 보낸 뒤 핀을 고정한다.
+        Spot(MOSFET): active high → LOW = OFF.
+        Mood(HAM3005): active low → HIGH = OFF."""
         self.all_off()
         if self.h is not None:
             try:
-                # PWM duty 0 → 마지막 cycle 완료 대기
+                # Spot: PWM duty 0 (LOW) → MOSFET OFF
+                # Mood: PWM duty 100 (HIGH) → HAM3005 OFF
                 lgpio.tx_pwm(self.h, PIN_LED_SPOT_PWM, LED_PWM_FREQ, 0)
-                lgpio.tx_pwm(self.h, PIN_LED_MOOD_PWM, LED_PWM_FREQ, 0)
+                lgpio.tx_pwm(self.h, PIN_LED_MOOD_PWM, LED_PWM_FREQ, 100)
                 time.sleep(0.02)
-                # 핀을 LOW로 고정 (MOSFET 게이트 floating 방지)
+                # 핀 고정 (floating 방지)
                 try:
-                    lgpio.gpio_write(self.h, PIN_LED_SPOT_PWM, 0)
-                    lgpio.gpio_write(self.h, PIN_LED_MOOD_PWM, 0)
+                    lgpio.gpio_write(self.h, PIN_LED_SPOT_PWM, 0)  # Spot LOW = OFF
+                    lgpio.gpio_write(self.h, PIN_LED_MOOD_PWM, 1)  # Mood HIGH = OFF
                 except Exception:
                     pass
                 # GPIO 해제
