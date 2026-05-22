@@ -54,8 +54,8 @@
 
 **부품 카탈로그**:
 1. 카탈로그 페이지에서 **"백업"** 버튼 → JSON 파일 다운로드
-2. 팀원에게 카톡/메일로 공유
-3. 받은 팀원은 **"복원"** 버튼으로 불러오기
+2. Github에 JSON 파일 Push
+3. 다운받은 팀원은 **"복원"** 버튼으로 불러오기
 
 **코드 에디터**:
 1. 코드 에디터 페이지에서 **"백업"** 버튼 → JSON 파일
@@ -64,13 +64,13 @@
 
 ### 브라우저 데이터 삭제 시 주의
 
-브라우저 캐시/사이트 데이터 삭제하면 카탈로그·코드가 **다 날아가요**. 작업한 거 있으면 미리 백업 받으세요.
+브라우저 캐시/사이트 데이터 삭제하면 카탈로그·코드가 날아가므로 작업한 거 있으면 미리 백업 받을 것.
 
 ---
 
 ## 🚀 라즈베리파이 실행 방법
 
-### 1. 레포 클론
+### 1. 레포 클론 (한 번만)
 
 ```bash
 git clone https://github.com/jeeen0/Gesture-Tracking-Light.git
@@ -79,81 +79,148 @@ cd Gesture-Tracking-Light
 
 ### 2. 환경 준비 (한 번만)
 
-```bash
-# I2C 활성화
-sudo raspi-config  # → Interface Options → I2C → Enable
+#### 2-1. 시스템 인터페이스 활성화 + 권한
 
-# 의존성 설치
-pip install -r src/requirements.txt
+```bash
+# I2C / 카메라 활성화
+sudo raspi-config   # → Interface Options → I2C: Enable, Camera: Enable
+
+# sudo 없이 GPIO/I2C/카메라 쓰려면 그룹 등록 (권장)
+sudo usermod -aG gpio,i2c,video,spi gaegle
+sudo reboot         # 그룹 적용 위해 1회 재부팅
 ```
+
+> 그룹 등록 안 하면 매번 `sudo` 필요.
+
+#### 2-2. Python 가상환경 + 의존성
+
+```bash
+cd ~/Gesture-Tracking-Light
+
+# venv 생성
+python -m venv .gaegle2
+source .gaegle2/bin/activate
+
+# 라파 기본 의존성
+pip install -r src/requirements.txt
+
+# MediaPipe, OpenCV, MiDaS 깊이추정용 timm 은 별도 설치 (라파 5 / Python 3.11)
+pip install mediapipe==0.10.9 opencv-contrib-python numpy
+pip install timm   # MiDaS backbone (POINT 깊이추정에 사용)
+```
+
+---
 
 ### 3. 단계별 검증
 
 ```bash
-# 레포 루트에서 실행 (src/ 안으로 들어가지 마세요!)
+cd ~/Gesture-Tracking-Light
+source .gaegle2/bin/activate
 
 # Phase 2: 모터 단독 테스트
-sudo python3 -m src.tests.servo_test
+python -m src.tests.servo_test
 
 # Phase 3: LED 단독 테스트
-sudo python3 -m src.tests.led_test
+python -m src.tests.led_test
 
 # Phase 4: 전체 통합 실행
-sudo python3 -m src.main
+python -m src.main
 ```
 
-> ⚠️ `python -m` 형식으로 실행해야 패키지 import가 정상 동작함. `python3 src/main.py`처럼 직접 실행하면 import 에러남
+> ⚠️ 반드시 **레포 루트**에서 `python -m src.main` 또는 `python src/main.py` 형태로 실행. 다른 경로/방식은 패키지 import가 깨짐.
 
-### 4. 최신 코드 받기
+> **그룹 등록 안 했으면** venv 절대경로 + sudo:
+> ```bash
+> sudo .gaegle2/bin/python -m src.main
+> ```
+
+---
+
+### 4. 자주 쓰는 환경변수
+
+| 변수 | 기본값 | 설명 |
+|---|---|---|
+| `PI_CAMERA_BACKEND` | `rpicam-vid` | `opencv` / `picamera2` / `rpicam-vid` |
+| `PI_CAM_INDEX` | `0` | OpenCV 백엔드일 때 카메라 인덱스 |
+| `PI_FRAME_W` / `PI_FRAME_H` | 640 / 360 | 처리 해상도 |
+| `PI_TARGET_FPS` | 20 | 카메라 목표 fps |
+| `PI_SHOW_PREVIEW` | 1 | 프리뷰 창 표시 (성능 부담 있음) |
+| `PI_DEBUG` | 0 | STATE JSON + 후보 로그 |
+| `PI_ENABLE_FISHEYE` | 1 | fisheye 왜곡 보정 |
+| `PI_SERVO_PAN_SIGN` | +1 | 카메라↔서보 pan 방향 일치 시 +1, 반대면 -1 |
+| `PI_SERVO_TILT_SIGN` | -1 | tilt 부호. 짐벌 조립 방향에 따라 조정 |
+
+디버그 실행 예:
+```bash
+PI_DEBUG=1 PI_SHOW_PREVIEW=1 python -m src.main
+```
+
+---
+
+### 5. 최신 코드 받기
 
 ```bash
-cd <repo-name>
+cd ~/Gesture-Tracking-Light
 git pull
 ```
+
+> Raspberry PI에서 코드 수정한 게 있어 `pull`이 충돌나면, `git stash` 또는 `git reset --hard origin/main` 으로 정리 후 다시.
 
 ---
 
 ## 📂 디렉토리 구조
 
 ```
-gaegle-capstone/
-├── README.md                   # 이 파일
+Gesture-Tracking-Light/
+├── README.md
 ├── .gitignore
 ├── robots.txt
 │
 ├── 🌐 웹사이트 (GitHub Pages 자동 서빙)
-│   ├── index.html              # 메인 랜딩
-│   ├── build_plan.html         # 회로 빌드 가이드
-│   ├── circuit.html            # 회로 결선도
-│   ├── code_editor.html        # 코드 에디터
-│   └── parts_catalog.html      # 부품 카탈로그
+│   ├── index.html                  # 메인 랜딩
+│   ├── build_plan.html             # 회로 빌드 가이드
+│   ├── circuit.html                # 회로 결선도
+│   ├── code_editor.html            # 코드 에디터
+│   └── parts_catalog.html          # 부품 카탈로그
 │
-├── 📁 backup/                  # 초기 데이터 백업 파일
+├── 📁 backup/                      # 초기 데이터 백업 파일
 │   ├── parts_catalog_2026-05-13.json   # 카탈로그 사진 포함
 │   ├── parts_catalog_backup.json       # 카탈로그 메타데이터만
 │   └── DESIGN.md                       # 디자인 가이드
 │
-└── 📁 src/                     # 라즈베리파이 실행 코드
+└── 📁 src/                         # 라즈베리파이 실행 코드
     ├── __init__.py
-    ├── config.py               # 핀 번호, 상수 (모두가 참조)
-    ├── main.py                 # 엔트리포인트
+    ├── config.py                   # 핀 번호, 서보/LED 캘리브 상수
+    ├── main.py                     # 엔트리포인트 (raspberry_pi_runtime 호출)
     ├── requirements.txt
     │
-    ├── 📁 core/                # 핵심 하드웨어 제어
-    │   ├── servo_controller.py # PCA9685 + Pan/Tilt 서보
-    │   ├── led_controller.py   # 10W/3W LED PWM 디밍
-    │   └── pir_sensor.py       # PIR 인터럽트 핸들러
+    ├── 📁 core/                    # 핵심 하드웨어 제어
+    │   ├── __init__.py
+    │   ├── servo_controller.py     # PCA9685 + Pan/Tilt 서보
+    │   └── led_controller.py       # 10W 스팟 + 3W 무드 LED PWM 디밍
     │
-    ├── 📁 vision/              # 비전 처리
-    │   ├── vector_calc.py      # 손 랜드마크 → 각도 변환
-    │   └── vision_pipeline.py  # MediaPipe + 제스처 분류
+    ├── 📁 vision/                  # 비전 처리 (제스처/포인팅 런타임)
+    │   ├── __init__.py
+    │   ├── raspberry_pi_runtime.py # 메인 루프 (카메라 → MediaPipe → 제스처/포인팅)
+    │   ├── pi_runtime_controller.py# 상태 컨트롤러 (서보/LED 통합 dispatch)
+    │   ├── pi_runtime_config.py    # 환경변수 기반 런타임 설정
+    │   ├── pi_runtime_events.py    # JSON 이벤트/STATE 출력
+    │   ├── pi_runtime_motion.py    # 모션/wave 후보 감지 유틸
+    │   ├── gestures.py             # 손 랜드마크 → 제스처 분류
+    │   ├── pointing_target.py      # 손가락 ray + MiDaS depth로 가리키는 지점 추정
+    │   └── fisheye_undistort.py    # 캘리브된 fisheye 왜곡 보정
     │
-    ├── 📁 state/               # 상태 머신
-    │   └── state_machine.py    # Standby/Gesture/Locked 전이
+    ├── 📁 calibration/             # 카메라 캘리브레이션 데이터
+    │   └── fisheye_undistort_map.npz   # K, dist, remap 맵 (rms ≈ 0.81)
     │
-    └── 📁 tests/               # 하드웨어 검증 스크립트
-        ├── servo_test.py       # Phase 2 모터 단독 검증
-        └── led_test.py         # Phase 3 LED 단독 검증
+    ├── 📁 state/                   # 상태 머신 (구버전 main.py 잔존)
+    │   ├── __init__.py
+    │   └── state_machine.py        # Standby/Gesture/Locked 전이
+    │
+    └── 📁 tests/                   # 하드웨어 검증 스크립트
+        ├── __init__.py
+        ├── servo_test.py           # 모터 단독 검증
+        └── led_test.py             # LED 단독 검증
 ```
 
 ---
