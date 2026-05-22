@@ -65,9 +65,8 @@ class ServoController:
     def _set_raw(self, channel: int, angle: float):
         """PCA9685 채널에 직접 각도 명령 전송 (PWM 절대 각도). 0~180 안전 clamp."""
         actual = max(0.0, min(180.0, angle))
-        print(f"[SERVO] CH{channel} cmd={angle:.1f} → PWM={actual:.1f}", flush=True)
+        log.debug(f"CH{channel} cmd={angle:.1f} → PWM={actual:.1f}")
         if self.kit is None:
-            log.debug(f"[DRY] CH{channel} → {actual:.1f}°")
             return
         try:
             self.kit.servo[channel].angle = actual

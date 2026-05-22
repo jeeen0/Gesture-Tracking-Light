@@ -19,10 +19,11 @@ SERVO_MIN_PULSE = 150        # 0도 위치 (약 0.73ms)
 SERVO_MAX_PULSE = 600        # 180도 위치 (약 2.93ms)
 
 # Pan/Tilt 안전 각도 제한 (기구적 한계)
+# 정면 CENTER=135 기준: PWM 큰 값=위쪽, PWM 작은 값=아래쪽
 PAN_MIN_DEG = 0
 PAN_MAX_DEG = 180
-TILT_MIN_DEG = 0             # 위로 한계 확장 (정면 CENTER=135 기준 위로 135도 가능)
-TILT_MAX_DEG = 150           # 너무 아래로 꺾이면 짐벌 부딪힘
+TILT_MIN_DEG = 30            # 아래쪽 한계 (PWM 30 = 정면에서 아래 105°)
+TILT_MAX_DEG = 180           # 위쪽 한계 확장 (PWM 180 = 정면에서 위 45°)
 
 # 부드러운 이동을 위한 속도 제한 (deg/step)
 SERVO_MAX_STEP_DEG = 0.5       # 0.5° 단위로 쪼갬 (기존이 2~3°면 확 부드러워짐)
