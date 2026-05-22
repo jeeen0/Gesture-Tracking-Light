@@ -32,8 +32,8 @@ def _clamp_tilt(pwm: float) -> float:
     return max(TILT_MIN_DEG, min(TILT_MAX_DEG, pwm))
 
 
-def _move_with_log(servo: ServoController, pan_pwm: float, tilt_pwm: float, label: str = "", wait: float = 1.0):
-    """이전 위치를 표시하면서 이동."""
+def _move_with_log(servo: ServoController, pan_pwm: float, tilt_pwm: float, label: str = "", hold: float = 0.3):
+    """이전 위치 표시 + 이동 완료까지 대기 + 지정한 시간 동안 자세 유지."""
     prev_pan, prev_tilt = servo.get_position()
     prefix = f"  [{label}] " if label else "  "
     log.info(
@@ -41,7 +41,8 @@ def _move_with_log(servo: ServoController, pan_pwm: float, tilt_pwm: float, labe
         f"Tilt {prev_tilt:5.1f} → {tilt_pwm:5.1f}"
     )
     servo.move_to(pan_pwm, tilt_pwm)
-    time.sleep(wait)
+    servo.wait_until_done(timeout=5.0)   # 이동 끝날 때까지 동기 대기
+    time.sleep(hold)                     # 도착 후 잠시 멈춰서 눈으로 확인 가능
 
 
 def test_basic_angles(servo: ServoController):

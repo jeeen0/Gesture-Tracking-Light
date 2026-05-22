@@ -148,6 +148,20 @@ class ServoController:
         with self._lock:
             return self._current_pan, self._current_tilt
 
+    def wait_until_done(self, timeout: float = 5.0, tol: float = 0.5):
+        """현재 진행 중인 이동이 끝날 때까지 대기.
+        servo_test 등 동기적 시퀀스 진행에 사용. 비동기 사용에는 호출 불필요."""
+        start = time.time()
+        while time.time() - start < timeout:
+            with self._lock:
+                at_target = (
+                    abs(self._current_pan - self._target_pan) < tol
+                    and abs(self._current_tilt - self._target_tilt) < tol
+                )
+            if at_target:
+                return
+            time.sleep(0.02)
+
     def home(self):
         """중앙 위치로 복귀 (서보 보호용)."""
         log.info("Homing to center")
