@@ -1,0 +1,376 @@
+(.gaegle2) gaegle@raspberrypi:~/Gesture-Tracking-Light $ python -m src.main
+[PI] app.py algorithm runtime cam=0 backend=rpicam-vid 640x360@20 mirror=True
+[PI] output=normal (set PI_DEBUG=1 for STATE JSON and candidate logs)
+2026-05-22 13:49:51,015 [INFO] src.core.servo_controller: PCA9685 initialized at 0x40, 333Hz
+EVENT {"type": "servo_ready", "ts": 1779425391.019}
+EVENT {"file": "/home/gaegle/Gesture-Tracking-Light/src/calibration/fisheye_undistort_map.npz", "fx": 276.84, "fy": 277.01, "cx": 317.98, "cy": 178.12, "rms": 0.805, "type": "undistort_ready", "ts": 1779425391.032}
+EVENT {"file": "/home/gaegle/Gesture-Tracking-Light/pi_state.json", "saved_brightness": 56, "mode": "Spot", "type": "state_loaded", "ts": 1779425391.327}
+2026-05-22 13:49:51,327 [INFO] src.core.led_controller: LED PWM ready (Spot=GPIO12, Mood=GPIO13, 1000Hz)
+[PI] camera opened with rpicam-vid mjpeg pipe
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=+17.8 tilt=+22.9 fps=21.1
+qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in "/home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/plugins"
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+QFontDatabase: Cannot find font directory /home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/cv2/qt/fonts.
+Note that Qt no longer ships fonts. Deploy some (from https://dejavu-fonts.github.io/ for example) or switch to fontconfig.
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=+17.8 tilt=+22.9 fps=15.6
+[Pointing] MiDaS loading... first run can take a while
+Using cache found in /home/gaegle/.cache/torch/hub/intel-isl_MiDaS_master
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=+17.8 tilt=+22.9 fps=20.1
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=False point_mode=False point=preloading pan=+17.8 tilt=+22.9 fps=19.9
+[STATUS] STANDBY bright=0 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+17.8 tilt=+22.9 fps=19.3
+/home/gaegle/Gesture-Tracking-Light/.gaegle2/lib/python3.11/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Loading weights:  None
+EVENT {"brightness": 56, "type": "wake", "ts": 1779425396.789}
+Using cache found in /home/gaegle/.cache/torch/hub/rwightman_gen-efficientnet-pytorch_master
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=preloading pan=+17.8 tilt=+22.9 fps=22.1
+Using cache found in /home/gaegle/.cache/torch/hub/intel-isl_MiDaS_master
+[Pointing] MiDaS loaded (cpu)
+EVENT {"type": "pointing_ready", "ts": 1779425397.839}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=ready pan=+17.8 tilt=+22.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=ready pan=+17.8 tilt=+22.9 fps=19.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=ready pan=+17.8 tilt=+22.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=ready pan=+17.8 tilt=+22.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=ready pan=+17.8 tilt=+22.9 fps=20.0
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779425402.831}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=ready pan=+17.8 tilt=+22.9 fps=20.0
+[Pointing] calibrated scale=0.5436 hand_depth=0.69m midas=0.791
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=18.7
+[Pointing] too much jitter, reset buffer std=144.5px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+17.8 tilt=+22.9 fps=17.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.8
+[Pointing] too much jitter, reset buffer std=153.5px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.7
+[Pointing] too much jitter, reset buffer std=163.1px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=17.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=21.4
+[Pointing] not stable enough, retry std=102.5px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.7
+[Pointing] not stable enough, retry std=105.6px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.7
+[Pointing] too much jitter, reset buffer std=148.4px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=17.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.9
+[Pointing] too much jitter, reset buffer std=146.2px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+17.8 tilt=+22.9 fps=20.0
+[Pointing] target confirmed pixel=(168,33) pan=-28.45 tilt=-27.65 std=7.6px
+EVENT {"servo_pan": 61.55, "servo_tilt": 175.12, "delta_pan": -46.27, "delta_tilt": -50.53, "type": "servo_moved", "ts": 1779425421.858}
+EVENT {"target_px": [168, 33], "pan_deg": -28.45, "tilt_deg": -27.65, "previous_pan_deg": 17.83, "previous_tilt_deg": 22.88, "delta_pan_deg": -46.27, "delta_tilt_deg": -50.53, "std_px": 7.6, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779425421.867}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779425421.867}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=16.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=31.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=19.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=17.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=19.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=18.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=19.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=19.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=18.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=22.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=18.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=19.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=19.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-28.4 tilt=-27.6 fps=19.1
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779425445.521}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=-28.4 tilt=-27.6 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=-28.4 tilt=-27.6 fps=20.0
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779425446.922}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-28.4 tilt=-27.6 fps=18.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-28.4 tilt=-27.6 fps=19.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-28.4 tilt=-27.6 fps=19.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-28.4 tilt=-27.6 fps=17.5
+[Pointing] target confirmed pixel=(551,276) pan=+40.09 tilt=+19.46 std=5.6px
+EVENT {"servo_pan": 130.09, "servo_tilt": 128.01, "delta_pan": 68.54, "delta_tilt": 47.11, "type": "servo_moved", "ts": 1779425452.657}
+EVENT {"target_px": [551, 276], "pan_deg": 40.09, "tilt_deg": 19.46, "previous_pan_deg": -28.45, "previous_tilt_deg": -27.65, "delta_pan_deg": 68.54, "delta_tilt_deg": 47.11, "std_px": 5.6, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779425452.664}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779425452.664}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=12.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=30.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=24.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=21.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=17.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=14.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=15.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=36.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=18.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=18.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=21.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=18.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=19.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=19.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=18.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=19.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=16.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=27.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+40.1 tilt=+19.5 fps=18.7
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779425482.458}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=+40.1 tilt=+19.5 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=21.2
+[Pointing] not stable enough, retry std=133.8px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+40.1 tilt=+19.5 fps=17.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+40.1 tilt=+19.5 fps=20.9
+[Pointing] not stable enough, retry std=127.9px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.3
+[Pointing] not stable enough, retry std=101.6px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=+40.1 tilt=+19.5 fps=20.2
+[Pointing] not stable enough, retry std=118.8px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth_fallback pan=+40.1 tilt=+19.5 fps=20.5
+[Pointing] not stable enough, retry std=70.8px
+[Pointing] too much jitter, reset buffer std=162.3px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.6
+[Pointing] not stable enough, retry std=132.7px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.2
+[Pointing] not stable enough, retry std=67.7px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=21.1
+[Pointing] not stable enough, retry std=89.4px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+40.1 tilt=+19.5 fps=20.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.3
+[Pointing] not stable enough, retry std=77.9px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=21.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=21.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.4
+[Pointing] not stable enough, retry std=63.0px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.4
+[Pointing] too much jitter, reset buffer std=140.9px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=21.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=19.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.1
+[Pointing] not stable enough, retry std=123.8px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.2
+[Pointing] not stable enough, retry std=121.4px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=17.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+40.1 tilt=+19.5 fps=20.1
+[Pointing] target confirmed pixel=(259,53) pan=-12.03 tilt=-24.31 std=29.9px
+EVENT {"servo_pan": 77.97, "servo_tilt": 171.78, "delta_pan": -52.11, "delta_tilt": -43.77, "type": "servo_moved", "ts": 1779425527.282}
+EVENT {"target_px": [259, 53], "pan_deg": -12.03, "tilt_deg": -24.31, "previous_pan_deg": 40.09, "previous_tilt_deg": 19.46, "delta_pan_deg": -52.11, "delta_tilt_deg": -43.77, "std_px": 29.9, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779425527.29}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779425527.29}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=15.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=18.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=16.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=13.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=21.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=32.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=23.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=17.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=14.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=21.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=-12.0 tilt=-24.3 fps=15.9
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779425538.724}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=-12.0 tilt=-24.3 fps=29.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-12.0 tilt=-24.3 fps=23.8
+[Pointing] too much jitter, reset buffer std=156.1px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=-12.0 tilt=-24.3 fps=17.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-12.0 tilt=-24.3 fps=20.3
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-12.0 tilt=-24.3 fps=20.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=-12.0 tilt=-24.3 fps=20.7
+[Pointing] target confirmed pixel=(463,252) pan=+27.65 tilt=+14.93 std=39.3px
+EVENT {"servo_pan": 117.65, "servo_tilt": 132.54, "delta_pan": 39.67, "delta_tilt": 39.24, "type": "servo_moved", "ts": 1779425545.028}
+EVENT {"target_px": [463, 252], "pan_deg": 27.65, "tilt_deg": 14.93, "previous_pan_deg": -12.03, "previous_tilt_deg": -24.31, "delta_pan_deg": 39.67, "delta_tilt_deg": 39.24, "std_px": 39.3, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779425545.035}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779425545.036}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=18.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=24.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=19.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=19.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=19.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+27.6 tilt=+14.9 fps=17.3
+EVENT {"enabled": true, "type": "point_mode", "ts": 1779425555.668}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=locked pan=+27.6 tilt=+14.9 fps=15.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+27.6 tilt=+14.9 fps=26.7
+[Pointing] too much jitter, reset buffer std=145.5px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=18.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth_fallback pan=+27.6 tilt=+14.9 fps=19.6
+[Pointing] not stable enough, retry std=101.2px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.5
+[Pointing] not stable enough, retry std=102.9px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=17.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.2
+[Pointing] not stable enough, retry std=98.8px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=21.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=17.3
+[Pointing] not stable enough, retry std=69.7px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=21.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=17.6
+[Pointing] not stable enough, retry std=108.9px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=21.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=17.4
+[Pointing] not stable enough, retry std=95.0px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.6
+[Pointing] not stable enough, retry std=80.3px
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=17.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=POINT hand=True point_mode=True point=tracking_depth pan=+27.6 tilt=+14.9 fps=20.6
+[Pointing] target confirmed pixel=(455,155) pan=+26.33 tilt=-4.77 std=54.2px
+EVENT {"servo_pan": 116.33, "servo_tilt": 152.24, "delta_pan": -1.31, "delta_tilt": -19.7, "type": "servo_moved", "ts": 1779425583.923}
+EVENT {"target_px": [455, 155], "pan_deg": 26.33, "tilt_deg": -4.77, "previous_pan_deg": 27.65, "previous_tilt_deg": 14.93, "delta_pan_deg": -1.31, "delta_tilt_deg": -19.7, "std_px": 54.2, "hit_method": "depth_march", "used_depth_hit": true, "type": "point_target_locked", "ts": 1779425583.933}
+EVENT {"enabled": false, "reason": "target_locked", "type": "point_mode", "ts": 1779425583.933}
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=15.9
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.7
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=21.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=21.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.5
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=16.0
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=21.1
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=26.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.4
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.8
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=17.2
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=18.6
+[STATUS] ACTIVE bright=56 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=23.7
+EVENT {"gesture": "THUMBS_UP", "brightness": 58, "delta": 2, "type": "brightness", "ts": 1779425601.433}
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=23.1
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.2
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.6
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.8
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.7
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=16.5
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=21.9
+[STATUS] ACTIVE bright=58 MODE=Spot gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=21.4
+EVENT {"mode": "Mood", "type": "mode", "ts": 1779425616.778}
+[STATUS] ACTIVE bright=58 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.6
+[STATUS] ACTIVE bright=58 MODE=Mood gesture=MODE_SWITCH hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.5
+[STATUS] ACTIVE bright=58 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=16.0
+EVENT {"gesture": "THUMBS_UP", "brightness": 60, "delta": 2, "type": "brightness", "ts": 1779425619.932}
+EVENT {"gesture": "THUMBS_UP", "brightness": 62, "delta": 2, "type": "brightness", "ts": 1779425620.095}
+EVENT {"gesture": "THUMBS_UP", "brightness": 64, "delta": 2, "type": "brightness", "ts": 1779425620.319}
+[STATUS] ACTIVE bright=64 MODE=Mood gesture=THUMBS_UP hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=13.8
+EVENT {"gesture": "THUMBS_UP", "brightness": 66, "delta": 2, "type": "brightness", "ts": 1779425620.517}
+EVENT {"gesture": "THUMBS_UP", "brightness": 68, "delta": 2, "type": "brightness", "ts": 1779425620.721}
+EVENT {"gesture": "THUMBS_UP", "brightness": 70, "delta": 2, "type": "brightness", "ts": 1779425620.973}
+EVENT {"gesture": "THUMBS_UP", "brightness": 72, "delta": 2, "type": "brightness", "ts": 1779425621.072}
+EVENT {"gesture": "THUMBS_UP", "brightness": 74, "delta": 2, "type": "brightness", "ts": 1779425621.276}
+[STATUS] ACTIVE bright=74 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.7
+EVENT {"gesture": "THUMBS_UP", "brightness": 76, "delta": 2, "type": "brightness", "ts": 1779425621.52}
+EVENT {"gesture": "THUMBS_UP", "brightness": 78, "delta": 2, "type": "brightness", "ts": 1779425621.657}
+EVENT {"gesture": "THUMBS_UP", "brightness": 80, "delta": 2, "type": "brightness", "ts": 1779425621.857}
+[STATUS] ACTIVE bright=80 MODE=Mood gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=34.5
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 78, "delta": -2, "type": "brightness", "ts": 1779425623.381}
+[STATUS] ACTIVE bright=78 MODE=Mood gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=22.9
+[STATUS] ACTIVE bright=78 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 76, "delta": -2, "type": "brightness", "ts": 1779425624.628}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 74, "delta": -2, "type": "brightness", "ts": 1779425624.762}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 72, "delta": -2, "type": "brightness", "ts": 1779425624.995}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 70, "delta": -2, "type": "brightness", "ts": 1779425625.134}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 68, "delta": -2, "type": "brightness", "ts": 1779425625.364}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 66, "delta": -2, "type": "brightness", "ts": 1779425625.5}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 64, "delta": -2, "type": "brightness", "ts": 1779425625.638}
+[STATUS] ACTIVE bright=64 MODE=Mood gesture=THUMBS_DOWN hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=15.7
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 62, "delta": -2, "type": "brightness", "ts": 1779425625.782}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 60, "delta": -2, "type": "brightness", "ts": 1779425625.904}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 58, "delta": -2, "type": "brightness", "ts": 1779425626.023}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 56, "delta": -2, "type": "brightness", "ts": 1779425626.175}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 54, "delta": -2, "type": "brightness", "ts": 1779425626.318}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 52, "delta": -2, "type": "brightness", "ts": 1779425626.44}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 50, "delta": -2, "type": "brightness", "ts": 1779425626.559}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 48, "delta": -2, "type": "brightness", "ts": 1779425626.696}
+[STATUS] ACTIVE bright=48 MODE=Mood gesture=THUMBS_DOWN hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=11.7
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 46, "delta": -2, "type": "brightness", "ts": 1779425626.836}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 44, "delta": -2, "type": "brightness", "ts": 1779425626.973}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 42, "delta": -2, "type": "brightness", "ts": 1779425627.095}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 40, "delta": -2, "type": "brightness", "ts": 1779425627.231}
+EVENT {"gesture": "THUMBS_DOWN", "brightness": 38, "delta": -2, "type": "brightness", "ts": 1779425627.368}
+[STATUS] ACTIVE bright=38 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=9.3
+EVENT {"gesture": "THUMBS_UP", "brightness": 40, "delta": 2, "type": "brightness", "ts": 1779425628.567}
+EVENT {"gesture": "THUMBS_UP", "brightness": 42, "delta": 2, "type": "brightness", "ts": 1779425628.707}
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=8.6
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=32.2
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=17.1
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=15.2
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=36.2
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=False point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.2
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.6
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.6
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=19.6
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.7
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.1
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=21.6
+2026-05-22 13:54:02,329 [INFO] src.core.servo_controller: Servo PWM disabled
+EVENT {"type": "sleep", "ts": 1779425642.329}
+2026-05-22 13:54:02,329 [INFO] src.core.led_controller: All LEDs off
+[STATUS] STANDBY bright=0 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.2
+[STATUS] STANDBY bright=0 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] STANDBY bright=0 MODE=Mood gesture=- hand=True point_mode=False point=locked pan=+26.3 tilt=-4.8 fps=20.0
+EVENT {"brightness": 42, "type": "wake", "ts": 1779425645.576}
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=idle pan=+26.3 tilt=-4.8 fps=20.0
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=idle pan=+26.3 tilt=-4.8 fps=20.6
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=False point_mode=False point=idle pan=+26.3 tilt=-4.8 fps=19.3
+[STATUS] ACTIVE bright=42 MODE=Mood gesture=- hand=True point_mode=False point=idle pan=+26.3 tilt=-4.8 fps=20.9
+2026-05-22 13:54:09,729 [INFO] src.core.servo_controller: Servo PWM disabled
+2026-05-22 13:54:09,729 [INFO] src.core.led_controller: All LEDs off
+2026-05-22 13:54:09,829 [INFO] src.core.led_controller: LED controller shutdown
