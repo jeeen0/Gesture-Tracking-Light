@@ -49,11 +49,18 @@ class LEDController:
         self.mood_off()
     
     GAMMA = 2.2  # LED dimming 인지 선형화 (사람 눈의 로그 응답 보정)
+    MIN_DUTY = 8.0  # 낮은 duty에서 LED 드라이버 dead zone 회피 (깜빡임 방지)
 
     def _to_pwm_duty(self, brightness_percent: float) -> float:
-        """사용자 밝기 (0~100) → PWM duty (0~100), 감마 보정 적용."""
+        """사용자 밝기 (0~100) → PWM duty (0~100), 감마 + 최소 duty 보장."""
         b = max(0.0, min(100.0, brightness_percent)) / 100.0
-        return (b ** self.GAMMA) * 100.0
+        if b <= 0.0:
+            return 0.0  # brightness=0은 완전 OFF
+        pwm = (b ** self.GAMMA) * 100.0
+        # 너무 낮은 duty는 LED가 깜빡임 → 최소 duty 보장
+        if pwm < self.MIN_DUTY:
+            pwm = self.MIN_DUTY
+        return pwm
 
     def _set_pwm(self, pin: int, duty_percent: float):
         """0~100 → 0~100 duty cycle PWM 설정."""

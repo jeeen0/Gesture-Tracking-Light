@@ -33,7 +33,7 @@ PIN_LED_SPOT_PWM = 12        # 10W LED MOSFET 게이트 → GPIO 12 (Pin 32)
 PIN_LED_MOOD_PWM = 13        # 3W LED HAM3005 DIM → GPIO 13 (Pin 33)
 
 # LED PWM 주파수
-LED_PWM_FREQ = 2000          # 2kHz - 낮은 duty에서도 안정적 dimming
+LED_PWM_FREQ = 5000          # 5kHz - 낮은 duty에서도 안정적 dimming
 
 # ============ 카메라 ============
 CAMERA_WIDTH_FULL = 640
