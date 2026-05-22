@@ -554,9 +554,14 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
 
 def dispatch_hardware(led, controller, gesture, hw_state):
     # 서보 제어는 controller가 담당. dispatch는 LED + WAVE 시 서보 재기동만 처리.
-    # POINT 잠금 전환 순간 1회만 LED 발화 (서보는 controller.update_point_target에서 이미 처리)
+    # POINT 잠금 전환 순간 1회만 mode에 맞는 LED만 발화 (반대편은 꺼둠)
     if controller.point_status == "locked" and hw_state["point_status"] != "locked":
-        led.spot_on(controller.brightness)
+        if controller.mode == "Spot":
+            led.mood_off()
+            led.spot_set(controller.brightness)
+        else:
+            led.spot_off()
+            led.mood_set(controller.brightness)
 
     if gesture == "WAVE":
         # 서보는 controller.wake()에서 이미 재기동 → LED만 켬
