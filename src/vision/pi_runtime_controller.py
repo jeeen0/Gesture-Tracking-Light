@@ -392,12 +392,6 @@ class PiSmartLightController:
             previous_servo_pan = self.servo_pan_deg
             previous_servo_tilt = self.servo_tilt_deg
 
-            self.last_delta_pan_deg = new_servo_pan - previous_servo_pan
-            self.last_delta_tilt_deg = new_servo_tilt - previous_servo_tilt
-            self.point_target = target["confirmed"]
-            self.point_mode = False
-            self.point_status = "locked"
-
             # Absolute pointing target. CENTER is only a calculation baseline;
             # move_to() moves directly from the current servo position.
             new_servo_pan = (
@@ -410,6 +404,12 @@ class PiSmartLightController:
                 + self.tilt_deg * SERVO_TILT_SIGN * POINT_TILT_GAIN
                 + POINT_TILT_OFFSET_DEG
             )
+            self.last_delta_pan_deg = new_servo_pan - previous_servo_pan
+            self.last_delta_tilt_deg = new_servo_tilt - previous_servo_tilt
+            self.point_target = target["confirmed"]
+            self.point_mode = False
+            self.point_status = "locked"
+
             self.servo_pan_deg = new_servo_pan
             self.servo_tilt_deg = new_servo_tilt
             if self.servo is not None:
