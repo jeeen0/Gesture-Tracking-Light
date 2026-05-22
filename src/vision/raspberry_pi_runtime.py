@@ -590,6 +590,10 @@ def main():
 
     def _shutdown_hardware():
         try:
+            controller.flush_pending_save()
+        except Exception:
+            pass
+        try:
             cap.release()
         except Exception:
             pass
