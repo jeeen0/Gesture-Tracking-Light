@@ -6,11 +6,11 @@ Gaegle 캡스톤 · 공통 설정 파일
 # ============ I2C ============
 I2C_BUS = 1                  # Raspberry Pi 5 기본 I2C 버스
 PCA9685_ADDRESS = 0x40       # PCA9685 기본 주소
-PCA9685_FREQ = 333            # 50 → 333Hz. 주기 3ms로 단축
+PCA9685_FREQ = 50             # SG90 아날로그 서보 호환 (50Hz 필수)
 
 # ============ PCA9685 채널 ============
-SERVO_PAN_CH = 0             # MG946R - 수평 회전 (하단)
-SERVO_TILT_CH = 1            # MG90S  - 수직 회전 (상단)
+SERVO_PAN_CH = 1             # SG90   - 수평 회전 (하단, CH1)
+SERVO_TILT_CH = 0            # MG946R - 수직 회전 (상단, CH0)
 
 # ============ 서보 캘리브레이션 ============
 # PCA9685는 12-bit (0~4095) PWM

@@ -347,7 +347,7 @@ class PointingTargetEstimator:
         my_c = int(np.clip(my, 0, self.frame_h - 1))
         start_midas = float(self.depth_map[my_c, mx_c])
         start_depth_m = self.depth_est.midas_to_meters(start_midas)
-        start_offset = dist + 10
+        start_offset = dist + 35
 
         for step in range(RAY_MAX_STEPS):
             t = start_offset + step * RAY_STEP_PX
