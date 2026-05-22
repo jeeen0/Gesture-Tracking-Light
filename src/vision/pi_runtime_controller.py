@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 import threading
 import time
 
@@ -154,10 +155,28 @@ class PiSmartLightController:
             "servo_pan_deg": self.servo_pan_deg,  # 0521_v2m
             "servo_tilt_deg": self.servo_tilt_deg,
         }
+        state_dir = os.path.dirname(STATE_FILE) or "."
+        tmp_path = None
         try:
-            with open(STATE_FILE, "w", encoding="utf-8") as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                dir=state_dir,
+                prefix=".pi_state.",
+                suffix=".tmp",
+                delete=False,
+                encoding="utf-8",
+            ) as f:
+                tmp_path = f.name
                 json.dump(data, f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, STATE_FILE)
         except Exception as e:
+            if tmp_path is not None:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
             emit("state_save_error", file=STATE_FILE, error=str(e))
 
     def start_point_preload(self):

@@ -415,10 +415,10 @@ def yolo_hand_box_from_box(controller, frame, search_box):
     pad = max(bx2 - bx1, by2 - by1) * YOLO_ROI_PADDING_RATIO
     return clamp_roi_box((bx1 - pad, by1 - pad, bx2 + pad, by2 + pad), frame_width, frame_height)
 
-def process_roi_with_landmark_remap(hands, frame, roi_box, roi_scale):
-    frame_height, frame_width = frame.shape[:2]
+def process_roi_with_landmark_remap(hands, frame_rgb, roi_box, roi_scale):
+    frame_height, frame_width = frame_rgb.shape[:2]
     x1, y1, x2, y2 = clamp_roi_box(roi_box, frame_width, frame_height)
-    roi = frame[y1:y2, x1:x2]
+    roi = frame_rgb[y1:y2, x1:x2]
     if roi.size == 0:
         return None
 
@@ -428,7 +428,7 @@ def process_roi_with_landmark_remap(hands, frame, roi_box, roi_scale):
         (roi_width * roi_scale, roi_height * roi_scale),
         interpolation=cv2.INTER_LINEAR,
     )
-    roi_results = hands.process(cv2.cvtColor(upscaled, cv2.COLOR_BGR2RGB))
+    roi_results = hands.process(upscaled)
     if not has_hand(roi_results):
         return None
 
@@ -780,6 +780,7 @@ def main():
                 if not skip_inference:
                     now_infer = time.time()
                     frame_height, frame_width = frame.shape[:2]
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     new_results = None
 
                     # 1) If we recently saw a hand, try tracked hand ROI first.
@@ -794,7 +795,7 @@ def main():
                     if tracked_roi_valid:
                         roi_results = process_roi_with_landmark_remap(
                             hands,
-                            frame,
+                            frame_rgb,
                             last_hand_roi_box,
                             TRACK_ROI_SCALE,
                         )
@@ -814,7 +815,7 @@ def main():
                     ):
                         roi_results = process_roi_with_landmark_remap(
                             hands,
-                            frame,
+                            frame_rgb,
                             motion_roi_box,
                             ROI_SCALE,
                         )
@@ -855,7 +856,7 @@ def main():
 
                             roi_results = process_roi_with_landmark_remap(
                                 hands,
-                                frame,
+                                frame_rgb,
                                 yolo_roi_box,
                                 YOLO_ROI_SCALE,
                             )
@@ -866,7 +867,7 @@ def main():
                     # 4) Full-frame reacquire periodically or when all ROI paths fail.
                     if new_results is None:
                         processing_mode = "full_frame"
-                        new_results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        new_results = hands.process(frame_rgb)
                         last_full_frame_time = now_infer
 
                     results = new_results
