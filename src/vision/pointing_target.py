@@ -249,6 +249,8 @@ class PointingTargetEstimator:
             raw_target = self._project_to_screen_edge(points["index_mcp"], points["index_tip"])
             result = self.tracker.update(raw_target, True)
             result["raw_target"] = raw_target
+            result["ray_start_px"] = points["index_mcp"]
+            result["ray_tip_px"] = points["index_tip"]
             result["calibrated"] = False
             result["depth_available"] = False
             result["used_depth_hit"] = False
@@ -276,6 +278,8 @@ class PointingTargetEstimator:
 
         result = self.tracker.update(raw_target, True)
         result["raw_target"] = raw_target
+        result["ray_start_px"] = points["index_mcp"]
+        result["ray_tip_px"] = points["index_tip"]
         result["calibrated"] = self.depth_est.is_calibrated
         result["depth_available"] = True
         result["used_depth_hit"] = used_depth_hit

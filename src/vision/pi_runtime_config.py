@@ -51,6 +51,12 @@ KEEP_AWAKE = os.environ.get("PI_KEEP_AWAKE", "1") != "0"
 ENABLE_POINTING = os.environ.get("PI_ENABLE_POINT", "1") != "0"
 PRELOAD_POINTING = os.environ.get("PI_PRELOAD_POINT", "1") != "0"
 
+# 포인팅 모드에서도 ROI 경로 사용 여부.
+# - POINT_USE_ROI: tracked/motion ROI (padding 큼, 안전). 기본 ON.
+# - POINT_USE_YOLO_ROI: YOLO ROI (padding 작음, 손가락 끝이 잘릴 위험). 기본 OFF.
+ENABLE_POINT_ROI = os.environ.get("PI_POINT_USE_ROI", "1") != "0"
+ENABLE_POINT_YOLO_ROI = os.environ.get("PI_POINT_USE_YOLO_ROI", "0") != "0"
+
 # YOLO ROI
 ENABLE_YOLO = os.environ.get("PI_ENABLE_YOLO", "0") != "0"
 PRELOAD_YOLO = os.environ.get("PI_PRELOAD_YOLO", "0") != "0"

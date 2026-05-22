@@ -17,6 +17,8 @@ from pi_runtime_config import (
     ENABLE_GESTURE_ZONE_ROI,
     ENABLE_HAND_SIZE_GATING,
     ENABLE_MOTION_ROI,
+    ENABLE_POINT_ROI,
+    ENABLE_POINT_YOLO_ROI,
     ENABLE_YOLO,
     FRAME_H,
     FRAME_W,
@@ -515,6 +517,30 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
         )
     )
     target = (controller.point_target or controller.point_display_target) if show_point_marker else None
+
+    # 포인팅 ray 시각화: MCP → hit 지점까지 선(노란색) + hit 원(자홍색)
+    if controller.point_mode and controller.point_ray_start_px is not None:
+        sx, sy = int(controller.point_ray_start_px[0]), int(controller.point_ray_start_px[1])
+        hit = controller.point_ray_hit_px
+        if hit is not None:
+            end_px = (int(hit[0]), int(hit[1]))
+            cv2.line(frame, (sx, sy), end_px, (0, 255, 255), 2)
+            cv2.circle(frame, (sx, sy), 4, (0, 200, 200), -1)
+            if controller.point_target is None:
+                cv2.circle(frame, end_px, 10, (255, 0, 255), 2)
+                cv2.circle(frame, end_px, 2, (255, 0, 255), -1)
+        elif controller.point_ray_tip_px is not None:
+            # depth hit 없으면 tip 방향으로 화면 끝까지 연장 (OpenCV가 클리핑)
+            tx_r, ty_r = controller.point_ray_tip_px
+            dx, dy = tx_r - sx, ty_r - sy
+            dist = math.hypot(dx, dy)
+            if dist > 1:
+                scale = max(frame.shape[0], frame.shape[1]) * 2
+                ux, uy = dx / dist, dy / dist
+                end_px = (int(sx + ux * scale), int(sy + uy * scale))
+                cv2.line(frame, (sx, sy), end_px, (0, 180, 180), 1)
+                cv2.circle(frame, (sx, sy), 4, (0, 180, 180), -1)
+
     if target:
         tx, ty = int(target[0]), int(target[1])
         locked = controller.point_target is not None
@@ -790,7 +816,7 @@ def main():
                     # 1) If we recently saw a hand, try tracked hand ROI first.
                     tracked_roi_valid = (
                         not controller.standby
-                        and not controller.point_mode
+                        and (ENABLE_POINT_ROI or not controller.point_mode)
                         and last_hand_roi_box is not None
                         and (now_infer - last_hand_roi_time) <= TRACK_ROI_TTL
                         and (now_infer - last_full_frame_time) < FULL_FRAME_REACQUIRE_INTERVAL
@@ -815,7 +841,7 @@ def main():
                         and ENABLE_MOTION_ROI
                         and motion_roi_box is not None
                         and not controller.standby
-                        and not controller.point_mode
+                        and (ENABLE_POINT_ROI or not controller.point_mode)
                     ):
                         roi_results = process_roi_with_landmark_remap(
                             hands,
@@ -834,7 +860,7 @@ def main():
                     # 3) If still no hand, use YOLO as a reacquire detector.
                     should_try_yolo = (
                         new_results is None
-                        and not controller.point_mode
+                        and (ENABLE_POINT_YOLO_ROI or not controller.point_mode)
                         and ENABLE_YOLO
                         and controller.yolo_model is not None
                         and hand_miss_frames >= YOLO_AFTER_MISSES
