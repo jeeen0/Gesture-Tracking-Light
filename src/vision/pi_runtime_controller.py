@@ -392,8 +392,8 @@ class PiSmartLightController:
             previous_servo_pan = self.servo_pan_deg
             previous_servo_tilt = self.servo_tilt_deg
 
-            self.last_delta_pan_deg = self.pan_deg - previous_pan
-            self.last_delta_tilt_deg = self.tilt_deg - previous_tilt
+            self.last_delta_pan_deg = new_servo_pan - previous_servo_pan
+            self.last_delta_tilt_deg = new_servo_tilt - previous_servo_tilt
             self.point_target = target["confirmed"]
             self.point_mode = False
             self.point_status = "locked"
