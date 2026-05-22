@@ -51,6 +51,7 @@ class LEDController:
     def _set_pwm(self, pin: int, duty_percent: float):
         """0~100 → 0~100 duty cycle PWM 설정."""
         duty = max(0.0, min(100.0, duty_percent))
+        print(f"[LED-PWM] pin={pin} duty={duty:.1f}%", flush=True)
         if self.h is None:
             log.debug(f"[DRY] PWM pin {pin} duty={duty:.1f}%")
             return
