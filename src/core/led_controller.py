@@ -8,6 +8,7 @@ LED 컨트롤러 - 10W 스팟 + 3W 무드 LED 디밍 제어
 PWM 1kHz 고정. duty 0~100% 입력.
 """
 import logging
+import time
 from typing import Optional
 
 try:
@@ -99,10 +100,27 @@ class LEDController:
         }
     
     def shutdown(self):
-        """GPIO 해제."""
+        """GPIO 해제. PWM을 명시적으로 멈추고 핀을 LOW로 고정해서
+        MOSFET 게이트가 floating으로 켜지지 않도록 한다."""
         self.all_off()
         if self.h is not None:
             try:
+                # PWM duty 0 → 마지막 cycle 완료 대기
+                lgpio.tx_pwm(self.h, PIN_LED_SPOT_PWM, LED_PWM_FREQ, 0)
+                lgpio.tx_pwm(self.h, PIN_LED_MOOD_PWM, LED_PWM_FREQ, 0)
+                time.sleep(0.02)
+                # 핀을 LOW로 고정 (MOSFET 게이트 floating 방지)
+                try:
+                    lgpio.gpio_write(self.h, PIN_LED_SPOT_PWM, 0)
+                    lgpio.gpio_write(self.h, PIN_LED_MOOD_PWM, 0)
+                except Exception:
+                    pass
+                # GPIO 해제
+                try:
+                    lgpio.gpio_free(self.h, PIN_LED_SPOT_PWM)
+                    lgpio.gpio_free(self.h, PIN_LED_MOOD_PWM)
+                except Exception:
+                    pass
                 lgpio.gpiochip_close(self.h)
             except Exception as e:
                 log.error(f"Close error: {e}")
