@@ -487,9 +487,13 @@ class PiSmartLightController:
         elif gesture == "MODE_SWITCH":
             if self.latched_gesture == "MODE_SWITCH":
                 return gesture
+            # cooldown: 마지막 전환 후 2초 이내면 무시 (제스처 인식 변동으로 인한 중복 토글 방지)
+            if time.time() - getattr(self, "last_mode_switch_time", 0.0) < 2.0:
+                return None
             if not self._hold_ready("MODE_SWITCH"):
                 return None
             self.mode = "Mood" if self.mode == "Spot" else "Spot"
+            self.last_mode_switch_time = time.time()
             self.save_state()
             emit("mode", mode=self.mode)
             self._reset_hold()
