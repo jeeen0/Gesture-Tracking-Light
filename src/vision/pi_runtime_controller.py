@@ -77,10 +77,7 @@ class PiSmartLightController:
         # ── 서보 (모터) 제어 ── 0521_v2m
         self.servo = None
         try:
-            self.servo = ServoController(
-                pan_center=SERVO_PAN_CENTER,
-                tilt_center=SERVO_TILT_CENTER,
-            )
+            self.servo = ServoController()
             emit("servo_ready")
         except Exception as e:
             emit("servo_error", error=str(e))
@@ -388,6 +385,10 @@ class PiSmartLightController:
             if target.get("pan_deg") is not None:
                 self.pan_deg = float(target["pan_deg"])
                 self.tilt_deg = float(target["tilt_deg"])
+                
+            previous_servo_pan = self.servo_pan_deg
+            previous_servo_tilt = self.servo_tilt_deg
+
             self.last_delta_pan_deg = self.pan_deg - previous_pan
             self.last_delta_tilt_deg = self.tilt_deg - previous_tilt
             self.point_target = target["confirmed"]
