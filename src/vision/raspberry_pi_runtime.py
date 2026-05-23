@@ -35,6 +35,7 @@ from pi_runtime_config import (
     ACTIVE_INFERENCE_FPS,
     STANDBY_INFERENCE_FPS,
     POINT_INFERENCE_FPS,
+    PREVIEW_SCALE,
     TRACK_ROI_SCALE,
     TRACK_ROI_PADDING_RATIO,
     TRACK_ROI_TTL,
@@ -68,6 +69,9 @@ if str(PROJECT_ROOT) not in sys.path:
 from pi_runtime_controller import PiSmartLightController
 from pi_runtime_events import emit_state
 from src.core.led_controller import LEDController
+
+
+PREVIEW_WINDOW_NAME = "Pi Smart Light Runtime"
 
 
 class OpenCVCamera:
@@ -720,6 +724,7 @@ def main():
     prev_time = time.time()
     last_status = 0.0
     last_state = {}
+    preview_window_sized = False
 
     with mp_hands.Hands(
         static_image_mode=False,
@@ -1166,7 +1171,16 @@ def main():
                 video_writer.write(video_frame)
 
             if SHOW_PREVIEW:
-                cv2.imshow("Pi Smart Light Runtime", preview)
+                if not preview_window_sized:
+                    cv2.namedWindow(PREVIEW_WINDOW_NAME, cv2.WINDOW_NORMAL)
+                    height, width = preview.shape[:2]
+                    cv2.resizeWindow(
+                        PREVIEW_WINDOW_NAME,
+                        int(width * PREVIEW_SCALE),
+                        int(height * PREVIEW_SCALE),
+                    )
+                    preview_window_sized = True
+                cv2.imshow(PREVIEW_WINDOW_NAME, preview)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
