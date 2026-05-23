@@ -128,6 +128,7 @@ class PiSmartLightController:
         self.point_ray_start_px = None
         self.point_ray_tip_px = None
         self.point_ray_hit_px = None
+        self.point_depth_map = None
         self.load_state()
 
     def start_preloads(self):
@@ -379,6 +380,7 @@ class PiSmartLightController:
         self.point_ray_start_px = target.get("ray_start_px")
         self.point_ray_tip_px = target.get("ray_tip_px")
         self.point_ray_hit_px = target.get("raw_target")
+        self.point_depth_map = target.get("depth_map")
         if target.get("pan_deg") is not None:
             self.preview_pan_deg = float(target["pan_deg"])
             self.preview_tilt_deg = float(target["tilt_deg"])

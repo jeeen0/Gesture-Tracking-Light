@@ -50,6 +50,7 @@ from pi_runtime_config import (
     SAVE_VIDEO_FPS,
     SAVE_VIDEO_OVERLAY,
     SAVE_VIDEO_PATH,
+    SHOW_DEPTH,
     SHOW_PREVIEW,
     STATUS_INTERVAL,
     TARGET_FPS,
@@ -72,6 +73,7 @@ from src.core.led_controller import LEDController
 
 
 PREVIEW_WINDOW_NAME = "Pi Smart Light Runtime"
+DEPTH_WINDOW_NAME = "Pi Smart Light Depth"
 
 
 class OpenCVCamera:
@@ -605,6 +607,12 @@ def scale_preview_for_display(preview):
     return cv2.resize(preview, (scaled_width, scaled_height), interpolation=cv2.INTER_NEAREST)
 
 
+def depth_map_to_preview(depth_map):
+    depth_u8 = np.clip(depth_map * 255.0, 0, 255).astype(np.uint8)
+    depth_color = cv2.applyColorMap(depth_u8, cv2.COLORMAP_TURBO)
+    return scale_preview_for_display(depth_color)
+
+
 def dispatch_hardware(led, controller, gesture, hw_state):
     # 서보 제어는 controller가 담당. dispatch는 LED + WAVE 시 서보 재기동만 처리.
     # POINT 잠금 전환 순간 1회만 mode에 맞는 LED만 발화 (반대편은 꺼둠)
@@ -696,7 +704,7 @@ def main():
             led.shutdown()
         except Exception:
             pass
-        if SHOW_PREVIEW:
+        if SHOW_PREVIEW or SHOW_DEPTH:
             try:
                 cv2.destroyAllWindows()
             except Exception:
@@ -735,6 +743,7 @@ def main():
     last_status = 0.0
     last_state = {}
     preview_window_sized = False
+    depth_window_sized = False
 
     with mp_hands.Hands(
         static_image_mode=False,
@@ -1188,8 +1197,18 @@ def main():
                     cv2.resizeWindow(PREVIEW_WINDOW_NAME, width, height)
                     preview_window_sized = True
                 cv2.imshow(PREVIEW_WINDOW_NAME, display_preview)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+
+            if SHOW_DEPTH and controller.point_depth_map is not None:
+                depth_preview = depth_map_to_preview(controller.point_depth_map)
+                if not depth_window_sized:
+                    cv2.namedWindow(DEPTH_WINDOW_NAME, cv2.WINDOW_NORMAL)
+                    height, width = depth_preview.shape[:2]
+                    cv2.resizeWindow(DEPTH_WINDOW_NAME, width, height)
+                    depth_window_sized = True
+                cv2.imshow(DEPTH_WINDOW_NAME, depth_preview)
+
+            if (SHOW_PREVIEW or SHOW_DEPTH) and (cv2.waitKey(1) & 0xFF == ord("q")):
+                break
 
     # 정상 종료 및 예외 모두 atexit 핸들러(_shutdown_hardware)가 처리
 

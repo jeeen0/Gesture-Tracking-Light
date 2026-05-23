@@ -31,6 +31,7 @@ TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "20"))
 MIRROR = os.environ.get("PI_MIRROR", "1") != "0"
 SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "1") == "1"
 PREVIEW_SCALE = max(0.1, float(os.environ.get("PI_PREVIEW_SCALE", "1.0")))
+SHOW_DEPTH = os.environ.get("PI_SHOW_DEPTH", "0") == "1"
 DEBUG_OUTPUT = os.environ.get("PI_DEBUG", "0") == "1"
 
 # Video recording. Set PI_SAVE_VIDEO=1 to save the runtime stream.
