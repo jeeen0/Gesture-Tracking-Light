@@ -43,7 +43,7 @@ MP_MODEL_COMPLEXITY = int(os.environ.get("PI_MP_MODEL_COMPLEXITY", "0"))
 DEFAULT_INFERENCE_FPS = float(os.environ.get("PI_INFERENCE_FPS", "20"))
 STANDBY_INFERENCE_FPS = float(os.environ.get("PI_STANDBY_INFERENCE_FPS", "5"))
 ACTIVE_INFERENCE_FPS = float(os.environ.get("PI_ACTIVE_INFERENCE_FPS", str(DEFAULT_INFERENCE_FPS)))
-POINT_INFERENCE_FPS = float(os.environ.get("PI_POINT_INFERENCE_FPS", "30"))
+POINT_INFERENCE_FPS = float(os.environ.get("PI_POINT_INFERENCE_FPS", "20"))
 
 ACTIVE_TIMEOUT_SECONDS = float(os.environ.get("PI_ACTIVE_TIMEOUT", "20.0"))
 KEEP_AWAKE = os.environ.get("PI_KEEP_AWAKE", "1") != "0"
