@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import time
 from collections import deque
+from pathlib import Path
 
 import cv2
 import mediapipe as mp
@@ -43,6 +44,11 @@ from pi_runtime_config import (
     ROI_FALLBACK_AFTER_MISSES,
     ROI_FALLBACK_INTERVAL,
     ROI_SCALE,
+    SAVE_VIDEO,
+    SAVE_VIDEO_FOURCC,
+    SAVE_VIDEO_FPS,
+    SAVE_VIDEO_OVERLAY,
+    SAVE_VIDEO_PATH,
     SHOW_PREVIEW,
     STATUS_INTERVAL,
     TARGET_FPS,
@@ -569,6 +575,22 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
     return cv2.vconcat([panel[:panel_h, :], frame])
 
 
+def open_video_writer(frame):
+    output_path = Path(SAVE_VIDEO_PATH)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    height, width = frame.shape[:2]
+    fourcc = cv2.VideoWriter_fourcc(*SAVE_VIDEO_FOURCC[:4])
+    writer = cv2.VideoWriter(str(output_path), fourcc, SAVE_VIDEO_FPS, (width, height))
+    if not writer.isOpened():
+        raise RuntimeError(f"failed to open video writer: {output_path}")
+    print(
+        f"[PI] saving video to {output_path} "
+        f"{width}x{height}@{SAVE_VIDEO_FPS:g} fourcc={SAVE_VIDEO_FOURCC[:4]}",
+        flush=True,
+    )
+    return writer
+
+
 def dispatch_hardware(led, controller, gesture, hw_state):
     # 서보 제어는 controller가 담당. dispatch는 LED + WAVE 시 서보 재기동만 처리.
     # POINT 잠금 전환 순간 1회만 mode에 맞는 LED만 발화 (반대편은 꺼둠)
@@ -633,12 +655,20 @@ def main():
     }
     controller.start_preloads()
     cap = open_camera()
+    video_writer = None
 
     def _shutdown_hardware():
+        nonlocal video_writer
         try:
             controller.flush_pending_save()
         except Exception:
             pass
+        if video_writer is not None:
+            try:
+                video_writer.release()
+            except Exception:
+                pass
+            video_writer = None
         try:
             cap.release()
         except Exception:
@@ -1078,7 +1108,7 @@ def main():
                 last_state = state
                 
             # Draw cached landmarks on every preview frame to reduce flicker.
-            if SHOW_PREVIEW:
+            if SHOW_PREVIEW or (SAVE_VIDEO and SAVE_VIDEO_OVERLAY):
                 draw_results = results if results is not None else last_results
                 draw_hand_detected = hand_detected or last_hand_detected
 
@@ -1125,8 +1155,17 @@ def main():
                 )
                 print_status(payload)
 
+            preview = None
+            if SHOW_PREVIEW or (SAVE_VIDEO and SAVE_VIDEO_OVERLAY):
+                preview = draw_preview_overlay(frame.copy(), controller, fps, gesture, hand_detected, hand_bbox, last_state)
+
+            if SAVE_VIDEO:
+                video_frame = preview if SAVE_VIDEO_OVERLAY else frame
+                if video_writer is None:
+                    video_writer = open_video_writer(video_frame)
+                video_writer.write(video_frame)
+
             if SHOW_PREVIEW:
-                preview = draw_preview_overlay(frame, controller, fps, gesture, hand_detected, hand_bbox, last_state)
                 cv2.imshow("Pi Smart Light Runtime", preview)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
