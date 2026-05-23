@@ -281,6 +281,7 @@ class GestureRecognizer:
 
         # MODE_SWITCH: 새끼만
         is_mode_switch = (
+            thumb_open and
             not index_open and
             not middle_open and
             not ring_open and
