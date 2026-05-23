@@ -257,6 +257,7 @@ class GestureRecognizer:
             if sum(1 for item in self.thumb_gesture_history if item == candidate) >= self.THUMB_SMOOTHING_MIN_HITS:
                 confirmed_thumb_gesture = candidate
                 break
+        thumb_vertical_command = thumb_open and thumb_direction_clear
 
         open_palm = index_open and middle_open and ring_open and pinky_open
 
@@ -268,7 +269,8 @@ class GestureRecognizer:
             not ring_open and
             pinky_open and
             not open_palm and
-            not is_fist
+            not is_fist and
+            not thumb_vertical_command
         )
 
         # POINT: 검지만 (다른 셋 모두 접힘)
@@ -285,7 +287,8 @@ class GestureRecognizer:
             not index_open and
             not middle_open and
             not ring_open and
-            pinky_open
+            pinky_open and
+            not thumb_vertical_command
         )
 
         self.debug_state.update({
@@ -294,6 +297,7 @@ class GestureRecognizer:
             "thumbs_down_candidate": thumbs_down_candidate,
             "thumb_direction_delta": thumb_direction_delta,
             "thumb_direction_clear": thumb_direction_clear,
+            "thumb_vertical_command": thumb_vertical_command,
         })
 
         # Priority 1: FIST
@@ -301,15 +305,15 @@ class GestureRecognizer:
             self.last_gesture = "FIST"
             return "FIST", None
 
-        # Priority 2: POINT_MODE
-        if point_mode_candidate:
-            self.last_gesture = "POINT_MODE"
-            return "POINT_MODE", None
-
-        # Priority 3: THUMBS_UP / THUMBS_DOWN brightness control.
+        # Priority 2: THUMBS_UP / THUMBS_DOWN brightness control.
         if confirmed_thumb_gesture:
             self.last_gesture = confirmed_thumb_gesture
             return confirmed_thumb_gesture, None
+
+        # Priority 3: POINT_MODE
+        if point_mode_candidate:
+            self.last_gesture = "POINT_MODE"
+            return "POINT_MODE", None
 
         # Priority 4: WAVE shape. app.py still requires wave motion and standby.
         if open_palm:
