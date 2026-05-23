@@ -1,10 +1,3 @@
-"""
-Gaegle 캡스톤 · 하드웨어 핀/PWM 설정
-회로 결선도(circuit.html)와 일치해야 함. 핀 변경 시 여기만 수정.
-
-런타임 동작 변수(카메라, 제스처, 포인팅 등)는 src/vision/pi_runtime_config.py 참고.
-"""
-
 # ============ PCA9685 ============
 PCA9685_ADDRESS = 0x40       # PCA9685 기본 주소
 PCA9685_FREQ = 50             # SG90 아날로그 서보 호환 (50Hz 필수)
