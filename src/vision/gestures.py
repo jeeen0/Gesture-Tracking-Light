@@ -257,7 +257,7 @@ class GestureRecognizer:
             if sum(1 for item in self.thumb_gesture_history if item == candidate) >= self.THUMB_SMOOTHING_MIN_HITS:
                 confirmed_thumb_gesture = candidate
                 break
-        thumb_vertical_command = thumb_open and thumb_direction_clear
+        thumb_brightness_command = confirmed_thumb_gesture is not None
 
         open_palm = index_open and middle_open and ring_open and pinky_open
 
@@ -270,7 +270,7 @@ class GestureRecognizer:
             pinky_open and
             not open_palm and
             not is_fist and
-            not thumb_vertical_command
+            not thumb_brightness_command
         )
 
         # POINT: 검지만 (다른 셋 모두 접힘)
@@ -288,7 +288,7 @@ class GestureRecognizer:
             not middle_open and
             not ring_open and
             pinky_open and
-            not thumb_vertical_command
+            not thumb_brightness_command
         )
 
         self.debug_state.update({
@@ -297,7 +297,7 @@ class GestureRecognizer:
             "thumbs_down_candidate": thumbs_down_candidate,
             "thumb_direction_delta": thumb_direction_delta,
             "thumb_direction_clear": thumb_direction_clear,
-            "thumb_vertical_command": thumb_vertical_command,
+            "thumb_brightness_command": thumb_brightness_command,
         })
 
         # Priority 1: FIST
