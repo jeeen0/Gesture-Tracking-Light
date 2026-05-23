@@ -595,6 +595,16 @@ def open_video_writer(frame):
     return writer
 
 
+def scale_preview_for_display(preview):
+    if PREVIEW_SCALE == 1.0:
+        return preview
+
+    height, width = preview.shape[:2]
+    scaled_width = max(1, int(width * PREVIEW_SCALE))
+    scaled_height = max(1, int(height * PREVIEW_SCALE))
+    return cv2.resize(preview, (scaled_width, scaled_height), interpolation=cv2.INTER_NEAREST)
+
+
 def dispatch_hardware(led, controller, gesture, hw_state):
     # 서보 제어는 controller가 담당. dispatch는 LED + WAVE 시 서보 재기동만 처리.
     # POINT 잠금 전환 순간 1회만 mode에 맞는 LED만 발화 (반대편은 꺼둠)
@@ -1171,16 +1181,13 @@ def main():
                 video_writer.write(video_frame)
 
             if SHOW_PREVIEW:
+                display_preview = scale_preview_for_display(preview)
                 if not preview_window_sized:
                     cv2.namedWindow(PREVIEW_WINDOW_NAME, cv2.WINDOW_NORMAL)
-                    height, width = preview.shape[:2]
-                    cv2.resizeWindow(
-                        PREVIEW_WINDOW_NAME,
-                        int(width * PREVIEW_SCALE),
-                        int(height * PREVIEW_SCALE),
-                    )
+                    height, width = display_preview.shape[:2]
+                    cv2.resizeWindow(PREVIEW_WINDOW_NAME, width, height)
                     preview_window_sized = True
-                cv2.imshow(PREVIEW_WINDOW_NAME, preview)
+                cv2.imshow(PREVIEW_WINDOW_NAME, display_preview)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 

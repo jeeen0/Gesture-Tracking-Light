@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 
@@ -34,7 +35,8 @@ DEBUG_OUTPUT = os.environ.get("PI_DEBUG", "0") == "1"
 
 # Video recording. Set PI_SAVE_VIDEO=1 to save the runtime stream.
 SAVE_VIDEO = os.environ.get("PI_SAVE_VIDEO", "0") == "1"
-SAVE_VIDEO_PATH = resolve_project_path(os.environ.get("PI_SAVE_VIDEO_PATH", "recordings/pi_runtime_output.mp4"))
+_DEFAULT_SAVE_VIDEO_NAME = f"recordings/pi_runtime_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+SAVE_VIDEO_PATH = resolve_project_path(os.environ.get("PI_SAVE_VIDEO_PATH", _DEFAULT_SAVE_VIDEO_NAME))
 SAVE_VIDEO_FOURCC = os.environ.get("PI_SAVE_VIDEO_FOURCC", "mp4v")
 SAVE_VIDEO_FPS = float(os.environ.get("PI_SAVE_VIDEO_FPS", str(TARGET_FPS)))
 SAVE_VIDEO_OVERLAY = os.environ.get("PI_SAVE_VIDEO_OVERLAY", "1") != "0"
