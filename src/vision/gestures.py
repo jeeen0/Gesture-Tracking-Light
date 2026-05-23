@@ -35,7 +35,7 @@ class GestureRecognizer:
         self.INDEX_OPEN_THRESHOLD = 1.28
         self.MIDDLE_OPEN_THRESHOLD = 1.35
         self.RING_OPEN_THRESHOLD = 1.35
-        self.PINKY_OPEN_THRESHOLD = 1.12   # 새끼는 짧아서 더 낮게
+        self.PINKY_OPEN_THRESHOLD = 1.13   # 새끼는 짧아서 더 낮게
 
         # FIST 판정 임계값 (자기 MCP 기준 ratio 상한)
         self.FIST_AVG_RATIO_MAX = 1.35
@@ -192,11 +192,11 @@ class GestureRecognizer:
         palm_size = max(palm_ref, palm_width, 1e-6)
 
         thumb_palm_dist = self._get_distance(thumb_tip, palm_center)
-        thumb_folded = thumb_palm_dist < palm_ref * 0.55
+        thumb_folded = thumb_palm_dist < palm_ref * 0.58
         thumb_tip_to_mcp = self._get_distance(thumb_tip, thumb_mcp)
         thumb_open = (
             not thumb_folded and
-            thumb_tip_to_mcp > palm_size * 0.20
+            thumb_tip_to_mcp > palm_size * 0.22
         )
 
         # FIST 판정 (자기 MCP 기준 ratio가 모두 작음)
