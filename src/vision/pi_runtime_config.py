@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 
@@ -26,10 +27,20 @@ except ValueError:
 CAMERA_BACKEND = os.environ.get("PI_CAMERA_BACKEND", "rpicam-vid").lower()
 FRAME_W = int(os.environ.get("PI_FRAME_W", "640"))
 FRAME_H = int(os.environ.get("PI_FRAME_H", "360"))
-TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "30"))
+TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "20"))
 MIRROR = os.environ.get("PI_MIRROR", "1") != "0"
 SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "1") == "1"
+PREVIEW_SCALE = max(0.1, float(os.environ.get("PI_PREVIEW_SCALE", "1.0")))
+SHOW_DEPTH = os.environ.get("PI_SHOW_DEPTH", "0") == "1"
 DEBUG_OUTPUT = os.environ.get("PI_DEBUG", "0") == "1"
+
+# Video recording. Set PI_SAVE_VIDEO=1 to save the runtime stream.
+SAVE_VIDEO = os.environ.get("PI_SAVE_VIDEO", "0") == "1"
+_DEFAULT_SAVE_VIDEO_NAME = f"recordings/pi_runtime_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+SAVE_VIDEO_PATH = resolve_project_path(os.environ.get("PI_SAVE_VIDEO_PATH", _DEFAULT_SAVE_VIDEO_NAME))
+SAVE_VIDEO_FOURCC = os.environ.get("PI_SAVE_VIDEO_FOURCC", "mp4v")
+SAVE_VIDEO_FPS = float(os.environ.get("PI_SAVE_VIDEO_FPS", str(TARGET_FPS)))
+SAVE_VIDEO_OVERLAY = os.environ.get("PI_SAVE_VIDEO_OVERLAY", "1") != "0"
 
 MP_DET_CONF = float(os.environ.get("PI_MP_DET_CONF", "0.30"))
 MP_TRK_CONF = float(os.environ.get("PI_MP_TRK_CONF", "0.30"))
@@ -40,10 +51,10 @@ MP_MODEL_COMPLEXITY = int(os.environ.get("PI_MP_MODEL_COMPLEXITY", "0"))
 
 # Limit expensive AI inference separately from camera FPS.
 # Camera can still run at TARGET_FPS, but MediaPipe/ROI/YOLO processing is throttled.
-DEFAULT_INFERENCE_FPS = float(os.environ.get("PI_INFERENCE_FPS", "30"))
-STANDBY_INFERENCE_FPS = float(os.environ.get("PI_STANDBY_INFERENCE_FPS", "10"))
+DEFAULT_INFERENCE_FPS = float(os.environ.get("PI_INFERENCE_FPS", "20"))
+STANDBY_INFERENCE_FPS = float(os.environ.get("PI_STANDBY_INFERENCE_FPS", "5"))
 ACTIVE_INFERENCE_FPS = float(os.environ.get("PI_ACTIVE_INFERENCE_FPS", str(DEFAULT_INFERENCE_FPS)))
-POINT_INFERENCE_FPS = float(os.environ.get("PI_POINT_INFERENCE_FPS", "30"))
+POINT_INFERENCE_FPS = float(os.environ.get("PI_POINT_INFERENCE_FPS", "20"))
 
 ACTIVE_TIMEOUT_SECONDS = float(os.environ.get("PI_ACTIVE_TIMEOUT", "20.0"))
 KEEP_AWAKE = os.environ.get("PI_KEEP_AWAKE", "1") != "0"

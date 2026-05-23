@@ -123,11 +123,14 @@ class PiSmartLightController:
         self.latched_gesture = None
         self.hold_gesture = None
         self.hold_start_time = 0.0
+        self.mode_switch_armed = True
+        self.mode_switch_release_start = None
         self._last_save_time = 0.0
         self._pending_save = False
         self.point_ray_start_px = None
         self.point_ray_tip_px = None
         self.point_ray_hit_px = None
+        self.point_depth_map = None
         self.load_state()
 
     def start_preloads(self):
@@ -379,6 +382,7 @@ class PiSmartLightController:
         self.point_ray_start_px = target.get("ray_start_px")
         self.point_ray_tip_px = target.get("ray_tip_px")
         self.point_ray_hit_px = target.get("raw_target")
+        self.point_depth_map = target.get("depth_map")
         if target.get("pan_deg") is not None:
             self.preview_pan_deg = float(target["pan_deg"])
             self.preview_tilt_deg = float(target["tilt_deg"])
@@ -446,6 +450,13 @@ class PiSmartLightController:
 
     def apply_gesture(self, gesture, results, frame, wave_active):
         if gesture is None:
+            if not self.mode_switch_armed:
+                now = time.time()
+                if self.mode_switch_release_start is None:
+                    self.mode_switch_release_start = now
+                elif now - self.mode_switch_release_start >= 1.0:
+                    self.mode_switch_armed = True
+                    self.mode_switch_release_start = None
             # point_mode 활성화 중에는 제스처가 잠깐 끊겨도 point_mode 유지
             if not self.point_mode:
                 self.latched_gesture = None
@@ -485,6 +496,9 @@ class PiSmartLightController:
             if not self.point_mode:              # ← 추가: 포인트모드 중엔 밝기 변경 무시
                 self.apply_brightness_gesture(gesture)
         elif gesture == "MODE_SWITCH":
+            self.mode_switch_release_start = None
+            if not self.mode_switch_armed:
+                return None
             if self.latched_gesture == "MODE_SWITCH":
                 return gesture
             # cooldown: 마지막 전환 후 2초 이내면 무시 (제스처 인식 변동으로 인한 중복 토글 방지)
@@ -494,10 +508,13 @@ class PiSmartLightController:
                 return None
             self.mode = "Mood" if self.mode == "Spot" else "Spot"
             self.last_mode_switch_time = time.time()
+            self.mode_switch_armed = False
             self.save_state()
             emit("mode", mode=self.mode)
             self._reset_hold()
         else:
+            self.mode_switch_armed = True
+            self.mode_switch_release_start = None
             self._reset_hold()
         self.latched_gesture = gesture
         return gesture

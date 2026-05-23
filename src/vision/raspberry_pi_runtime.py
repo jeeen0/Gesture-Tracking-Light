@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import time
 from collections import deque
+from pathlib import Path
 
 import cv2
 import mediapipe as mp
@@ -34,6 +35,7 @@ from pi_runtime_config import (
     ACTIVE_INFERENCE_FPS,
     STANDBY_INFERENCE_FPS,
     POINT_INFERENCE_FPS,
+    PREVIEW_SCALE,
     TRACK_ROI_SCALE,
     TRACK_ROI_PADDING_RATIO,
     TRACK_ROI_TTL,
@@ -43,6 +45,12 @@ from pi_runtime_config import (
     ROI_FALLBACK_AFTER_MISSES,
     ROI_FALLBACK_INTERVAL,
     ROI_SCALE,
+    SAVE_VIDEO,
+    SAVE_VIDEO_FOURCC,
+    SAVE_VIDEO_FPS,
+    SAVE_VIDEO_OVERLAY,
+    SAVE_VIDEO_PATH,
+    SHOW_DEPTH,
     SHOW_PREVIEW,
     STATUS_INTERVAL,
     TARGET_FPS,
@@ -62,6 +70,10 @@ if str(PROJECT_ROOT) not in sys.path:
 from pi_runtime_controller import PiSmartLightController
 from pi_runtime_events import emit_state
 from src.core.led_controller import LEDController
+
+
+PREVIEW_WINDOW_NAME = "Pi Smart Light Runtime"
+DEPTH_WINDOW_NAME = "Pi Smart Light Depth"
 
 
 class OpenCVCamera:
@@ -569,6 +581,38 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
     return cv2.vconcat([panel[:panel_h, :], frame])
 
 
+def open_video_writer(frame):
+    output_path = Path(SAVE_VIDEO_PATH)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    height, width = frame.shape[:2]
+    fourcc = cv2.VideoWriter_fourcc(*SAVE_VIDEO_FOURCC[:4])
+    writer = cv2.VideoWriter(str(output_path), fourcc, SAVE_VIDEO_FPS, (width, height))
+    if not writer.isOpened():
+        raise RuntimeError(f"failed to open video writer: {output_path}")
+    print(
+        f"[PI] saving video to {output_path} "
+        f"{width}x{height}@{SAVE_VIDEO_FPS:g} fourcc={SAVE_VIDEO_FOURCC[:4]}",
+        flush=True,
+    )
+    return writer
+
+
+def scale_preview_for_display(preview):
+    if PREVIEW_SCALE == 1.0:
+        return preview
+
+    height, width = preview.shape[:2]
+    scaled_width = max(1, int(width * PREVIEW_SCALE))
+    scaled_height = max(1, int(height * PREVIEW_SCALE))
+    return cv2.resize(preview, (scaled_width, scaled_height), interpolation=cv2.INTER_NEAREST)
+
+
+def depth_map_to_preview(depth_map):
+    depth_u8 = np.clip(depth_map * 255.0, 0, 255).astype(np.uint8)
+    depth_color = cv2.applyColorMap(depth_u8, cv2.COLORMAP_TURBO)
+    return scale_preview_for_display(depth_color)
+
+
 def dispatch_hardware(led, controller, gesture, hw_state):
     # 서보 제어는 controller가 담당. dispatch는 LED + WAVE 시 서보 재기동만 처리.
     # POINT 잠금 전환 순간 1회만 mode에 맞는 LED만 발화 (반대편은 꺼둠)
@@ -633,12 +677,20 @@ def main():
     }
     controller.start_preloads()
     cap = open_camera()
+    video_writer = None
 
     def _shutdown_hardware():
+        nonlocal video_writer
         try:
             controller.flush_pending_save()
         except Exception:
             pass
+        if video_writer is not None:
+            try:
+                video_writer.release()
+            except Exception:
+                pass
+            video_writer = None
         try:
             cap.release()
         except Exception:
@@ -652,7 +704,7 @@ def main():
             led.shutdown()
         except Exception:
             pass
-        if SHOW_PREVIEW:
+        if SHOW_PREVIEW or SHOW_DEPTH:
             try:
                 cv2.destroyAllWindows()
             except Exception:
@@ -690,6 +742,8 @@ def main():
     prev_time = time.time()
     last_status = 0.0
     last_state = {}
+    preview_window_sized = False
+    depth_window_sized = False
 
     with mp_hands.Hands(
         static_image_mode=False,
@@ -1078,7 +1132,7 @@ def main():
                 last_state = state
                 
             # Draw cached landmarks on every preview frame to reduce flicker.
-            if SHOW_PREVIEW:
+            if SHOW_PREVIEW or (SAVE_VIDEO and SAVE_VIDEO_OVERLAY):
                 draw_results = results if results is not None else last_results
                 draw_hand_detected = hand_detected or last_hand_detected
 
@@ -1125,11 +1179,36 @@ def main():
                 )
                 print_status(payload)
 
+            preview = None
+            if SHOW_PREVIEW or (SAVE_VIDEO and SAVE_VIDEO_OVERLAY):
+                preview = draw_preview_overlay(frame.copy(), controller, fps, gesture, hand_detected, hand_bbox, last_state)
+
+            if SAVE_VIDEO:
+                video_frame = preview if SAVE_VIDEO_OVERLAY else frame
+                if video_writer is None:
+                    video_writer = open_video_writer(video_frame)
+                video_writer.write(video_frame)
+
             if SHOW_PREVIEW:
-                preview = draw_preview_overlay(frame, controller, fps, gesture, hand_detected, hand_bbox, last_state)
-                cv2.imshow("Pi Smart Light Runtime", preview)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+                display_preview = scale_preview_for_display(preview)
+                if not preview_window_sized:
+                    cv2.namedWindow(PREVIEW_WINDOW_NAME, cv2.WINDOW_NORMAL)
+                    height, width = display_preview.shape[:2]
+                    cv2.resizeWindow(PREVIEW_WINDOW_NAME, width, height)
+                    preview_window_sized = True
+                cv2.imshow(PREVIEW_WINDOW_NAME, display_preview)
+
+            if SHOW_DEPTH and controller.point_depth_map is not None:
+                depth_preview = depth_map_to_preview(controller.point_depth_map)
+                if not depth_window_sized:
+                    cv2.namedWindow(DEPTH_WINDOW_NAME, cv2.WINDOW_NORMAL)
+                    height, width = depth_preview.shape[:2]
+                    cv2.resizeWindow(DEPTH_WINDOW_NAME, width, height)
+                    depth_window_sized = True
+                cv2.imshow(DEPTH_WINDOW_NAME, depth_preview)
+
+            if (SHOW_PREVIEW or SHOW_DEPTH) and (cv2.waitKey(1) & 0xFF == ord("q")):
+                break
 
     # 정상 종료 및 예외 모두 atexit 핸들러(_shutdown_hardware)가 처리
 

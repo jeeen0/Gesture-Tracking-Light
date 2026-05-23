@@ -256,6 +256,7 @@ class PointingTargetEstimator:
             result["used_depth_hit"] = False
             result["hit_method"] = "2d_fallback_no_depth"
             result["depth_error"] = self.depth_error
+            result["depth_map"] = None
             return result
 
         if self.depth_map is None or self.frame_count % DEPTH_UPDATE_INTERVAL == 0:
@@ -285,6 +286,7 @@ class PointingTargetEstimator:
         result["used_depth_hit"] = used_depth_hit
         result["hit_method"] = "depth_march" if used_depth_hit else "2d_fallback_after_depth"
         result["depth_error"] = None
+        result["depth_map"] = self.depth_map
         return result
 
     def reset(self, clear_confirmed=False):
