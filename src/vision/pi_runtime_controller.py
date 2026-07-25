@@ -3,8 +3,10 @@ import os
 import tempfile
 import threading
 import time
+from collections import deque
 
 from gestures import GestureRecognizer
+from src.config import PAN_MAX_DEG, PAN_MIN_DEG, TILT_MAX_DEG, TILT_MIN_DEG
 from src.core.servo_controller import ServoController  # 0521_v2m
 from pi_runtime_config import (
     ACTIVE_TIMEOUT_SECONDS,
@@ -17,12 +19,17 @@ from pi_runtime_config import (
     FISHEYE_CALIB_PATH,
     POINT_PAN_GAIN,
     POINT_PAN_OFFSET_DEG,
+    POINT_ARM_MIN_HITS,
+    POINT_ARM_WINDOW,
+    POINT_ENTRY_GRACE_SECONDS,
+    POINT_RAY_MODE,
     POINT_TILT_GAIN,
     POINT_TILT_OFFSET_DEG,
     SERVO_PAN_CENTER,
     SERVO_PAN_SIGN,
     SERVO_TILT_CENTER,
     SERVO_TILT_SIGN,
+    SERVO_POINTING_CALIB_PATH,
     FRAME_H,
     FRAME_W,
     KEEP_AWAKE,
@@ -34,6 +41,7 @@ from pi_runtime_config import (
     YOLO_MODEL_PATH,
 )
 from pi_runtime_events import emit
+from servo_pointing_calibration import ServoPointingCalibration
 
 try:
     from fisheye_undistort import FisheyeUndistorter
@@ -131,6 +139,26 @@ class PiSmartLightController:
         self.point_ray_tip_px = None
         self.point_ray_hit_px = None
         self.point_depth_map = None
+        self.point_mode_entered_at = 0.0
+        self.point_tracking_armed = False
+        self.point_arm_history = deque(maxlen=POINT_ARM_WINDOW)
+        self.servo_pointing_calibration = ServoPointingCalibration(
+            SERVO_POINTING_CALIB_PATH,
+            (FRAME_W, FRAME_H),
+        )
+        if self.servo_pointing_calibration.loaded:
+            emit(
+                "servo_pointing_calibration_ready",
+                file=SERVO_POINTING_CALIB_PATH,
+                pan_points=len(self.servo_pointing_calibration.pan_points),
+                tilt_points=len(self.servo_pointing_calibration.tilt_points),
+            )
+        elif self.servo_pointing_calibration.error:
+            emit(
+                "servo_pointing_calibration_error",
+                file=SERVO_POINTING_CALIB_PATH,
+                error=self.servo_pointing_calibration.error,
+            )
         self.load_state()
 
     def start_preloads(self):
@@ -223,7 +251,10 @@ class PiSmartLightController:
         try:
             self.point_status = "preloading"
             self.point_estimator = PointingTargetEstimator(
-                FRAME_W, FRAME_H, **self._pointing_intrinsics()
+                FRAME_W,
+                FRAME_H,
+                ray_mode=POINT_RAY_MODE,
+                **self._pointing_intrinsics(),
             )
             self.point_status = "ready"
             emit("pointing_ready")
@@ -268,6 +299,8 @@ class PiSmartLightController:
         self.standby = False
         self.active_until = time.time() + ACTIVE_TIMEOUT_SECONDS
         self.point_mode = False
+        self.point_tracking_armed = False
+        self.point_arm_history.clear()
         self.point_display_target = None
         self.point_stable_ratio = 0.0
         self.point_std_px = 0.0
@@ -277,6 +310,7 @@ class PiSmartLightController:
         self.brightness = self.saved_brightness
         # sleep() 시 PWM이 꺼져 있을 수 있으니 마지막 위치로 재기동
         if self.servo is not None:
+            self.servo.resume()
             self.servo.move_to(self.servo_pan_deg, self.servo_tilt_deg)
         self.save_state()
         emit("wake", brightness=self.brightness)
@@ -285,12 +319,14 @@ class PiSmartLightController:
         self.standby = True
         self.active_until = 0.0
         self.point_mode = False
+        self.point_tracking_armed = False
+        self.point_arm_history.clear()
         self.power = False
         self.brightness = 0
         self.save_state()
         # 서보 PWM 해제 (전류 절약, 서보 위치는 state에 저장됨) 0521_v2m
         if self.servo is not None:
-            self.servo.shutdown()
+            self.servo.pause()
         emit("sleep")
 
     def update_activity_timeout(self, hand_detected):
@@ -309,6 +345,9 @@ class PiSmartLightController:
         self.point_display_target = None
         self.point_stable_ratio = 0.0
         self.point_std_px = 0.0
+        self.point_mode_entered_at = time.time()
+        self.point_tracking_armed = False
+        self.point_arm_history.clear()
         if self.point_estimator:
             self.point_estimator.reset(clear_confirmed=True)
         self.save_state()
@@ -364,13 +403,18 @@ class PiSmartLightController:
                 emit("pointing_error", error="PointingTargetEstimator module not available")
                 return
             self.point_estimator = PointingTargetEstimator(
-                FRAME_W, FRAME_H, **self._pointing_intrinsics()
+                FRAME_W,
+                FRAME_H,
+                ray_mode=POINT_RAY_MODE,
+                **self._pointing_intrinsics(),
             )
             self.point_status = "ready"
             emit("pointing_ready", method="sync_fallback")
 
         target = self.point_estimator.update(frame, hand_landmarks)
-        if target.get("depth_available") is False:
+        if target.get("async_pending"):
+            self.point_status = "tracking_depth_waiting"
+        elif target.get("depth_available") is False:
             self.point_status = "tracking_2d_fallback"
         elif target.get("used_depth_hit"):
             self.point_status = "tracking_depth"
@@ -396,18 +440,28 @@ class PiSmartLightController:
             previous_servo_pan = self.servo_pan_deg
             previous_servo_tilt = self.servo_tilt_deg
 
-            # Absolute pointing target. CENTER is only a calculation baseline;
-            # move_to() moves directly from the current servo position.
-            new_servo_pan = (
-                SERVO_PAN_CENTER
-                + self.pan_deg * SERVO_PAN_SIGN * POINT_PAN_GAIN
-                + POINT_PAN_OFFSET_DEG
+            # Prefer the measured full-frame pixel LUT when present. Otherwise
+            # keep the existing center/gain/offset conversion.
+            lut_angles = self.servo_pointing_calibration.map_pixel(
+                target["confirmed"]
             )
-            new_servo_tilt = (
-                SERVO_TILT_CENTER
-                + self.tilt_deg * SERVO_TILT_SIGN * POINT_TILT_GAIN
-                + POINT_TILT_OFFSET_DEG
-            )
+            if lut_angles is not None:
+                new_servo_pan, new_servo_tilt = lut_angles
+                servo_mapping = "pixel_lut"
+            else:
+                new_servo_pan = (
+                    SERVO_PAN_CENTER
+                    + self.pan_deg * SERVO_PAN_SIGN * POINT_PAN_GAIN
+                    + POINT_PAN_OFFSET_DEG
+                )
+                new_servo_tilt = (
+                    SERVO_TILT_CENTER
+                    + self.tilt_deg * SERVO_TILT_SIGN * POINT_TILT_GAIN
+                    + POINT_TILT_OFFSET_DEG
+                )
+                servo_mapping = "angle_gain_offset"
+            new_servo_pan = clamp(new_servo_pan, PAN_MIN_DEG, PAN_MAX_DEG)
+            new_servo_tilt = clamp(new_servo_tilt, TILT_MIN_DEG, TILT_MAX_DEG)
             self.last_delta_pan_deg = new_servo_pan - previous_servo_pan
             self.last_delta_tilt_deg = new_servo_tilt - previous_servo_tilt
             self.point_target = target["confirmed"]
@@ -430,6 +484,7 @@ class PiSmartLightController:
                     point_tilt_gain=round(POINT_TILT_GAIN, 3),
                     point_pan_offset_deg=round(POINT_PAN_OFFSET_DEG, 2),
                     point_tilt_offset_deg=round(POINT_TILT_OFFSET_DEG, 2),
+                    servo_mapping=servo_mapping,
                 )
 
             self.save_state()
@@ -445,10 +500,34 @@ class PiSmartLightController:
                 std_px=round(target.get("std_px", 0.0), 1),
                 hit_method=target.get("hit_method"),
                 used_depth_hit=target.get("used_depth_hit"),
+                servo_mapping=servo_mapping,
             )
             emit("point_mode", enabled=False, reason="target_locked")
 
-    def apply_gesture(self, gesture, results, frame, wave_active):
+    def _update_point_arm(self, gesture, sample_updated):
+        if (
+            not self.point_mode
+            or self.point_tracking_armed
+            or not sample_updated
+            or time.time() - self.point_mode_entered_at < POINT_ENTRY_GRACE_SECONDS
+        ):
+            return
+        self.point_arm_history.append(gesture == "POINT")
+        if (
+            len(self.point_arm_history) >= POINT_ARM_WINDOW
+            and sum(self.point_arm_history) >= POINT_ARM_MIN_HITS
+        ):
+            self.point_tracking_armed = True
+            if self.point_estimator:
+                self.point_estimator.reset(clear_confirmed=False)
+            emit(
+                "point_tracking_armed",
+                hits=sum(self.point_arm_history),
+                window=len(self.point_arm_history),
+            )
+
+    def apply_gesture(self, gesture, results, frame, wave_active, sample_updated=True):
+        self._update_point_arm(gesture, sample_updated)
         if gesture is None:
             if not self.mode_switch_armed:
                 now = time.time()
@@ -479,6 +558,8 @@ class PiSmartLightController:
             self.sleep()
             self._reset_hold()
         elif gesture == "POINT_MODE":
+            if self.point_mode:
+                return gesture
             if self.latched_gesture == "POINT_MODE":
                 return gesture
             if not self._hold_ready("POINT_MODE"):
@@ -490,6 +571,8 @@ class PiSmartLightController:
             if not self.point_mode:
                 emit("point_blocked", reason="point_mode_required")
                 return None
+            if not self.point_tracking_armed:
+                return gesture
             self.update_point_target(frame, results.multi_hand_landmarks[0])
         elif gesture in ("THUMBS_UP", "THUMBS_DOWN"):    #0520_v2m   
             self._reset_hold()
@@ -535,6 +618,8 @@ class PiSmartLightController:
             "brightness": self.brightness,
             "mode": self.mode,
             "point_mode": self.point_mode,
+            "point_tracking_armed": self.point_tracking_armed,
+            "point_arm_hits": sum(self.point_arm_history),
             "point_status": self.point_status,
             "yolo_status": self.yolo_status,
             "keep_awake": KEEP_AWAKE,

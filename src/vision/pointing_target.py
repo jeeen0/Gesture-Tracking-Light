@@ -1,5 +1,6 @@
 import math
 import os
+import threading
 import time
 from collections import deque
 
@@ -17,6 +18,13 @@ STABLE_STD_PX = 55.0
 JITTER_RESET_PX = 140.0
 BUFFER_MAXLEN = 50
 EMA_ALPHA = 0.25
+DEPTH_ASYNC = os.environ.get("PI_DEPTH_ASYNC", "1") != "0"
+DEPTH_ASYNC_FPS = max(0.5, float(os.environ.get("PI_DEPTH_ASYNC_FPS", "4.0")))
+DEPTH_RESULT_MAX_AGE_SECONDS = max(
+    0.05,
+    float(os.environ.get("PI_DEPTH_RESULT_MAX_AGE", "0.75")),
+)
+TORCH_NUM_THREADS = max(1, int(os.environ.get("PI_TORCH_NUM_THREADS", "2")))
 
 
 class DepthEstimator:
@@ -24,6 +32,10 @@ class DepthEstimator:
         import torch
 
         self.torch = torch
+        try:
+            torch.set_num_threads(TORCH_NUM_THREADS)
+        except RuntimeError as exc:
+            print(f"[Pointing] could not set torch threads: {exc}")
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print("[Pointing] MiDaS loading... first run can take a while")
         self.model = torch.hub.load("intel-isl/MiDaS", "MiDaS_small", trust_repo=True)
@@ -99,6 +111,9 @@ class MotorAngleTracker: #0520_v2m
         self.grace_until = 0.0
         self.last_pointing_time = 0.0
         self.pointing_grace_seconds = float(os.environ.get("PI_POINTING_GRACE_SECONDS", "0.35"))
+        self.entry_grace_seconds = float(
+            os.environ.get("PI_POINT_ENTRY_GRACE_SECONDS", "1.0")
+        )
 
     def update(self, raw, is_pointing):
         result = {
@@ -209,23 +224,40 @@ class MotorAngleTracker: #0520_v2m
         if clear_confirmed:
             self.confirmed_target = None
             self.confirmed_angles = None
-            self.grace_until = time.time() + 1.0   # ← 추가: 1초간 데이터 무시
+            self.grace_until = time.time() + self.entry_grace_seconds
 
 
 class PointingTargetEstimator:
     WRIST = 0
     INDEX_MCP = 5
+    INDEX_PIP = 6
+    INDEX_DIP = 7
     INDEX_TIP = 8
     MIDDLE_MCP = 9
 
-    def __init__(self, frame_w, frame_h, cam_fx=None, cam_fy=None, cx=None, cy=None):
+    def __init__(
+        self,
+        frame_w,
+        frame_h,
+        cam_fx=None,
+        cam_fy=None,
+        cx=None,
+        cy=None,
+        ray_mode=None,
+    ):
         self.frame_w = frame_w
         self.frame_h = frame_h
-        # 캘리브레이션 값이 제공되면 사용, 아니면 0.7*W 추정값
         self.cam_fx = float(cam_fx) if cam_fx is not None else frame_w * 0.7
         self.cam_fy = float(cam_fy) if cam_fy is not None else self.cam_fx
         self.cx = float(cx) if cx is not None else frame_w / 2.0
         self.cy = float(cy) if cy is not None else frame_h / 2.0
+        self.ray_mode = (
+            ray_mode or os.environ.get("PI_POINT_RAY_MODE", "mcp_tip")
+        ).strip().lower()
+        if self.ray_mode not in {"mcp_tip", "finger_axis"}:
+            print(f"[Pointing] unknown ray mode {self.ray_mode!r}; using mcp_tip")
+            self.ray_mode = "mcp_tip"
+
         self.depth_est = None
         self.depth_error = None
         try:
@@ -236,61 +268,244 @@ class PointingTargetEstimator:
         except Exception as e:
             self.depth_error = str(e)
             print(f"[Pointing] MiDaS disabled, using 2D ray fallback: {e}")
+
         self.tracker = MotorAngleTracker(self.cam_fx, self.cam_fy, self.cx, self.cy)
         self.depth_map = None
         self.frame_count = 0
+        self.async_depth = bool(self.depth_est is not None and DEPTH_ASYNC)
+        self._last_result = self._empty_result()
+        self._generation = 0
+        self._job_sequence = 0
+        self._consumed_sequence = 0
+        self._pending_job = None
+        self._async_result = None
+        self._async_stop = False
+        self._async_condition = threading.Condition()
+        self._async_thread = None
+        if self.async_depth:
+            self._async_thread = threading.Thread(
+                target=self._depth_worker,
+                daemon=True,
+            )
+            self._async_thread.start()
+            print(
+                f"[Pointing] async MiDaS enabled "
+                f"fps={DEPTH_ASYNC_FPS:g} max_age={DEPTH_RESULT_MAX_AGE_SECONDS:g}s"
+            )
+
+    def _empty_result(self):
+        return {
+            "display_target": None,
+            "confirmed": None,
+            "pan_deg": None,
+            "tilt_deg": None,
+            "stable_ratio": 0.0,
+            "std_px": 0.0,
+            "stable_rejected": False,
+            "raw_target": None,
+            "ray_start_px": None,
+            "ray_tip_px": None,
+            "calibrated": False,
+            "depth_available": self.depth_est is not None,
+            "used_depth_hit": False,
+            "hit_method": "waiting_for_depth" if self.depth_est is not None else "2d_fallback_no_depth",
+            "depth_error": self.depth_error,
+            "depth_map": None,
+            "async_pending": self.async_depth,
+            "ray_mode": self.ray_mode,
+        }
 
     def update(self, frame_bgr, hand_landmarks):
         self.frame_count += 1
-        landmarks = hand_landmarks.landmark
-        points = self._key_points(landmarks)
+        points = self._key_points(hand_landmarks.landmark)
+        ray_start, ray_tip = self._ray_segment(points)
 
         if self.depth_est is None:
-            raw_target = self._project_to_screen_edge(points["index_mcp"], points["index_tip"])
+            raw_target = self._project_to_screen_edge(ray_start, ray_tip)
             result = self.tracker.update(raw_target, True)
-            result["raw_target"] = raw_target
-            result["ray_start_px"] = points["index_mcp"]
-            result["ray_tip_px"] = points["index_tip"]
-            result["calibrated"] = False
-            result["depth_available"] = False
-            result["used_depth_hit"] = False
-            result["hit_method"] = "2d_fallback_no_depth"
-            result["depth_error"] = self.depth_error
-            result["depth_map"] = None
+            result.update(
+                {
+                    "raw_target": raw_target,
+                    "ray_start_px": ray_start,
+                    "ray_tip_px": ray_tip,
+                    "calibrated": False,
+                    "depth_available": False,
+                    "used_depth_hit": False,
+                    "hit_method": "2d_fallback_no_depth",
+                    "depth_error": self.depth_error,
+                    "depth_map": None,
+                    "async_pending": False,
+                    "ray_mode": self.ray_mode,
+                }
+            )
+            self._last_result = result
             return result
+
+        if self.async_depth:
+            self._submit_depth_job(frame_bgr, points, ray_start, ray_tip)
+            return self._consume_async_result()
 
         if self.depth_map is None or self.frame_count % DEPTH_UPDATE_INTERVAL == 0:
             self.depth_map = self.depth_est.estimate(frame_bgr)
+        payload = self._target_from_depth(
+            self.depth_map,
+            points,
+            ray_start,
+            ray_tip,
+        )
+        result = self.tracker.update(payload["raw_target"], True)
+        result.update(payload)
+        result["async_pending"] = False
+        self._last_result = result
+        return result
 
+    def _submit_depth_job(self, frame_bgr, points, ray_start, ray_tip):
+        with self._async_condition:
+            self._job_sequence += 1
+            self._pending_job = {
+                "sequence": self._job_sequence,
+                "generation": self._generation,
+                "captured_at": time.monotonic(),
+                "frame": frame_bgr.copy(),
+                "points": dict(points),
+                "ray_start": tuple(ray_start),
+                "ray_tip": tuple(ray_tip),
+            }
+            self._async_condition.notify()
+
+    def _depth_worker(self):
+        last_start = 0.0
+        interval = 1.0 / DEPTH_ASYNC_FPS
+        while True:
+            with self._async_condition:
+                while self._pending_job is None and not self._async_stop:
+                    self._async_condition.wait()
+                if self._async_stop:
+                    return
+                job = self._pending_job
+                self._pending_job = None
+
+                while True:
+                    remaining = interval - (time.monotonic() - last_start)
+                    if remaining <= 0 or self._async_stop:
+                        break
+                    self._async_condition.wait(timeout=remaining)
+                    if self._pending_job is not None:
+                        job = self._pending_job
+                        self._pending_job = None
+                if self._async_stop:
+                    return
+
+            last_start = time.monotonic()
+            try:
+                depth_map = self.depth_est.estimate(job["frame"])
+                payload = self._target_from_depth(
+                    depth_map,
+                    job["points"],
+                    job["ray_start"],
+                    job["ray_tip"],
+                )
+                payload["completed_at"] = time.monotonic()
+            except Exception as exc:
+                raw_target = self._project_to_screen_edge(
+                    job["ray_start"],
+                    job["ray_tip"],
+                )
+                payload = {
+                    "raw_target": raw_target,
+                    "ray_start_px": job["ray_start"],
+                    "ray_tip_px": job["ray_tip"],
+                    "calibrated": False,
+                    "depth_available": False,
+                    "used_depth_hit": False,
+                    "hit_method": "2d_fallback_depth_error",
+                    "depth_error": str(exc),
+                    "depth_map": None,
+                    "ray_mode": self.ray_mode,
+                    "completed_at": time.monotonic(),
+                }
+
+            payload.update(
+                {
+                    "sequence": job["sequence"],
+                    "generation": job["generation"],
+                    "captured_at": job["captured_at"],
+                }
+            )
+            with self._async_condition:
+                self._async_result = payload
+
+    def _consume_async_result(self):
+        with self._async_condition:
+            payload = dict(self._async_result) if self._async_result else None
+
+        if (
+            payload is None
+            or payload["generation"] != self._generation
+            or payload["sequence"] <= self._consumed_sequence
+            or time.monotonic() - payload["captured_at"] > DEPTH_RESULT_MAX_AGE_SECONDS
+        ):
+            result = dict(self._last_result)
+            result["async_pending"] = True
+            return result
+
+        self._consumed_sequence = payload["sequence"]
+        payload.pop("sequence", None)
+        payload.pop("generation", None)
+        captured_at = payload.pop("captured_at", time.monotonic())
+        payload.pop("completed_at", None)
+        result = self.tracker.update(payload["raw_target"], True)
+        result.update(payload)
+        result["async_pending"] = False
+        result["depth_age_seconds"] = max(0.0, time.monotonic() - captured_at)
+        self.depth_map = payload.get("depth_map")
+        self._last_result = result
+        return result
+
+    def _target_from_depth(self, depth_map, points, ray_start, ray_tip):
         if not self.depth_est.is_calibrated:
             self.depth_est.calibrate(
-                self.depth_map,
+                depth_map,
                 points["wrist"],
                 points["middle_mcp"],
                 self.cam_fx,
             )
 
-        raw_target = self._march(points["index_mcp"], points["index_tip"])
+        raw_target = self._march(depth_map, ray_start, ray_tip)
         used_depth_hit = raw_target is not None
-
-        # ray가 표면을 못 찾았을 때 2D fallback으로 임시 타겟 제공
         if raw_target is None:
-            raw_target = self._project_to_screen_edge(points["index_mcp"], points["index_tip"])
+            raw_target = self._project_to_screen_edge(ray_start, ray_tip)
 
-        result = self.tracker.update(raw_target, True)
-        result["raw_target"] = raw_target
-        result["ray_start_px"] = points["index_mcp"]
-        result["ray_tip_px"] = points["index_tip"]
-        result["calibrated"] = self.depth_est.is_calibrated
-        result["depth_available"] = True
-        result["used_depth_hit"] = used_depth_hit
-        result["hit_method"] = "depth_march" if used_depth_hit else "2d_fallback_after_depth"
-        result["depth_error"] = None
-        result["depth_map"] = self.depth_map
-        return result
+        return {
+            "raw_target": raw_target,
+            "ray_start_px": ray_start,
+            "ray_tip_px": ray_tip,
+            "calibrated": self.depth_est.is_calibrated,
+            "depth_available": True,
+            "used_depth_hit": used_depth_hit,
+            "hit_method": "depth_march" if used_depth_hit else "2d_fallback_after_depth",
+            "depth_error": None,
+            "depth_map": depth_map,
+            "ray_mode": self.ray_mode,
+        }
 
     def reset(self, clear_confirmed=False):
         self.tracker.reset(clear_confirmed=clear_confirmed)
+        self._last_result = self._empty_result()
+        with self._async_condition:
+            self._generation += 1
+            self._pending_job = None
+            self._async_result = None
+            self._consumed_sequence = self._job_sequence
+
+    def close(self):
+        if not self.async_depth:
+            return
+        with self._async_condition:
+            self._async_stop = True
+            self._async_condition.notify_all()
+        if self._async_thread is not None:
+            self._async_thread.join(timeout=2.0)
 
     def _key_points(self, landmarks):
         def to_px(lm):
@@ -302,12 +517,37 @@ class PointingTargetEstimator:
         return {
             "wrist": to_px(landmarks[self.WRIST]),
             "index_mcp": to_px(landmarks[self.INDEX_MCP]),
+            "index_pip": to_px(landmarks[self.INDEX_PIP]),
+            "index_dip": to_px(landmarks[self.INDEX_DIP]),
             "index_tip": to_px(landmarks[self.INDEX_TIP]),
             "middle_mcp": to_px(landmarks[self.MIDDLE_MCP]),
         }
 
-    def _project_to_screen_edge(self, mcp_px, tip_px):
-        mx, my = mcp_px
+    def _ray_segment(self, points):
+        if self.ray_mode == "mcp_tip":
+            return points["index_mcp"], points["index_tip"]
+
+        joints = np.asarray(
+            [
+                points["index_pip"],
+                points["index_dip"],
+                points["index_tip"],
+            ],
+            dtype=np.float32,
+        )
+        centered = joints - joints.mean(axis=0)
+        _, _, axes = np.linalg.svd(centered, full_matrices=False)
+        direction = axes[0]
+        forward = joints[-1] - joints[0]
+        if float(np.dot(direction, forward)) < 0:
+            direction = -direction
+        segment_length = max(float(np.linalg.norm(forward)), 1.0)
+        start = joints[0]
+        tip = start + direction * segment_length
+        return tuple(start.tolist()), tuple(tip.tolist())
+
+    def _project_to_screen_edge(self, start_px, tip_px):
+        mx, my = start_px
         tx, ty = tip_px
         dx = tx - mx
         dy = ty - my
@@ -327,14 +567,10 @@ class PointingTargetEstimator:
             if cx < 0 or cx >= self.frame_w or cy < 0 or cy >= self.frame_h:
                 return last
             last = (cx, cy)
-
         return last
 
-    def _march(self, mcp_px, tip_px):
-        if self.depth_map is None:
-            return None
-
-        mx, my = mcp_px
+    def _march(self, depth_map, start_px, tip_px):
+        mx, my = start_px
         tx, ty = tip_px
         dx = tx - mx
         dy = ty - my
@@ -344,10 +580,9 @@ class PointingTargetEstimator:
 
         ux = dx / dist
         uy = dy / dist
-
         mx_c = int(np.clip(mx, 0, self.frame_w - 1))
         my_c = int(np.clip(my, 0, self.frame_h - 1))
-        start_midas = float(self.depth_map[my_c, mx_c])
+        start_midas = float(depth_map[my_c, mx_c])
         start_depth_m = self.depth_est.midas_to_meters(start_midas)
         start_offset = dist + 35
 
@@ -358,10 +593,9 @@ class PointingTargetEstimator:
             if cx < 0 or cx >= self.frame_w or cy < 0 or cy >= self.frame_h:
                 return None
 
-            surface_midas = float(self.depth_map[cy, cx])
+            surface_midas = float(depth_map[cy, cx])
             surface_depth_m = self.depth_est.midas_to_meters(surface_midas)
             ray_depth_m = start_depth_m * (t / dist)
             if ray_depth_m >= surface_depth_m * (1.0 - DEPTH_HIT_THRESHOLD):
                 return (cx, cy)
-
         return None

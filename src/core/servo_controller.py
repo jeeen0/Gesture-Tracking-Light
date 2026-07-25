@@ -43,11 +43,13 @@ class ServoController:
             log.info(f"PCA9685 initialized at 0x{PCA9685_ADDRESS:02X}, {PCA9685_FREQ}Hz")
 
         self._lock = threading.Lock()
+        self._io_lock = threading.Lock()
         self._current_pan = initial_pan
         self._current_tilt = initial_tilt
         self._target_pan = initial_pan
         self._target_tilt = initial_tilt
         self._new_target = threading.Event()
+        self._paused = threading.Event()
         self._stop = False
 
         self._set_raw(SERVO_PAN_CH, initial_pan)
@@ -68,10 +70,11 @@ class ServoController:
         log.debug(f"CH{channel} cmd={angle:.1f} → PWM={actual:.1f}")
         if self.kit is None:
             return
-        try:
-            self.kit.servo[channel].angle = actual
-        except Exception as e:
-            log.error(f"Failed to set CH{channel} to {actual}°: {e}")
+        with self._io_lock:
+            try:
+                self.kit.servo[channel].angle = actual
+            except Exception as e:
+                log.error(f"Failed to set CH{channel} to {actual}°: {e}")
 
     def move_to(self, pan_deg: float, tilt_deg: float, smooth: bool = True):
         pan_target = self._clamp_pan(pan_deg)
@@ -98,8 +101,12 @@ class ServoController:
             if self._stop:
                 break
             self._new_target.clear()
+            if self._paused.is_set():
+                continue
 
             while not self._stop:
+                if self._paused.is_set():
+                    break
                 with self._lock:
                     pan_target = self._target_pan
                     tilt_target = self._target_tilt
@@ -117,7 +124,7 @@ class ServoController:
                 interrupted = False
 
                 for i in range(1, steps + 1):
-                    if self._stop or self._new_target.is_set():
+                    if self._stop or self._paused.is_set() or self._new_target.is_set():
                         interrupted = True
                         break
                     t = i / steps
@@ -135,6 +142,9 @@ class ServoController:
                     with self._lock:
                         self._current_pan = pan_target
                         self._current_tilt = tilt_target
+                    break
+
+                if self._paused.is_set():
                     break
 
                 # 새 명령이 와서 중단 → 현재 위치에서 재계획
@@ -167,18 +177,50 @@ class ServoController:
         log.info("Homing to center")
         self.move_to(90, 90, smooth=True)
 
+    def pause(self):
+        """Keep the worker alive while releasing servo PWM during sleep."""
+        if self._stop or self._paused.is_set():
+            return
+        self._paused.set()
+        self._new_target.set()
+        if self.kit is None:
+            return
+        with self._io_lock:
+            try:
+                self.kit.servo[SERVO_PAN_CH].angle = None
+                self.kit.servo[SERVO_TILT_CH].angle = None
+                log.info("Servo PWM paused")
+            except Exception as e:
+                log.error(f"Pause error: {e}")
+
+    def resume(self):
+        """Re-enable PWM at the last known position and resume queued motion."""
+        if self._stop or not self._paused.is_set():
+            return
+        with self._lock:
+            pan_now = self._current_pan
+            tilt_now = self._current_tilt
+        self._paused.clear()
+        self._set_raw(SERVO_PAN_CH, pan_now)
+        self._set_raw(SERVO_TILT_CH, tilt_now)
+        self._new_target.set()
+        log.info("Servo PWM resumed")
+
     def shutdown(self):
         """워커 스레드 종료 후 서보 PWM 끄기."""
+        if self._stop:
+            return
         self._stop = True
         self._new_target.set()
         if self.kit is None:
             return
-        try:
-            self.kit.servo[SERVO_PAN_CH].angle = None
-            self.kit.servo[SERVO_TILT_CH].angle = None
-            log.info("Servo PWM disabled")
-        except Exception as e:
-            log.error(f"Shutdown error: {e}")
+        with self._io_lock:
+            try:
+                self.kit.servo[SERVO_PAN_CH].angle = None
+                self.kit.servo[SERVO_TILT_CH].angle = None
+                log.info("Servo PWM disabled")
+            except Exception as e:
+                log.error(f"Shutdown error: {e}")
 
     def __enter__(self):
         return self

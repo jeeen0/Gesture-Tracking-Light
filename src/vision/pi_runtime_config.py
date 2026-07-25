@@ -79,8 +79,11 @@ YOLO_ROI_PADDING_RATIO = float(os.environ.get("PI_YOLO_ROI_PADDING", "0.25"))
 # 기본 ROI (Tracked hand ROI): once a hand is found, use this smaller ROI first.
 TRACK_ROI_SCALE = int(os.environ.get("PI_TRACK_ROI_SCALE", "2"))
 TRACK_ROI_PADDING_RATIO = float(os.environ.get("PI_TRACK_ROI_PADDING", "0.65"))
+TRACK_ROI_RETRY_EXPAND_RATIO = float(os.environ.get("PI_TRACK_ROI_RETRY_EXPAND", "0.55"))
 TRACK_ROI_TTL = float(os.environ.get("PI_TRACK_ROI_TTL", "1.0"))
 FULL_FRAME_REACQUIRE_INTERVAL = float(os.environ.get("PI_FULL_FRAME_REACQUIRE_INTERVAL", "0.50"))
+ROI_INPUT_SIZE = max(128, int(os.environ.get("PI_ROI_INPUT_SIZE", "320")))
+LATEST_FRAME_CAPTURE = os.environ.get("PI_LATEST_FRAME_CAPTURE", "1") != "0"
 
 # YOLO should be used as a reacquire detector, not every frame.
 YOLO_REACQUIRE_INTERVAL = float(os.environ.get("PI_YOLO_REACQUIRE_INTERVAL", "0.70"))
@@ -146,3 +149,21 @@ POINT_TILT_GAIN = float(os.environ.get("PI_POINT_TILT_GAIN", "1.0"))
 
 POINT_PAN_OFFSET_DEG = float(os.environ.get("PI_POINT_PAN_OFFSET_DEG", "0.0"))
 POINT_TILT_OFFSET_DEG = float(os.environ.get("PI_POINT_TILT_OFFSET_DEG", "0.0"))
+
+# Point-mode transition and optional pointing implementations.
+POINT_ENTRY_GRACE_SECONDS = float(os.environ.get("PI_POINT_ENTRY_GRACE_SECONDS", "1.0"))
+POINT_ARM_WINDOW = max(1, int(os.environ.get("PI_POINT_ARM_WINDOW", "5")))
+POINT_ARM_MIN_HITS = min(
+    POINT_ARM_WINDOW,
+    max(1, int(os.environ.get("PI_POINT_ARM_MIN_HITS", "3"))),
+)
+POINT_RAY_MODE = os.environ.get("PI_POINT_RAY_MODE", "mcp_tip").strip().lower()
+
+# Optional pixel-to-servo lookup calibration. Missing files fall back to
+# center/gain/offset conversion.
+SERVO_POINTING_CALIB_PATH = resolve_project_path(
+    os.environ.get(
+        "PI_SERVO_POINTING_CALIB",
+        "src/calibration/servo_pointing_calibration.json",
+    )
+)

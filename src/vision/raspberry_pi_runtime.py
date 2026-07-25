@@ -4,6 +4,7 @@ import math
 import sys
 import shutil
 import subprocess
+import threading
 import time
 from collections import deque
 from pathlib import Path
@@ -36,15 +37,16 @@ from pi_runtime_config import (
     STANDBY_INFERENCE_FPS,
     POINT_INFERENCE_FPS,
     PREVIEW_SCALE,
-    TRACK_ROI_SCALE,
+    ROI_INPUT_SIZE,
+    LATEST_FRAME_CAPTURE,
     TRACK_ROI_PADDING_RATIO,
+    TRACK_ROI_RETRY_EXPAND_RATIO,
     TRACK_ROI_TTL,
     FULL_FRAME_REACQUIRE_INTERVAL,
     YOLO_AFTER_MISSES,
     YOLO_REACQUIRE_INTERVAL,
     ROI_FALLBACK_AFTER_MISSES,
     ROI_FALLBACK_INTERVAL,
-    ROI_SCALE,
     SAVE_VIDEO,
     SAVE_VIDEO_FOURCC,
     SAVE_VIDEO_FPS,
@@ -60,7 +62,6 @@ from pi_runtime_config import (
     WAVE_MOTION_SPAN_RATIO,
     YOLO_CONFIDENCE,
     YOLO_ROI_PADDING_RATIO,
-    YOLO_ROI_SCALE,
 )
 from pi_runtime_config import PROJECT_ROOT
 
@@ -145,6 +146,57 @@ class RpicamVidCamera:
                 self.proc.wait(timeout=2.0)
             except subprocess.TimeoutExpired:
                 self.proc.kill()
+
+
+class LatestFrameCamera:
+    """Continuously capture and expose only the newest complete camera frame."""
+
+    def __init__(self, camera):
+        self.camera = camera
+        self.name = f"{camera.name}_latest"
+        self._condition = threading.Condition()
+        self._frame = None
+        self._sequence = 0
+        self._last_read_sequence = 0
+        self._stopped = False
+        self._thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self._thread.start()
+
+    def _capture_loop(self):
+        while not self._stopped:
+            ok, frame = self.camera.read()
+            if not ok or frame is None:
+                if self._stopped:
+                    break
+                time.sleep(0.01)
+                continue
+            with self._condition:
+                self._frame = frame
+                self._sequence += 1
+                self._condition.notify_all()
+
+    def read(self, timeout=2.0):
+        deadline = time.monotonic() + timeout
+        with self._condition:
+            while (
+                not self._stopped
+                and self._sequence <= self._last_read_sequence
+            ):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return False, None
+                self._condition.wait(timeout=remaining)
+            if self._frame is None:
+                return False, None
+            self._last_read_sequence = self._sequence
+            return True, self._frame.copy()
+
+    def release(self):
+        self._stopped = True
+        with self._condition:
+            self._condition.notify_all()
+        self.camera.release()
+        self._thread.join(timeout=2.0)
 
 
 def open_camera():
@@ -329,6 +381,17 @@ def clamp_roi_box(box, frame_width, frame_height):
     return x1, y1, x2, y2
 
 
+def expand_roi_box(box, ratio, frame_width, frame_height):
+    x1, y1, x2, y2 = box
+    pad_x = (x2 - x1) * max(0.0, ratio)
+    pad_y = (y2 - y1) * max(0.0, ratio)
+    return clamp_roi_box(
+        (x1 - pad_x, y1 - pad_y, x2 + pad_x, y2 + pad_y),
+        frame_width,
+        frame_height,
+    )
+
+
 def gesture_zone_box(frame_width, frame_height):
     return clamp_roi_box(
         (
@@ -430,7 +493,7 @@ def yolo_hand_box_from_box(controller, frame, search_box):
     pad = max(bx2 - bx1, by2 - by1) * YOLO_ROI_PADDING_RATIO
     return clamp_roi_box((bx1 - pad, by1 - pad, bx2 + pad, by2 + pad), frame_width, frame_height)
 
-def process_roi_with_landmark_remap(hands, frame_rgb, roi_box, roi_scale):
+def process_roi_with_landmark_remap(hands, frame_rgb, roi_box, input_size):
     frame_height, frame_width = frame_rgb.shape[:2]
     x1, y1, x2, y2 = clamp_roi_box(roi_box, frame_width, frame_height)
     roi = frame_rgb[y1:y2, x1:x2]
@@ -438,19 +501,35 @@ def process_roi_with_landmark_remap(hands, frame_rgb, roi_box, roi_scale):
         return None
 
     roi_height, roi_width = roi.shape[:2]
-    upscaled = cv2.resize(
+    input_size = max(64, int(input_size))
+    scale = min(input_size / roi_width, input_size / roi_height)
+    resized_width = max(1, int(round(roi_width * scale)))
+    resized_height = max(1, int(round(roi_height * scale)))
+    resized = cv2.resize(
         roi,
-        (roi_width * roi_scale, roi_height * roi_scale),
+        (resized_width, resized_height),
         interpolation=cv2.INTER_LINEAR,
     )
-    roi_results = hands.process(upscaled)
+    pad_x = (input_size - resized_width) // 2
+    pad_y = (input_size - resized_height) // 2
+    letterboxed = np.zeros((input_size, input_size, 3), dtype=roi.dtype)
+    letterboxed[
+        pad_y:pad_y + resized_height,
+        pad_x:pad_x + resized_width,
+    ] = resized
+
+    roi_results = hands.process(letterboxed)
     if not has_hand(roi_results):
         return None
 
     for hand_landmarks in roi_results.multi_hand_landmarks:
         for landmark in hand_landmarks.landmark:
-            landmark.x = (x1 + landmark.x * roi_width) / frame_width
-            landmark.y = (y1 + landmark.y * roi_height) / frame_height
+            model_x = landmark.x * input_size
+            model_y = landmark.y * input_size
+            crop_x = (model_x - pad_x) / scale
+            crop_y = (model_y - pad_y) / scale
+            landmark.x = float(np.clip((x1 + crop_x) / frame_width, 0.0, 1.0))
+            landmark.y = float(np.clip((y1 + crop_y) / frame_height, 0.0, 1.0))
     return roi_results
 
 
@@ -541,6 +620,7 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
         or controller.point_status in (
             "tracking",
             "tracking_depth",
+            "tracking_depth_waiting",
             "tracking_depth_fallback",
             "tracking_2d_fallback",
             "locked",
@@ -677,6 +757,9 @@ def main():
     }
     controller.start_preloads()
     cap = open_camera()
+    if LATEST_FRAME_CAPTURE:
+        cap = LatestFrameCamera(cap)
+        print("[PI] latest-frame capture enabled", flush=True)
     video_writer = None
 
     def _shutdown_hardware():
@@ -695,6 +778,11 @@ def main():
             cap.release()
         except Exception:
             pass
+        if controller.point_estimator is not None:
+            try:
+                controller.point_estimator.close()
+            except Exception:
+                pass
         if controller.servo is not None:
             try:
                 controller.servo.shutdown()
@@ -751,7 +839,13 @@ def main():
         min_detection_confidence=MP_DET_CONF,
         min_tracking_confidence=MP_TRK_CONF,
         max_num_hands=1,
-    ) as hands:
+    ) as full_hands, mp_hands.Hands(
+        static_image_mode=True,
+        model_complexity=MP_MODEL_COMPLEXITY,
+        min_detection_confidence=MP_DET_CONF,
+        min_tracking_confidence=MP_TRK_CONF,
+        max_num_hands=1,
+    ) as roi_hands:
         while True:
             ok, frame = cap.read()
             if not ok:
@@ -898,18 +992,39 @@ def main():
 
                     if tracked_roi_valid:
                         roi_results = process_roi_with_landmark_remap(
-                            hands,
+                            roi_hands,
                             frame_rgb,
                             last_hand_roi_box,
-                            TRACK_ROI_SCALE,
+                            ROI_INPUT_SIZE,
                         )
                         if has_hand(roi_results):
                             new_results = roi_results
                             processing_mode = "tracked_hand_roi"
                             roi_box = last_hand_roi_box
-                            roi_scale = TRACK_ROI_SCALE
+                            roi_scale = ROI_INPUT_SIZE
 
-                    # 2) If tracked ROI failed, try motion ROI with MediaPipe.
+                    # 2) Retry once with an expanded tracked ROI before falling
+                    # back to motion/full-frame reacquisition.
+                    if tracked_roi_valid and new_results is None:
+                        expanded_roi_box = expand_roi_box(
+                            last_hand_roi_box,
+                            TRACK_ROI_RETRY_EXPAND_RATIO,
+                            frame_width,
+                            frame_height,
+                        )
+                        roi_results = process_roi_with_landmark_remap(
+                            roi_hands,
+                            frame_rgb,
+                            expanded_roi_box,
+                            ROI_INPUT_SIZE,
+                        )
+                        if has_hand(roi_results):
+                            new_results = roi_results
+                            processing_mode = "expanded_hand_roi"
+                            roi_box = expanded_roi_box
+                            roi_scale = ROI_INPUT_SIZE
+
+                    # 3) If tracked ROI failed, try motion ROI with MediaPipe.
                     if (
                         new_results is None
                         and ENABLE_MOTION_ROI
@@ -918,20 +1033,20 @@ def main():
                         and (ENABLE_POINT_ROI or not controller.point_mode)
                     ):
                         roi_results = process_roi_with_landmark_remap(
-                            hands,
+                            roi_hands,
                             frame_rgb,
                             motion_roi_box,
-                            ROI_SCALE,
+                            ROI_INPUT_SIZE,
                         )
                         motion_roi_used = True
                         roi_box = motion_roi_box
-                        roi_scale = ROI_SCALE
+                        roi_scale = ROI_INPUT_SIZE
 
                         if has_hand(roi_results):
                             new_results = roi_results
                             processing_mode = "motion_roi"
 
-                    # 3) If still no hand, use YOLO as a reacquire detector.
+                    # 4) If still no hand, use YOLO as a reacquire detector.
                     should_try_yolo = (
                         new_results is None
                         and (ENABLE_POINT_YOLO_ROI or not controller.point_mode)
@@ -956,22 +1071,22 @@ def main():
                         if yolo_roi_box is not None:
                             yolo_roi_used = True
                             roi_box = yolo_roi_box
-                            roi_scale = YOLO_ROI_SCALE
+                            roi_scale = ROI_INPUT_SIZE
 
                             roi_results = process_roi_with_landmark_remap(
-                                hands,
+                                roi_hands,
                                 frame_rgb,
                                 yolo_roi_box,
-                                YOLO_ROI_SCALE,
+                                ROI_INPUT_SIZE,
                             )
                             if has_hand(roi_results):
                                 new_results = roi_results
                                 processing_mode = "yolo_reacquire_roi"
 
-                    # 4) Full-frame reacquire periodically or when all ROI paths fail.
+                    # 5) Full-frame reacquire periodically or when all ROI paths fail.
                     if new_results is None:
                         processing_mode = "full_frame"
-                        new_results = hands.process(frame_rgb)
+                        new_results = full_hands.process(frame_rgb)
                         last_full_frame_time = now_infer
 
                     results = new_results
@@ -1097,7 +1212,13 @@ def main():
                     state["confirmed_gesture"] = None
                     current_gesture = None
 
-                gesture = controller.apply_gesture(current_gesture, results, clean_frame, is_shaking)
+                gesture = controller.apply_gesture(
+                    current_gesture,
+                    results,
+                    clean_frame,
+                    is_shaking,
+                    sample_updated=results_updated,
+                )
                 dispatch_hardware(led, controller, gesture, hw_state)
 
                 state.update(
