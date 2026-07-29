@@ -72,7 +72,8 @@ python -m src.main
 python -m src.tests.pointing_servo_calibration
 ```
 
-화면 중앙부터 시작해 3×3의 총 9개 지점을 보정합니다. 각 지점에서
+화면을 3×3으로 나눈 각 구역의 중앙, 총 9개 지점을 보정합니다.
+첫 보정점은 전체 화면 중앙입니다. 각 지점에서
 `A/D`로 Pan, `W/S`로 Tilt를 모두 맞춘 뒤 `Enter`를 한 번 누르면
 두 축의 보정값이 같은 지점에 함께 저장됩니다.
 

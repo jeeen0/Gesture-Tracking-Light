@@ -46,16 +46,18 @@ from src.core.led_controller import LEDController  # noqa: E402
 def calibration_targets():
     cx = FRAME_W // 2
     cy = FRAME_H // 2
-    right = FRAME_W - 1
-    bottom = FRAME_H - 1
+    left = round(FRAME_W / 6)
+    right = round(FRAME_W * 5 / 6)
+    top = round(FRAME_H / 6)
+    bottom = round(FRAME_H * 5 / 6)
     return [
         (cx, cy),
-        (0, 0),
-        (cx, 0),
-        (right, 0),
-        (0, cy),
+        (left, top),
+        (cx, top),
+        (right, top),
+        (left, cy),
         (right, cy),
-        (0, bottom),
+        (left, bottom),
         (cx, bottom),
         (right, bottom),
     ]
