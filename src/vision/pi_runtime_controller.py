@@ -154,6 +154,7 @@ class PiSmartLightController:
                 mode=self.servo_pointing_calibration.mode,
                 pan_points=len(self.servo_pointing_calibration.pan_points),
                 tilt_points=len(self.servo_pointing_calibration.tilt_points),
+                grid_points=len(self.servo_pointing_calibration.grid_values),
             )
         elif self.servo_pointing_calibration.error:
             emit(
@@ -478,12 +479,17 @@ class PiSmartLightController:
             tilt_correction = 0.0
             if (
                 lut_values is not None
-                and self.servo_pointing_calibration.mode == "residual"
+                and self.servo_pointing_calibration.mode
+                in {"residual", "residual_2d"}
             ):
                 pan_correction, tilt_correction = lut_values
                 new_servo_pan = base_servo_pan + pan_correction
                 new_servo_tilt = base_servo_tilt + tilt_correction
-                servo_mapping = "angle_gain_offset+residual_lut"
+                servo_mapping = (
+                    "angle_gain_offset+residual_2d_lut"
+                    if self.servo_pointing_calibration.mode == "residual_2d"
+                    else "angle_gain_offset+residual_lut"
+                )
             elif lut_values is not None:
                 # Keep old absolute-angle files working until recalibration.
                 new_servo_pan, new_servo_tilt = lut_values
@@ -678,4 +684,3 @@ class PiSmartLightController:
             "wave_active": wave_active,
             "fps": round(fps, 1),
         }
-

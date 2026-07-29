@@ -72,6 +72,10 @@ python -m src.main
 python -m src.tests.pointing_servo_calibration
 ```
 
+화면 중앙부터 시작해 3×3의 총 9개 지점을 보정합니다. 각 지점에서
+`A/D`로 Pan, `W/S`로 Tilt를 모두 맞춘 뒤 `Enter`를 한 번 누르면
+두 축의 보정값이 같은 지점에 함께 저장됩니다.
+
 각 화면 지점에서 스크립트가 먼저 현재 기본 매핑 각도로 이동합니다.
 조명 중심을 화면의 십자 표시에 맞춘 뒤 `Enter`를 누르면 기본 각도와
 실제 각도의 차이만 저장됩니다.
@@ -95,12 +99,14 @@ src/calibration/servo_pointing_calibration.json
 ```json
 {
   "frame_size": [640, 360],
-  "mode": "residual",
-  "pan": [
-    {"pixel": 320, "correction_deg": 1.5}
-  ],
-  "tilt": [
-    {"pixel": 180, "correction_deg": -2.0}
+  "mode": "residual_2d",
+  "points": [
+    {
+      "x": 320,
+      "y": 180,
+      "pan_correction_deg": 1.5,
+      "tilt_correction_deg": -2.0
+    }
   ]
 }
 ```
@@ -119,8 +125,8 @@ src/calibration/servo_pointing_calibration.json
 정상 적용 로그:
 
 ```text
-mode=residual
-servo_mapping=angle_gain_offset+residual_lut
+mode=residual_2d
+servo_mapping=angle_gain_offset+residual_2d_lut
 ```
 
 ## 3. 포인팅 테스트 실행

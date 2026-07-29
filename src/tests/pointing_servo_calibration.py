@@ -1,4 +1,4 @@
-"""Interactive full-frame pixel to Pan/Tilt LUT calibration.
+"""Interactive full-frame pixel to Pan/Tilt 2D LUT calibration.
 
 Run from the project root on Raspberry Pi:
     python -m src.tests.pointing_servo_calibration
@@ -12,6 +12,7 @@ Controls:
 """
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -45,23 +46,32 @@ from src.core.led_controller import LEDController  # noqa: E402
 def calibration_targets():
     cx = FRAME_W // 2
     cy = FRAME_H // 2
-    # Start at the existing main CENTER before moving to the outer points.
-    pan_pixels = [cx, 0, FRAME_W // 4, (FRAME_W * 3) // 4, FRAME_W - 1]
-    tilt_pixels = [cy, 0, FRAME_H // 4, (FRAME_H * 3) // 4, FRAME_H - 1]
-    return (
-        [("pan", pixel, (pixel, cy)) for pixel in pan_pixels]
-        + [("tilt", pixel, (cx, pixel)) for pixel in tilt_pixels]
-    )
+    right = FRAME_W - 1
+    bottom = FRAME_H - 1
+    return [
+        (cx, cy),
+        (0, 0),
+        (cx, 0),
+        (right, 0),
+        (0, cy),
+        (right, cy),
+        (0, bottom),
+        (cx, bottom),
+        (right, bottom),
+    ]
 
 
-def save_calibration(path, pan_points, tilt_points):
+def save_calibration(path, points):
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
+    if output.exists():
+        backup = output.with_name(f"{output.stem}.backup{output.suffix}")
+        shutil.copy2(output, backup)
+        print(f"[Calibration] previous LUT backed up to {backup}", flush=True)
     data = {
         "frame_size": [FRAME_W, FRAME_H],
-        "mode": "residual",
-        "pan": pan_points,
-        "tilt": tilt_points,
+        "mode": "residual_2d",
+        "points": points,
     }
     output.write_text(
         json.dumps(data, ensure_ascii=False, indent=2),
@@ -82,8 +92,7 @@ def main():
 
     targets = calibration_targets()
     target_index = 0
-    pan_points = []
-    tilt_points = []
+    calibration_points = []
     pan_deg = float(controller.servo_pan_deg)
     tilt_deg = float(controller.servo_tilt_deg)
     step = 1.0
@@ -104,13 +113,15 @@ def main():
             if MIRROR:
                 frame = cv2.flip(frame, 1)
 
-            axis, pixel, (target_x, target_y) = targets[target_index]
+            target_x, target_y = targets[target_index]
             base_pan_deg, base_tilt_deg = controller.base_servo_angles_for_pixel(
                 (target_x, target_y)
             )
             if prepared_target_index != target_index:
-                pan_deg = max(PAN_MIN_DEG, min(PAN_MAX_DEG, base_pan_deg))
-                tilt_deg = max(TILT_MIN_DEG, min(TILT_MAX_DEG, base_tilt_deg))
+                pan_deg = base_pan_deg
+                tilt_deg = base_tilt_deg
+                pan_deg = max(PAN_MIN_DEG, min(PAN_MAX_DEG, pan_deg))
+                tilt_deg = max(TILT_MIN_DEG, min(TILT_MAX_DEG, tilt_deg))
                 controller.servo.move_to(pan_deg, tilt_deg)
                 prepared_target_index = target_index
             cv2.drawMarker(
@@ -122,10 +133,11 @@ def main():
                 thickness=2,
             )
             lines = [
-                f"target {target_index + 1}/{len(targets)} axis={axis} pixel={pixel}",
+                f"target {target_index + 1}/{len(targets)} "
+                f"pixel=({target_x},{target_y})",
                 f"pan={pan_deg:.1f} tilt={tilt_deg:.1f} step={step:.1f}",
                 f"base pan={base_pan_deg:.1f} tilt={base_tilt_deg:.1f}",
-                "A/D pan  W/S tilt  [/] step  Enter save  Q quit",
+                "A/D pan + W/S tilt  [/] step  Enter save  Q quit",
             ]
             for line_index, text in enumerate(lines):
                 cv2.putText(
@@ -165,25 +177,21 @@ def main():
                     )
                     continue
                 actual_pan, actual_tilt = controller.servo.get_position()
-                if axis == "pan":
-                    correction_deg = actual_pan - base_pan_deg
-                    pan_points.append(
-                        {
-                            "pixel": pixel,
-                            "correction_deg": round(correction_deg, 3),
-                        }
-                    )
-                else:
-                    correction_deg = actual_tilt - base_tilt_deg
-                    tilt_points.append(
-                        {
-                            "pixel": pixel,
-                            "correction_deg": round(correction_deg, 3),
-                        }
-                    )
+                pan_correction = actual_pan - base_pan_deg
+                tilt_correction = actual_tilt - base_tilt_deg
+                calibration_points.append(
+                    {
+                        "x": target_x,
+                        "y": target_y,
+                        "pan_correction_deg": round(pan_correction, 3),
+                        "tilt_correction_deg": round(tilt_correction, 3),
+                    }
+                )
                 print(
-                    f"[Calibration] recorded {axis} pixel={pixel} "
-                    f"correction={correction_deg:+.3f}deg",
+                    f"[Calibration] recorded pixel=({target_x},{target_y}) "
+                    f"servo=({actual_pan:.3f},{actual_tilt:.3f}) "
+                    f"correction=({pan_correction:+.3f},"
+                    f"{tilt_correction:+.3f})deg",
                     flush=True,
                 )
                 target_index += 1
@@ -197,11 +205,7 @@ def main():
                 tilt_deg = max(TILT_MIN_DEG, min(TILT_MAX_DEG, tilt_deg))
                 controller.servo.move_to(pan_deg, tilt_deg)
 
-        save_calibration(
-            SERVO_POINTING_CALIB_PATH,
-            pan_points,
-            tilt_points,
-        )
+        save_calibration(SERVO_POINTING_CALIB_PATH, calibration_points)
     finally:
         cap.release()
         led.shutdown()

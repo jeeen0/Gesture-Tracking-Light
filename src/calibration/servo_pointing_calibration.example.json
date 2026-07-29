@@ -1,18 +1,15 @@
 {
   "frame_size": [640, 360],
-  "mode": "residual",
-  "pan": [
-    {"pixel": 0, "correction_deg": 0.0},
-    {"pixel": 160, "correction_deg": 0.0},
-    {"pixel": 320, "correction_deg": 0.0},
-    {"pixel": 480, "correction_deg": 0.0},
-    {"pixel": 639, "correction_deg": 0.0}
-  ],
-  "tilt": [
-    {"pixel": 0, "correction_deg": 0.0},
-    {"pixel": 90, "correction_deg": 0.0},
-    {"pixel": 180, "correction_deg": 0.0},
-    {"pixel": 270, "correction_deg": 0.0},
-    {"pixel": 359, "correction_deg": 0.0}
+  "mode": "residual_2d",
+  "points": [
+    {"x": 0, "y": 0, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 320, "y": 0, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 639, "y": 0, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 0, "y": 180, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 320, "y": 180, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 639, "y": 180, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 0, "y": 359, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 320, "y": 359, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0},
+    {"x": 639, "y": 359, "pan_correction_deg": 0.0, "tilt_correction_deg": 0.0}
   ]
 }
