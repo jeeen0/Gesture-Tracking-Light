@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import tempfile
 import threading
@@ -150,6 +151,7 @@ class PiSmartLightController:
             emit(
                 "servo_pointing_calibration_ready",
                 file=SERVO_POINTING_CALIB_PATH,
+                mode=self.servo_pointing_calibration.mode,
                 pan_points=len(self.servo_pointing_calibration.pan_points),
                 tilt_points=len(self.servo_pointing_calibration.tilt_points),
             )
@@ -274,6 +276,29 @@ class PiSmartLightController:
             "cx": self.undistorter.cx,
             "cy": self.undistorter.cy,
         }
+
+    @staticmethod
+    def _base_servo_angles_from_camera_angles(pan_deg, tilt_deg):
+        return (
+            SERVO_PAN_CENTER
+            + float(pan_deg) * SERVO_PAN_SIGN * POINT_PAN_GAIN
+            + POINT_PAN_OFFSET_DEG,
+            SERVO_TILT_CENTER
+            + float(tilt_deg) * SERVO_TILT_SIGN * POINT_TILT_GAIN
+            + POINT_TILT_OFFSET_DEG,
+        )
+
+    def base_servo_angles_for_pixel(self, target_px):
+        """Return the center/sign/gain/offset mapping before LUT correction."""
+        x, y = target_px
+        intrinsics = self._pointing_intrinsics()
+        fx = float(intrinsics.get("cam_fx", FRAME_W * 0.7))
+        fy = float(intrinsics.get("cam_fy", fx))
+        cx = float(intrinsics.get("cx", FRAME_W / 2.0))
+        cy = float(intrinsics.get("cy", FRAME_H / 2.0))
+        pan_deg = math.degrees(math.atan((float(x) - cx) / fx))
+        tilt_deg = math.degrees(math.atan((float(y) - cy) / fy))
+        return self._base_servo_angles_from_camera_angles(pan_deg, tilt_deg)
 
     def start_yolo_preload(self):
         if not ENABLE_YOLO or not PRELOAD_YOLO or self.yolo_preload_started:
@@ -440,25 +465,32 @@ class PiSmartLightController:
             previous_servo_pan = self.servo_pan_deg
             previous_servo_tilt = self.servo_tilt_deg
 
-            # Prefer the measured full-frame pixel LUT when present. Otherwise
-            # keep the existing center/gain/offset conversion.
-            lut_angles = self.servo_pointing_calibration.map_pixel(
+            base_servo_pan, base_servo_tilt = (
+                self._base_servo_angles_from_camera_angles(
+                    self.pan_deg,
+                    self.tilt_deg,
+                )
+            )
+            lut_values = self.servo_pointing_calibration.map_pixel(
                 target["confirmed"]
             )
-            if lut_angles is not None:
-                new_servo_pan, new_servo_tilt = lut_angles
-                servo_mapping = "pixel_lut"
+            pan_correction = 0.0
+            tilt_correction = 0.0
+            if (
+                lut_values is not None
+                and self.servo_pointing_calibration.mode == "residual"
+            ):
+                pan_correction, tilt_correction = lut_values
+                new_servo_pan = base_servo_pan + pan_correction
+                new_servo_tilt = base_servo_tilt + tilt_correction
+                servo_mapping = "angle_gain_offset+residual_lut"
+            elif lut_values is not None:
+                # Keep old absolute-angle files working until recalibration.
+                new_servo_pan, new_servo_tilt = lut_values
+                servo_mapping = "pixel_lut_absolute_legacy"
             else:
-                new_servo_pan = (
-                    SERVO_PAN_CENTER
-                    + self.pan_deg * SERVO_PAN_SIGN * POINT_PAN_GAIN
-                    + POINT_PAN_OFFSET_DEG
-                )
-                new_servo_tilt = (
-                    SERVO_TILT_CENTER
-                    + self.tilt_deg * SERVO_TILT_SIGN * POINT_TILT_GAIN
-                    + POINT_TILT_OFFSET_DEG
-                )
+                new_servo_pan = base_servo_pan
+                new_servo_tilt = base_servo_tilt
                 servo_mapping = "angle_gain_offset"
             new_servo_pan = clamp(new_servo_pan, PAN_MIN_DEG, PAN_MAX_DEG)
             new_servo_tilt = clamp(new_servo_tilt, TILT_MIN_DEG, TILT_MAX_DEG)
@@ -484,6 +516,8 @@ class PiSmartLightController:
                     point_tilt_gain=round(POINT_TILT_GAIN, 3),
                     point_pan_offset_deg=round(POINT_PAN_OFFSET_DEG, 2),
                     point_tilt_offset_deg=round(POINT_TILT_OFFSET_DEG, 2),
+                    pan_lut_correction_deg=round(pan_correction, 2),
+                    tilt_lut_correction_deg=round(tilt_correction, 2),
                     servo_mapping=servo_mapping,
                 )
 

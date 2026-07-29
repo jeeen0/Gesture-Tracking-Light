@@ -1,17 +1,18 @@
 {
   "frame_size": [640, 360],
+  "mode": "residual",
   "pan": [
-    {"pixel": 0, "servo_deg": 45.0},
-    {"pixel": 160, "servo_deg": 67.5},
-    {"pixel": 320, "servo_deg": 90.0},
-    {"pixel": 480, "servo_deg": 112.5},
-    {"pixel": 639, "servo_deg": 135.0}
+    {"pixel": 0, "correction_deg": 0.0},
+    {"pixel": 160, "correction_deg": 0.0},
+    {"pixel": 320, "correction_deg": 0.0},
+    {"pixel": 480, "correction_deg": 0.0},
+    {"pixel": 639, "correction_deg": 0.0}
   ],
   "tilt": [
-    {"pixel": 0, "servo_deg": 157.5},
-    {"pixel": 90, "servo_deg": 146.25},
-    {"pixel": 180, "servo_deg": 135.0},
-    {"pixel": 270, "servo_deg": 123.75},
-    {"pixel": 359, "servo_deg": 112.5}
+    {"pixel": 0, "correction_deg": 0.0},
+    {"pixel": 90, "correction_deg": 0.0},
+    {"pixel": 180, "correction_deg": 0.0},
+    {"pixel": 270, "correction_deg": 0.0},
+    {"pixel": 359, "correction_deg": 0.0}
   ]
 }

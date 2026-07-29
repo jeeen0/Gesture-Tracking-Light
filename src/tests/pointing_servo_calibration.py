@@ -58,6 +58,7 @@ def save_calibration(path, pan_points, tilt_points):
     output.parent.mkdir(parents=True, exist_ok=True)
     data = {
         "frame_size": [FRAME_W, FRAME_H],
+        "mode": "residual",
         "pan": pan_points,
         "tilt": tilt_points,
     }
@@ -85,6 +86,7 @@ def main():
     pan_deg = float(controller.servo_pan_deg)
     tilt_deg = float(controller.servo_tilt_deg)
     step = 1.0
+    prepared_target_index = -1
 
     controller.servo.resume()
     controller.servo.move_to(pan_deg, tilt_deg)
@@ -102,6 +104,14 @@ def main():
                 frame = cv2.flip(frame, 1)
 
             axis, pixel, (target_x, target_y) = targets[target_index]
+            base_pan_deg, base_tilt_deg = controller.base_servo_angles_for_pixel(
+                (target_x, target_y)
+            )
+            if prepared_target_index != target_index:
+                pan_deg = max(PAN_MIN_DEG, min(PAN_MAX_DEG, base_pan_deg))
+                tilt_deg = max(TILT_MIN_DEG, min(TILT_MAX_DEG, base_tilt_deg))
+                controller.servo.move_to(pan_deg, tilt_deg)
+                prepared_target_index = target_index
             cv2.drawMarker(
                 frame,
                 (target_x, target_y),
@@ -113,6 +123,7 @@ def main():
             lines = [
                 f"target {target_index + 1}/{len(targets)} axis={axis} pixel={pixel}",
                 f"pan={pan_deg:.1f} tilt={tilt_deg:.1f} step={step:.1f}",
+                f"base pan={base_pan_deg:.1f} tilt={base_tilt_deg:.1f}",
                 "A/D pan  W/S tilt  [/] step  Enter save  Q quit",
             ]
             for line_index, text in enumerate(lines):
@@ -146,16 +157,34 @@ def main():
             elif key == ord("]"):
                 step = min(10.0, step * 2.0)
             elif key in (10, 13):
-                controller.servo.wait_until_done()
+                if not controller.servo.wait_until_done():
+                    print(
+                        "[Calibration] servo did not reach the target; retry",
+                        flush=True,
+                    )
+                    continue
                 actual_pan, actual_tilt = controller.servo.get_position()
                 if axis == "pan":
+                    correction_deg = actual_pan - base_pan_deg
                     pan_points.append(
-                        {"pixel": pixel, "servo_deg": round(actual_pan, 3)}
+                        {
+                            "pixel": pixel,
+                            "correction_deg": round(correction_deg, 3),
+                        }
                     )
                 else:
+                    correction_deg = actual_tilt - base_tilt_deg
                     tilt_points.append(
-                        {"pixel": pixel, "servo_deg": round(actual_tilt, 3)}
+                        {
+                            "pixel": pixel,
+                            "correction_deg": round(correction_deg, 3),
+                        }
                     )
+                print(
+                    f"[Calibration] recorded {axis} pixel={pixel} "
+                    f"correction={correction_deg:+.3f}deg",
+                    flush=True,
+                )
                 target_index += 1
                 continue
             elif key in (27, ord("q")):

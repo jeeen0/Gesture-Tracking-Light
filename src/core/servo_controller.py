@@ -29,12 +29,20 @@ class ServoController:
     새 명령이 도착하면 진행 중인 이동을 중단하고 현재 위치에서 새 타깃으로 재계획.
     """
 
-    def __init__(self, initial_pan: float = 90.0, initial_tilt: float = 90.0):
+    def __init__(
+        self,
+        initial_pan: float = 90.0,
+        initial_tilt: float = 90.0,
+        max_step_deg: float = SERVO_MAX_STEP_DEG,
+        step_delay_s: float = SERVO_STEP_DELAY_S,
+    ):
         """
         initial_pan, initial_tilt: 시작 시 즉시 송신할 PWM 절대 각도.
         호출자가 전달하는 angle은 항상 PWM 절대 각도로 해석된다 (OFFSET 없음).
         포인팅 각도 → PWM 절대각 변환은 호출자가 담당.
         """
+        initial_pan = self._clamp_pan(float(initial_pan))
+        initial_tilt = self._clamp_tilt(float(initial_tilt))
         if ServoKit is None:
             log.warning("adafruit_servokit not available - running in DRY mode")
             self.kit = None
@@ -48,6 +56,10 @@ class ServoController:
         self._current_tilt = initial_tilt
         self._target_pan = initial_pan
         self._target_tilt = initial_tilt
+        self._home_pan = initial_pan
+        self._home_tilt = initial_tilt
+        self._max_step_deg = max(0.01, float(max_step_deg))
+        self._step_delay_s = max(0.0, float(step_delay_s))
         self._new_target = threading.Event()
         self._paused = threading.Event()
         self._stop = False
@@ -77,6 +89,8 @@ class ServoController:
                 log.error(f"Failed to set CH{channel} to {actual}°: {e}")
 
     def move_to(self, pan_deg: float, tilt_deg: float, smooth: bool = True):
+        if self._stop:
+            return
         pan_target = self._clamp_pan(pan_deg)
         tilt_target = self._clamp_tilt(tilt_deg)
 
@@ -120,7 +134,10 @@ class ServoController:
                 if max_delta < 0.1:
                     break
 
-                steps = max(int(max_delta / SERVO_MAX_STEP_DEG), 1)
+                with self._lock:
+                    max_step_deg = self._max_step_deg
+                    step_delay_s = self._step_delay_s
+                steps = max(math.ceil(max_delta / max_step_deg), 1)
                 interrupted = False
 
                 for i in range(1, steps + 1):
@@ -136,7 +153,7 @@ class ServoController:
                     with self._lock:
                         self._current_pan = pan_now
                         self._current_tilt = tilt_now
-                    time.sleep(SERVO_STEP_DELAY_S)
+                    time.sleep(step_delay_s)
 
                 if not interrupted:
                     with self._lock:
@@ -158,24 +175,42 @@ class ServoController:
         with self._lock:
             return self._current_pan, self._current_tilt
 
-    def wait_until_done(self, timeout: float = 5.0, tol: float = 0.5):
+    def set_motion_profile(self, max_step_deg: float, step_delay_s: float):
+        """다음 보간 스텝부터 이동 속도/부드러움 설정을 적용한다."""
+        if max_step_deg <= 0:
+            raise ValueError("max_step_deg must be greater than 0")
+        if step_delay_s < 0:
+            raise ValueError("step_delay_s must be 0 or greater")
+        with self._lock:
+            self._max_step_deg = float(max_step_deg)
+            self._step_delay_s = float(step_delay_s)
+
+    def get_motion_profile(self) -> tuple[float, float]:
+        """현재 (스텝당 최대 각도, 스텝 지연 초) 설정을 반환한다."""
+        with self._lock:
+            return self._max_step_deg, self._step_delay_s
+
+    def wait_until_done(self, timeout: float = 5.0, tol: float = 0.5) -> bool:
         """현재 진행 중인 이동이 끝날 때까지 대기.
         servo_test 등 동기적 시퀀스 진행에 사용. 비동기 사용에는 호출 불필요."""
         start = time.time()
         while time.time() - start < timeout:
+            if self._stop or self._paused.is_set():
+                return False
             with self._lock:
                 at_target = (
                     abs(self._current_pan - self._target_pan) < tol
                     and abs(self._current_tilt - self._target_tilt) < tol
                 )
             if at_target:
-                return
+                return True
             time.sleep(0.02)
+        return False
 
     def home(self):
-        """중앙 위치로 복귀 (서보 보호용)."""
+        """초기화할 때 지정한 Pan/Tilt 중심 위치로 복귀."""
         log.info("Homing to center")
-        self.move_to(90, 90, smooth=True)
+        self.move_to(self._home_pan, self._home_tilt, smooth=True)
 
     def pause(self):
         """Keep the worker alive while releasing servo PWM during sleep."""
@@ -212,6 +247,11 @@ class ServoController:
             return
         self._stop = True
         self._new_target.set()
+        if (
+            self._worker.is_alive()
+            and threading.current_thread() is not self._worker
+        ):
+            self._worker.join(timeout=1.0)
         if self.kit is None:
             return
         with self._io_lock:

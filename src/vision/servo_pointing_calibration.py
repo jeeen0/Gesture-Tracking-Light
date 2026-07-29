@@ -4,13 +4,14 @@ from pathlib import Path
 
 
 class ServoPointingCalibration:
-    """Piecewise-linear full-frame pixel to absolute servo-angle mapping."""
+    """Piecewise-linear pixel LUT for residual or legacy absolute mapping."""
 
     def __init__(self, path, frame_size):
         self.path = Path(path)
         self.frame_size = (int(frame_size[0]), int(frame_size[1]))
         self.pan_points = []
         self.tilt_points = []
+        self.mode = None
         self.loaded = False
         self.error = None
         self._load()
@@ -25,20 +26,41 @@ class ServoPointingCalibration:
                 raise ValueError(
                     f"frame_size mismatch: calibration={stored_size}, runtime={self.frame_size}"
                 )
-            self.pan_points = self._validate_axis(data.get("pan"), "pan")
-            self.tilt_points = self._validate_axis(data.get("tilt"), "tilt")
+            requested_mode = str(data.get("mode", "")).strip().lower()
+            if not requested_mode:
+                # Files created by the first calibration implementation stored
+                # final absolute angles without an explicit mode.
+                requested_mode = "absolute"
+            if requested_mode not in {"residual", "absolute"}:
+                raise ValueError(f"unsupported calibration mode: {requested_mode}")
+
+            value_key = (
+                "correction_deg" if requested_mode == "residual" else "servo_deg"
+            )
+            self.pan_points = self._validate_axis(
+                data.get("pan"),
+                "pan",
+                value_key,
+            )
+            self.tilt_points = self._validate_axis(
+                data.get("tilt"),
+                "tilt",
+                value_key,
+            )
+            self.mode = requested_mode
             self.loaded = True
         except Exception as exc:
             self.error = str(exc)
             self.pan_points = []
             self.tilt_points = []
+            self.mode = None
 
     @staticmethod
-    def _validate_axis(raw_points, axis_name):
+    def _validate_axis(raw_points, axis_name, value_key):
         if not isinstance(raw_points, list) or len(raw_points) < 2:
             raise ValueError(f"{axis_name} requires at least two calibration points")
         points = sorted(
-            (float(item["pixel"]), float(item["servo_deg"]))
+            (float(item["pixel"]), float(item[value_key]))
             for item in raw_points
         )
         pixels = [pixel for pixel, _ in points]

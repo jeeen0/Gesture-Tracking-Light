@@ -279,6 +279,8 @@ class PointingTargetEstimator:
         self._consumed_sequence = 0
         self._pending_job = None
         self._async_result = None
+        self._latest_depth_captured_at = None
+        self._latest_depth_error = None
         self._async_stop = False
         self._async_condition = threading.Condition()
         self._async_thread = None
@@ -342,8 +344,8 @@ class PointingTargetEstimator:
             return result
 
         if self.async_depth:
-            self._submit_depth_job(frame_bgr, points, ray_start, ray_tip)
-            return self._consume_async_result()
+            self._submit_depth_job(frame_bgr)
+            return self._consume_async_result(points, ray_start, ray_tip)
 
         if self.depth_map is None or self.frame_count % DEPTH_UPDATE_INTERVAL == 0:
             self.depth_map = self.depth_est.estimate(frame_bgr)
@@ -359,7 +361,7 @@ class PointingTargetEstimator:
         self._last_result = result
         return result
 
-    def _submit_depth_job(self, frame_bgr, points, ray_start, ray_tip):
+    def _submit_depth_job(self, frame_bgr):
         with self._async_condition:
             self._job_sequence += 1
             self._pending_job = {
@@ -367,9 +369,6 @@ class PointingTargetEstimator:
                 "generation": self._generation,
                 "captured_at": time.monotonic(),
                 "frame": frame_bgr.copy(),
-                "points": dict(points),
-                "ray_start": tuple(ray_start),
-                "ray_tip": tuple(ray_tip),
             }
             self._async_condition.notify()
 
@@ -399,29 +398,15 @@ class PointingTargetEstimator:
             last_start = time.monotonic()
             try:
                 depth_map = self.depth_est.estimate(job["frame"])
-                payload = self._target_from_depth(
-                    depth_map,
-                    job["points"],
-                    job["ray_start"],
-                    job["ray_tip"],
-                )
-                payload["completed_at"] = time.monotonic()
-            except Exception as exc:
-                raw_target = self._project_to_screen_edge(
-                    job["ray_start"],
-                    job["ray_tip"],
-                )
                 payload = {
-                    "raw_target": raw_target,
-                    "ray_start_px": job["ray_start"],
-                    "ray_tip_px": job["ray_tip"],
-                    "calibrated": False,
-                    "depth_available": False,
-                    "used_depth_hit": False,
-                    "hit_method": "2d_fallback_depth_error",
-                    "depth_error": str(exc),
+                    "depth_map": depth_map,
+                    "depth_error": None,
+                    "completed_at": time.monotonic(),
+                }
+            except Exception as exc:
+                payload = {
                     "depth_map": None,
-                    "ray_mode": self.ray_mode,
+                    "depth_error": str(exc),
                     "completed_at": time.monotonic(),
                 }
 
@@ -435,31 +420,83 @@ class PointingTargetEstimator:
             with self._async_condition:
                 self._async_result = payload
 
-    def _consume_async_result(self):
+    def _consume_async_result(self, points, ray_start, ray_tip):
         with self._async_condition:
             payload = dict(self._async_result) if self._async_result else None
 
         if (
-            payload is None
-            or payload["generation"] != self._generation
-            or payload["sequence"] <= self._consumed_sequence
-            or time.monotonic() - payload["captured_at"] > DEPTH_RESULT_MAX_AGE_SECONDS
+            payload is not None
+            and payload["generation"] == self._generation
+            and payload["sequence"] > self._consumed_sequence
         ):
-            result = dict(self._last_result)
-            result["async_pending"] = True
+            self._consumed_sequence = payload["sequence"]
+            if payload.get("depth_map") is not None:
+                self.depth_map = payload["depth_map"]
+                self._latest_depth_captured_at = payload["captured_at"]
+                self._latest_depth_error = None
+            else:
+                self._latest_depth_error = payload.get("depth_error")
+
+        now = time.monotonic()
+        depth_age = (
+            max(0.0, now - self._latest_depth_captured_at)
+            if self._latest_depth_captured_at is not None
+            else None
+        )
+        depth_is_fresh = (
+            self.depth_map is not None
+            and depth_age is not None
+            and depth_age <= DEPTH_RESULT_MAX_AGE_SECONDS
+        )
+
+        # MiDaS remains rate-limited in the worker, but the lightweight ray
+        # intersection and EMA use the current hand landmarks every frame.
+        if depth_is_fresh:
+            target_payload = self._target_from_depth(
+                self.depth_map,
+                points,
+                ray_start,
+                ray_tip,
+            )
+            result = self.tracker.update(target_payload["raw_target"], True)
+            result.update(target_payload)
+            result["async_pending"] = False
+            result["depth_age_seconds"] = depth_age
+            self._last_result = result
             return result
 
-        self._consumed_sequence = payload["sequence"]
-        payload.pop("sequence", None)
-        payload.pop("generation", None)
-        captured_at = payload.pop("captured_at", time.monotonic())
-        payload.pop("completed_at", None)
-        result = self.tracker.update(payload["raw_target"], True)
-        result.update(payload)
-        result["async_pending"] = False
-        result["depth_age_seconds"] = max(0.0, time.monotonic() - captured_at)
-        self.depth_map = payload.get("depth_map")
-        self._last_result = result
+        # If depth inference failed before producing any usable map, retain the
+        # existing 2D fallback while continuing to request fresh depth frames.
+        if self._latest_depth_error:
+            raw_target = self._project_to_screen_edge(ray_start, ray_tip)
+            result = self.tracker.update(raw_target, True)
+            result.update(
+                {
+                    "raw_target": raw_target,
+                    "ray_start_px": ray_start,
+                    "ray_tip_px": ray_tip,
+                    "calibrated": False,
+                    "depth_available": False,
+                    "used_depth_hit": False,
+                    "hit_method": "2d_fallback_depth_error",
+                    "depth_error": self._latest_depth_error,
+                    "depth_map": None,
+                    "async_pending": False,
+                    "ray_mode": self.ray_mode,
+                }
+            )
+            self._last_result = result
+            return result
+
+        # Before the first fresh depth map (or while a previous map is stale),
+        # keep the last target but draw the ray from the current hand pose.
+        result = dict(self._last_result)
+        result["ray_start_px"] = ray_start
+        result["ray_tip_px"] = ray_tip
+        result["async_pending"] = True
+        result["ray_mode"] = self.ray_mode
+        if depth_age is not None:
+            result["depth_age_seconds"] = depth_age
         return result
 
     def _target_from_depth(self, depth_map, points, ray_start, ray_tip):
@@ -492,6 +529,9 @@ class PointingTargetEstimator:
     def reset(self, clear_confirmed=False):
         self.tracker.reset(clear_confirmed=clear_confirmed)
         self._last_result = self._empty_result()
+        self.depth_map = None
+        self._latest_depth_captured_at = None
+        self._latest_depth_error = None
         with self._async_condition:
             self._generation += 1
             self._pending_job = None
