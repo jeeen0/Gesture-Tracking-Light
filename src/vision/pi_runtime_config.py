@@ -28,7 +28,18 @@ CAMERA_BACKEND = os.environ.get("PI_CAMERA_BACKEND", "rpicam-vid").lower()
 FRAME_W = int(os.environ.get("PI_FRAME_W", "640"))
 FRAME_H = int(os.environ.get("PI_FRAME_H", "360"))
 TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "20"))
-MJPEG_QUALITY = max(1, min(100, int(os.environ.get("PI_MJPEG_QUALITY", "90"))))
+CAMERA_AF_MODE = os.environ.get("PI_CAMERA_AF_MODE", "continuous").strip().lower()
+if CAMERA_AF_MODE not in {"default", "manual", "auto", "continuous"}:
+    CAMERA_AF_MODE = "continuous"
+_LENS_POSITION_RAW = os.environ.get("PI_CAMERA_LENS_POSITION", "").strip()
+try:
+    CAMERA_LENS_POSITION = (
+        float(_LENS_POSITION_RAW) if _LENS_POSITION_RAW else None
+    )
+except ValueError:
+    CAMERA_LENS_POSITION = None
+if CAMERA_LENS_POSITION is not None:
+    CAMERA_AF_MODE = "manual"
 MIRROR = os.environ.get("PI_MIRROR", "1") != "0"
 SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "1") == "1"
 PREVIEW_SCALE = max(0.1, float(os.environ.get("PI_PREVIEW_SCALE", "1.0")))

@@ -144,7 +144,8 @@ python -m src.main
 | `PI_CAM_INDEX` | `0` | OpenCV 백엔드일 때 카메라 인덱스 |
 | `PI_FRAME_W` / `PI_FRAME_H` | 640 / 360 | 처리 해상도 |
 | `PI_TARGET_FPS` | 20 | 카메라 목표 fps |
-| `PI_MJPEG_QUALITY` | 90 | `rpicam-vid` MJPEG 압축 품질 (1~100) |
+| `PI_CAMERA_AF_MODE` | `continuous` | 연속 자동초점. `auto`(시작 시 1회)/`manual` 선택 가능 |
+| `PI_CAMERA_LENS_POSITION` | 비어 있음 | 수동 렌즈 위치(디옵터). 설정 시 고정 초점에 사용 |
 | `PI_SHOW_PREVIEW` | 1 | 프리뷰 창 표시 (성능 부담 있음) |
 | `PI_DEBUG` | 0 | STATE JSON + 후보 로그 |
 | `PI_ENABLE_FISHEYE` | 1 | fisheye 왜곡 보정 |

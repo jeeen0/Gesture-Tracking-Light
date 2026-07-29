@@ -15,7 +15,9 @@ import numpy as np
 
 from pi_runtime_config import (
     CAM_INDEX,
+    CAMERA_AF_MODE,
     CAMERA_BACKEND,
+    CAMERA_LENS_POSITION,
     DEBUG_OUTPUT,
     ENABLE_GESTURE_ZONE_ROI,
     ENABLE_HAND_SIZE_GATING,
@@ -26,7 +28,6 @@ from pi_runtime_config import (
     FRAME_H,
     FRAME_W,
     GESTURE_ZONE,
-    MJPEG_QUALITY,
     MIN_FINE_GESTURE_HAND_BBOX_WIDTH_PX,
     MIN_MOTION_ROI_SIZE,
     MIRROR,
@@ -336,8 +337,8 @@ def open_rpicam_vid(errors, backend):
             "--nopreview",
             "--codec",
             "mjpeg",
-            "--quality",
-            str(MJPEG_QUALITY),
+            "--autofocus-mode",
+            CAMERA_AF_MODE,
             "--width",
             str(FRAME_W),
             "--height",
@@ -347,6 +348,8 @@ def open_rpicam_vid(errors, backend):
             "--output",
             "-",
         ]
+        if CAMERA_LENS_POSITION is not None:
+            cmd.extend(["--lens-position", str(CAMERA_LENS_POSITION)])
         try:
             proc = subprocess.Popen(
                 cmd,
@@ -743,7 +746,8 @@ def main():
     print(
         f"[PI] app.py algorithm runtime cam={CAM_INDEX} backend={CAMERA_BACKEND} "
         f"{FRAME_W}x{FRAME_H}@{TARGET_FPS} mirror={MIRROR} "
-        f"mjpeg_quality={MJPEG_QUALITY}",
+        f"af={CAMERA_AF_MODE} "
+        f"lens={CAMERA_LENS_POSITION if CAMERA_LENS_POSITION is not None else 'unset'}",
         flush=True,
     )
     print(
