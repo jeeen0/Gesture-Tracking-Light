@@ -45,8 +45,9 @@ from src.core.led_controller import LEDController  # noqa: E402
 def calibration_targets():
     cx = FRAME_W // 2
     cy = FRAME_H // 2
-    pan_pixels = [0, FRAME_W // 4, cx, (FRAME_W * 3) // 4, FRAME_W - 1]
-    tilt_pixels = [0, FRAME_H // 4, cy, (FRAME_H * 3) // 4, FRAME_H - 1]
+    # Start at the existing main CENTER before moving to the outer points.
+    pan_pixels = [cx, 0, FRAME_W // 4, (FRAME_W * 3) // 4, FRAME_W - 1]
+    tilt_pixels = [cy, 0, FRAME_H // 4, (FRAME_H * 3) // 4, FRAME_H - 1]
     return (
         [("pan", pixel, (pixel, cy)) for pixel in pan_pixels]
         + [("tilt", pixel, (cx, pixel)) for pixel in tilt_pixels]
