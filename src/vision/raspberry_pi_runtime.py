@@ -26,6 +26,7 @@ from pi_runtime_config import (
     FRAME_H,
     FRAME_W,
     GESTURE_ZONE,
+    MJPEG_QUALITY,
     MIN_FINE_GESTURE_HAND_BBOX_WIDTH_PX,
     MIN_MOTION_ROI_SIZE,
     MIRROR,
@@ -335,6 +336,8 @@ def open_rpicam_vid(errors, backend):
             "--nopreview",
             "--codec",
             "mjpeg",
+            "--quality",
+            str(MJPEG_QUALITY),
             "--width",
             str(FRAME_W),
             "--height",
@@ -739,7 +742,8 @@ def main():
 
     print(
         f"[PI] app.py algorithm runtime cam={CAM_INDEX} backend={CAMERA_BACKEND} "
-        f"{FRAME_W}x{FRAME_H}@{TARGET_FPS} mirror={MIRROR}",
+        f"{FRAME_W}x{FRAME_H}@{TARGET_FPS} mirror={MIRROR} "
+        f"mjpeg_quality={MJPEG_QUALITY}",
         flush=True,
     )
     print(

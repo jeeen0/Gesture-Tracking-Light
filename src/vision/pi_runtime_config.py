@@ -28,6 +28,7 @@ CAMERA_BACKEND = os.environ.get("PI_CAMERA_BACKEND", "rpicam-vid").lower()
 FRAME_W = int(os.environ.get("PI_FRAME_W", "640"))
 FRAME_H = int(os.environ.get("PI_FRAME_H", "360"))
 TARGET_FPS = int(os.environ.get("PI_TARGET_FPS", "20"))
+MJPEG_QUALITY = max(1, min(100, int(os.environ.get("PI_MJPEG_QUALITY", "90"))))
 MIRROR = os.environ.get("PI_MIRROR", "1") != "0"
 SHOW_PREVIEW = os.environ.get("PI_SHOW_PREVIEW", "1") == "1"
 PREVIEW_SCALE = max(0.1, float(os.environ.get("PI_PREVIEW_SCALE", "1.0")))
@@ -42,8 +43,8 @@ SAVE_VIDEO_FOURCC = os.environ.get("PI_SAVE_VIDEO_FOURCC", "mp4v")
 SAVE_VIDEO_FPS = float(os.environ.get("PI_SAVE_VIDEO_FPS", str(TARGET_FPS)))
 SAVE_VIDEO_OVERLAY = os.environ.get("PI_SAVE_VIDEO_OVERLAY", "1") != "0"
 
-MP_DET_CONF = float(os.environ.get("PI_MP_DET_CONF", "0.30"))
-MP_TRK_CONF = float(os.environ.get("PI_MP_TRK_CONF", "0.30"))
+MP_DET_CONF = float(os.environ.get("PI_MP_DET_CONF", "0.50"))
+MP_TRK_CONF = float(os.environ.get("PI_MP_TRK_CONF", "0.50"))
 
 # MediaPipe Hands model.
 # 0 = lite / faster, 1 = full / default-ish, 2 = heavier if supported.
@@ -90,7 +91,7 @@ YOLO_REACQUIRE_INTERVAL = float(os.environ.get("PI_YOLO_REACQUIRE_INTERVAL", "0.
 YOLO_AFTER_MISSES = int(os.environ.get("PI_YOLO_AFTER_MISSES", "2"))
 
 ENABLE_GESTURE_ZONE_ROI = os.environ.get("PI_ENABLE_GESTURE_ZONE_ROI", "1") != "0"
-ENABLE_MOTION_ROI = os.environ.get("PI_ENABLE_MOTION_ROI", "1") != "0"
+ENABLE_MOTION_ROI = os.environ.get("PI_ENABLE_MOTION_ROI", "0") != "0"
 GESTURE_ZONE = {
     "x_min_ratio": float(os.environ.get("PI_GESTURE_ZONE_X_MIN", "0.10")),
     "y_min_ratio": float(os.environ.get("PI_GESTURE_ZONE_Y_MIN", "0.05")),

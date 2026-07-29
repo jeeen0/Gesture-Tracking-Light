@@ -144,6 +144,7 @@ python -m src.main
 | `PI_CAM_INDEX` | `0` | OpenCV 백엔드일 때 카메라 인덱스 |
 | `PI_FRAME_W` / `PI_FRAME_H` | 640 / 360 | 처리 해상도 |
 | `PI_TARGET_FPS` | 20 | 카메라 목표 fps |
+| `PI_MJPEG_QUALITY` | 90 | `rpicam-vid` MJPEG 압축 품질 (1~100) |
 | `PI_SHOW_PREVIEW` | 1 | 프리뷰 창 표시 (성능 부담 있음) |
 | `PI_DEBUG` | 0 | STATE JSON + 후보 로그 |
 | `PI_ENABLE_FISHEYE` | 1 | fisheye 왜곡 보정 |
