@@ -28,7 +28,7 @@ STABLE_STD_PX = 55.0
 JITTER_RESET_PX = 140.0
 BUFFER_MAXLEN = 50
 EMA_ALPHA = 0.25
-DEPTH_ASYNC = os.environ.get("PI_DEPTH_ASYNC", "1") != "0"
+DEPTH_ASYNC = os.environ.get("PI_DEPTH_ASYNC", "0") != "0"
 DEPTH_ASYNC_FPS = max(0.5, float(os.environ.get("PI_DEPTH_ASYNC_FPS", "4.0")))
 DEPTH_RESULT_MAX_AGE_SECONDS = max(
     0.05,
