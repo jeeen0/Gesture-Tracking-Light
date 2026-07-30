@@ -11,8 +11,18 @@ import numpy as np
 HAND_WRIST_TO_MIDDLE_MCP_M = 0.10
 RAY_STEP_PX = 4
 RAY_MAX_STEPS = 300
-DEPTH_HIT_THRESHOLD = 0.12
-DEPTH_UPDATE_INTERVAL = 4
+DEPTH_HIT_THRESHOLD = min(
+    0.5,
+    max(0.0, float(os.environ.get("PI_DEPTH_HIT_THRESHOLD", "0.12"))),
+)
+RAY_START_MARGIN_PX = max(
+    0.0,
+    float(os.environ.get("PI_POINT_RAY_START_MARGIN_PX", "35")),
+)
+DEPTH_UPDATE_INTERVAL = max(
+    1,
+    int(os.environ.get("PI_DEPTH_UPDATE_INTERVAL", "4")),
+)
 STABLE_SECONDS = 3.0
 STABLE_STD_PX = 55.0
 JITTER_RESET_PX = 140.0
@@ -284,6 +294,11 @@ class PointingTargetEstimator:
         self._async_stop = False
         self._async_condition = threading.Condition()
         self._async_thread = None
+        print(
+            f"[Pointing] ray config hit_threshold={DEPTH_HIT_THRESHOLD:g} "
+            f"start_margin={RAY_START_MARGIN_PX:g}px "
+            f"depth_update_interval={DEPTH_UPDATE_INTERVAL}"
+        )
         if self.async_depth:
             self._async_thread = threading.Thread(
                 target=self._depth_worker,
@@ -624,7 +639,7 @@ class PointingTargetEstimator:
         my_c = int(np.clip(my, 0, self.frame_h - 1))
         start_midas = float(depth_map[my_c, mx_c])
         start_depth_m = self.depth_est.midas_to_meters(start_midas)
-        start_offset = dist + 35
+        start_offset = dist + RAY_START_MARGIN_PX
 
         for step in range(RAY_MAX_STEPS):
             t = start_offset + step * RAY_STEP_PX
