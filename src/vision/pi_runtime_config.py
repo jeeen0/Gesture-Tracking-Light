@@ -169,7 +169,7 @@ POINT_ARM_MIN_HITS = min(
     POINT_ARM_WINDOW,
     max(1, int(os.environ.get("PI_POINT_ARM_MIN_HITS", "3"))),
 )
-POINT_RAY_MODE = os.environ.get("PI_POINT_RAY_MODE", "mcp_tip").strip().lower()
+POINT_RAY_MODE = os.environ.get("PI_POINT_RAY_MODE", "world_3d").strip().lower()
 
 # Optional pixel-to-servo lookup calibration. Missing files fall back to
 # center/gain/offset conversion.

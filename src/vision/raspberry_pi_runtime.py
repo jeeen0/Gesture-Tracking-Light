@@ -581,6 +581,8 @@ def print_status(payload):
         f"MODE={payload['mode']} "
         f"gesture={payload['gesture'] or '-'} hand={payload['hand_detected']} "
         f"point_mode={payload['point_mode']} point={payload['point_status']} "
+        f"hit={payload.get('point_hit_method') or '-'} "
+        f"samples={payload.get('point_sample_count', 0)} "
         f"pan={payload['pan_deg']:+.1f} tilt={payload['tilt_deg']:+.1f} "
         f"fps={payload['fps']}",
         flush=True,
@@ -616,7 +618,9 @@ def draw_preview_overlay(frame, controller, fps, gesture, hand_detected, bbox, s
         f"gesture:{gesture or '-'} bright:{controller.brightness} last:{controller.last_brightness_gesture or '-'}",
         f"mode:{controller.mode} point_mode:{controller.point_mode} point:{controller.point_status} yolo:{controller.yolo_status}",
         f"wave:{state.get('wave_active')} span:{state.get('wave_motion_span', 0):.1f} turns:{state.get('wave_motion_turns', 0)} hits:{state.get('wave_open_palm_hits', 0)}/{state.get('wave_confirm_min_hits', 0)}",
-        f"pan:{controller.preview_pan_deg:+.1f} tilt:{controller.preview_tilt_deg:+.1f} std:{controller.point_std_px:.0f}px",
+        f"pan:{controller.preview_pan_deg:+.1f} tilt:{controller.preview_tilt_deg:+.1f} "
+        f"std:{controller.point_std_px:.0f}px n:{controller.point_sample_count} "
+        f"hit:{controller.point_hit_method or '-'}",
     ]
     for i, text in enumerate(lines):
         cv2.putText(panel, text, (18, 30 + i * 24), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 2)

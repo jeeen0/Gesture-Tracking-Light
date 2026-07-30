@@ -266,3 +266,117 @@ MiDaS 깊이 맵은 4fps로 갱신하지만, 최신 깊이 맵과 현재 손 좌
 
 `finger_axis`는 화면 포인터가 `mcp_tip`보다 일관되게 정확할 때만
 A/B 비교 후 사용합니다.
+
+## 4. Coherent 3D pointing 실험 브랜치
+
+`codex/coherent-pointing-surface` 브랜치는 임의의 벽·책상·물체 표면을
+유지하면서 다음 세 문제를 분리해 개선합니다.
+
+- 깊이맵과 손 랜드마크를 같은 프레임 단위로 worker에 전달
+- 한 깊이 결과를 안정화 샘플로 한 번만 사용
+- 한 픽셀 대신 7x7 깊이 패치와 연속 3개 hit로 표면 검증
+- MediaPipe world landmark로 검지 3D 축을 만들고 실패 시 2D 패치
+  방식으로 fallback
+- 최소 8개 표본과 3초를 모두 충족해야 목표 잠금
+- POINT가 실제 추론 프레임에서 끊기면 이전 표본과 pending job 제거
+
+### 라즈베리파이에서 브랜치 받기
+
+```bash
+git fetch origin
+git switch codex/coherent-pointing-surface
+git pull origin codex/coherent-pointing-surface
+```
+
+Pi에만 있는 `src/calibration/servo_pointing_calibration.json`은 그대로
+사용합니다. 시작 로그에서 LUT 적용 여부를 별도로 확인합니다.
+
+```text
+mode=residual_2d
+servo_mapping=angle_gain_offset+residual_2d_lut
+```
+
+### 테스트 1: coherent 3D 기본 모드
+
+```bash
+PI_DEPTH_ASYNC=1 \
+PI_DEPTH_ASYNC_FPS=4 \
+PI_DEPTH_RESULT_MAX_AGE=0.75 \
+PI_POINT_RAY_MODE=world_3d \
+PI_DEPTH_PATCH_RADIUS=3 \
+PI_DEPTH_PATCH_MIN_VALID_RATIO=0.60 \
+PI_DEPTH_PATCH_MAX_REL_MAD=0.12 \
+PI_DEPTH_PATCH_MAX_REL_SPREAD=0.35 \
+PI_DEPTH_HIT_CONSECUTIVE=3 \
+PI_POINT_STABLE_MIN_SAMPLES=8 \
+PI_SHOW_PREVIEW=1 \
+PI_SHOW_DEPTH=1 \
+PI_DEBUG=1 \
+python -m src.main 2>&1 | tee coherent_world_3d.log
+```
+
+테스트 표면은 최소 세 종류를 사용합니다.
+
+1. 정면 벽처럼 넓고 평평한 표면
+2. 책상처럼 기울어진 평면
+3. 의자·상자처럼 벽보다 앞에 있는 물체
+
+각 표면에서 좌·중앙·우 지점을 3회씩 가리키고 화면 포인터 오차와 실제
+조명 오차를 따로 기록합니다.
+
+### 테스트 2: 같은 worker에서 2D 검지 축만 비교
+
+비동기 프레임 결합과 패치 검증은 유지하고 MediaPipe world z축만
+제외하는 비교입니다.
+
+```bash
+PI_DEPTH_ASYNC=1 \
+PI_POINT_RAY_MODE=finger_axis \
+PI_DEPTH_PATCH_RADIUS=3 \
+PI_DEPTH_HIT_CONSECUTIVE=3 \
+PI_POINT_STABLE_MIN_SAMPLES=8 \
+PI_SHOW_PREVIEW=1 \
+PI_SHOW_DEPTH=1 \
+PI_DEBUG=1 \
+python -m src.main 2>&1 | tee coherent_finger_axis.log
+```
+
+### `hit_method` 해석
+
+| 값 | 의미 |
+|---|---|
+| `depth_march_world_3d` | 3D 검지 광선이 패치 검증된 깊이 표면과 교차 |
+| `depth_march_patch_2d_fallback` | 3D 교차 실패 후 같은 프레임의 2D 패치 광선이 표면 검출 |
+| `depth_march_patch_2d` | `finger_axis` 또는 `mcp_tip` 2D 패치 모드 |
+| `2d_fallback_after_depth` | 깊이 표면을 찾지 못해 화면 끝 좌표 사용 |
+| `2d_fallback_depth_error` | MiDaS 실행 오류로 2D 화면 끝 좌표 사용 |
+| `depth_result_stale` | 깊이 결과가 최대 허용 시간보다 늦어 안정화에서 제외 |
+
+### 결과 해석
+
+- `depth_march_world_3d`가 반복해서 같은 표면 지점을 잡으면 새 방식을
+  유지합니다.
+- `depth_march_patch_2d_fallback`이 대부분이면 현재 카메라 자세에서
+  MediaPipe world z축이 안정적이지 않은 것입니다. 우선
+  `finger_axis`를 사용하고 3D 좌표축 부호·스케일을 추가 보정합니다.
+- 벽은 맞지만 앞쪽 물체를 지나쳐 벽을 선택하면 패치 문제가 아니라
+  3D 광선 깊이 또는 MiDaS 물체 깊이 문제입니다.
+- 물체 경계에서 포인터가 튀지 않고 fallback이 늘었다면 패치 검증이
+  너무 엄격할 수 있습니다. 먼저 `PI_DEPTH_PATCH_MAX_REL_SPREAD=0.50`,
+  그다음 `PI_DEPTH_HIT_CONSECUTIVE=2` 순서로만 완화합니다.
+- 포인터는 정확하지만 잠금이 너무 늦으면
+  `PI_POINT_STABLE_MIN_SAMPLES=6`으로 진단합니다. 정확도가 떨어지면
+  8로 복원합니다.
+- 계속 `tracking_depth_waiting`만 보이면 MiDaS 처리 시간이
+  `PI_DEPTH_RESULT_MAX_AGE`보다 긴 것입니다. 로그를 확인한 뒤 진단용으로
+  `PI_DEPTH_RESULT_MAX_AGE=1.5`를 사용합니다.
+- 화면 포인터는 정확하고 조명만 빗나가면 이 브랜치 문제가 아니라
+  LUT·서보 중심·부호 문제입니다.
+- `world_3d`와 `finger_axis`가 모두 같은 방향으로 틀리면 어안 보정
+  intrinsics 또는 화면 좌표 변환을 확인합니다.
+
+### 원래 브랜치로 복귀
+
+```bash
+git switch feature/roi-pointing-v1
+```

@@ -82,6 +82,11 @@ class PiSmartLightController:
         self.point_display_target = None
         self.point_stable_ratio = 0.0
         self.point_std_px = 0.0
+        self.point_sample_count = 0
+        self.point_hit_method = None
+        self.point_depth_age_seconds = None
+        self.point_depth_processing_seconds = None
+        self.point_source_sequence = None
 
         # ── 서보 (모터) 제어 ── 0521_v2m
         self.servo = None
@@ -410,7 +415,12 @@ class PiSmartLightController:
             self.save_state(debounce=True)
             emit("brightness", gesture=gesture, brightness=self.brightness, delta=self.brightness - old)
 
-    def update_point_target(self, frame, hand_landmarks):
+    def update_point_target(
+        self,
+        frame,
+        hand_landmarks,
+        world_landmarks=None,
+    ):
         if not ENABLE_POINTING:
             self.point_status = "disabled"
             return
@@ -437,7 +447,11 @@ class PiSmartLightController:
             self.point_status = "ready"
             emit("pointing_ready", method="sync_fallback")
 
-        target = self.point_estimator.update(frame, hand_landmarks)
+        target = self.point_estimator.update(
+            frame,
+            hand_landmarks,
+            world_landmarks=world_landmarks,
+        )
         if target.get("async_pending"):
             self.point_status = "tracking_depth_waiting"
         elif target.get("depth_available") is False:
@@ -449,6 +463,13 @@ class PiSmartLightController:
         self.point_display_target = target.get("display_target")
         self.point_stable_ratio = float(target.get("stable_ratio", 0.0))
         self.point_std_px = float(target.get("std_px", 0.0))
+        self.point_sample_count = int(target.get("sample_count", 0))
+        self.point_hit_method = target.get("hit_method")
+        self.point_depth_age_seconds = target.get("depth_age_seconds")
+        self.point_depth_processing_seconds = target.get(
+            "depth_processing_seconds"
+        )
+        self.point_source_sequence = target.get("source_sequence")
         self.point_ray_start_px = target.get("ray_start_px")
         self.point_ray_tip_px = target.get("ray_tip_px")
         self.point_ray_hit_px = target.get("raw_target")
@@ -568,6 +589,14 @@ class PiSmartLightController:
 
     def apply_gesture(self, gesture, results, frame, wave_active, sample_updated=True):
         self._update_point_arm(gesture, sample_updated)
+        if (
+            self.point_mode
+            and self.point_tracking_armed
+            and sample_updated
+            and gesture != "POINT"
+            and self.point_estimator is not None
+        ):
+            self.point_estimator.note_not_pointing()
         if gesture is None:
             if not self.mode_switch_armed:
                 now = time.time()
@@ -613,7 +642,17 @@ class PiSmartLightController:
                 return None
             if not self.point_tracking_armed:
                 return gesture
-            self.update_point_target(frame, results.multi_hand_landmarks[0])
+            world_landmarks = None
+            if (
+                getattr(results, "multi_hand_world_landmarks", None)
+                and len(results.multi_hand_world_landmarks) > 0
+            ):
+                world_landmarks = results.multi_hand_world_landmarks[0]
+            self.update_point_target(
+                frame,
+                results.multi_hand_landmarks[0],
+                world_landmarks=world_landmarks,
+            )
         elif gesture in ("THUMBS_UP", "THUMBS_DOWN"):    #0520_v2m   
             self._reset_hold()
             if not self.point_mode:              # ← 추가: 포인트모드 중엔 밝기 변경 무시
@@ -669,6 +708,19 @@ class PiSmartLightController:
             "point_display_target": self.point_display_target,
             "point_stable_ratio": round(self.point_stable_ratio, 2),
             "point_std_px": round(self.point_std_px, 1),
+            "point_sample_count": self.point_sample_count,
+            "point_hit_method": self.point_hit_method,
+            "point_depth_age_seconds": (
+                round(float(self.point_depth_age_seconds), 3)
+                if self.point_depth_age_seconds is not None
+                else None
+            ),
+            "point_depth_processing_seconds": (
+                round(float(self.point_depth_processing_seconds), 3)
+                if self.point_depth_processing_seconds is not None
+                else None
+            ),
+            "point_source_sequence": self.point_source_sequence,
             "pan_deg": round(self.pan_deg, 2),
             "tilt_deg": round(self.tilt_deg, 2),
             "preview_pan_deg": round(self.preview_pan_deg, 2),
